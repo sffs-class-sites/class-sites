@@ -1,0 +1,65 @@
+{
+  "id": "important-dates",
+  "title": "SFFS 2026–27 Important Dates",
+  "subtitle": "Family calendar for the 2026–27 school year. Revised January 13, 2026 — all dates subject to change.",
+  "source": {
+    "label": "View original PDF on Google Drive",
+    "url": "https://drive.google.com/file/d/1E20hWbxEMMhRkEJEfQxO2ODfT1bcMYLz/view",
+    "file": "2026-27 Important Dates FINAL 01.21.26.pdf",
+    "revised": "2026-01-13"
+  },
+  "star_note": "No enrichment classes (ED/A3)",
+  "footer": [
+    "Community MFW is held monthly on the first Wednesday during the school year.",
+    "*No enrichment classes will be held on dates marked with an asterisk. All dates subject to change — always confirm against the original PDF."
+  ],
+  "categories": {
+    "noschool": "No school",
+    "break": "Multi-day break",
+    "early": "Early dismissal",
+    "event": "School event",
+    "info": "Family info night"
+  },
+  "events": [
+    {"date": "2026-08-26", "cat": "event", "badge": "School starts", "title": "First day of school", "details": "K–8, staggered early dismissals. Intake conferences in progress. ED/A3 available, 1st–8th.", "star": true},
+
+    {"date": "2026-09-07", "cat": "noschool", "badge": "No school", "title": "Labor Day", "details": "No school, no ED/A3.", "star": true},
+    {"date": "2026-09-17", "cat": "info", "badge": "Info night", "title": "Lower School Back to School Night", "details": "Limited ED/A3 available.", "star": true},
+    {"date": "2026-09-24", "cat": "info", "badge": "Info night", "title": "Middle School Back to School Night", "details": "Limited ED/A3 available.", "star": true},
+
+    {"date": "2026-10-09", "cat": "noschool", "badge": "No school", "title": "Professional Development Day", "details": "No school, no ED/A3.", "star": true},
+    {"date": "2026-10-12", "cat": "noschool", "badge": "No school", "title": "Indigenous Peoples’ Day", "details": "No school, no ED/A3.", "star": true},
+    {"date": "2026-10-29", "cat": "noschool", "badge": "No school", "title": "Conference Day, K–8", "details": "No school, ED/A3 available.", "star": true},
+    {"date": "2026-10-30", "cat": "noschool", "badge": "No school", "title": "Conference Day, K–8", "details": "No school, ED/A3 available.", "star": true},
+
+    {"date": "2026-11-20", "cat": "early", "badge": "Early dismissal", "title": "Grandfriends Day", "details": "Early dismissal schedule. ED/A3 available.", "star": true},
+    {"date": "2026-11-23", "end": "2026-11-27", "cat": "break", "badge": "Break", "title": "Fall break", "details": "No school, no ED/A3.", "star": true},
+
+    {"date": "2026-12-12", "cat": "event", "badge": "Event", "title": "Crafts Fair", "details": "", "star": false},
+    {"date": "2026-12-16", "cat": "event", "badge": "Event", "title": "Candlelight MFW", "details": "", "star": false},
+    {"date": "2026-12-18", "cat": "early", "badge": "Early dismissal", "title": "Winter Celebration", "details": "Early dismissal schedule. ED/A3 available.", "star": false},
+    {"date": "2026-12-21", "end": "2027-01-01", "cat": "break", "badge": "Break", "title": "Winter break", "details": "No school, no ED/A3.", "star": true},
+
+    {"date": "2027-01-04", "cat": "event", "badge": "Event", "title": "Classes resume", "details": "", "star": false},
+    {"date": "2027-01-15", "cat": "noschool", "badge": "No school", "title": "In-Service Day", "details": "No school, no ED/A3.", "star": true},
+    {"date": "2027-01-18", "cat": "noschool", "badge": "No school", "title": "Martin Luther King Jr. Day", "details": "No school, no ED/A3.", "star": true},
+
+    {"date": "2027-02-15", "end": "2027-02-19", "cat": "break", "badge": "Break", "title": "Mid-Winter break", "details": "No school. ED/A3 available Feb 16–19.", "star": true},
+
+    {"date": "2027-03-13", "cat": "event", "badge": "Event", "title": "Blue Party", "details": "", "star": false},
+    {"date": "2027-03-19", "cat": "noschool", "badge": "No school", "title": "Professional Development Day", "details": "No school, no ED/A3.", "star": true},
+
+    {"date": "2027-04-01", "cat": "noschool", "badge": "No school", "title": "Conference Day, K–8", "details": "No school, ED/A3 available.", "star": true},
+    {"date": "2027-04-02", "cat": "noschool", "badge": "No school", "title": "Conference Day, K–8", "details": "No school, ED/A3 available.", "star": true},
+    {"date": "2027-04-12", "end": "2027-04-16", "cat": "break", "badge": "Break", "title": "Spring break", "details": "No school. ED/A3 TBD.", "star": true},
+
+    {"date": "2027-05-07", "cat": "event", "badge": "Event", "title": "Field Day", "details": "ED/A3 available.", "star": true},
+    {"date": "2027-05-28", "cat": "noschool", "badge": "No school", "title": "In-Service Day", "details": "No school, no ED/A3.", "star": true},
+    {"date": "2027-05-31", "cat": "noschool", "badge": "No school", "title": "Memorial Day", "details": "No school, no ED/A3.", "star": true},
+
+    {"date": "2027-06-07", "cat": "info", "badge": "Info night", "title": "Middle School Portfolio Presentation Night", "details": "", "star": false},
+    {"date": "2027-06-08", "cat": "event", "badge": "Event", "title": "Lower School Portfolio Day", "details": "", "star": false},
+    {"date": "2027-06-09", "cat": "event", "badge": "Last day", "title": "Year End Celebration & last day of school", "details": "No ED/A3.", "star": true},
+    {"date": "2027-06-10", "cat": "event", "badge": "Event", "title": "8th Grade Graduation", "details": "", "star": false}
+  ]
+}
