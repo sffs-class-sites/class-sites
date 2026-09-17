@@ -1,0 +1,31 @@
+# Which embed goes where. The monitor (not built yet) reads this file.
+#
+# type: url  -> the Sites slot holds our GitHub Pages URL; content updates automatically.
+# type: code -> the slot holds pasted embed code; we track its hash.
+# box: editor-canvas size at a 1440px window (playbook §2.1: published ≈ editor × 1.234).
+
+embeds:
+  important-dates:
+    type: url
+    path: shared/important-dates/
+    owner: platform
+
+sites:
+  grade-3:
+    name: 3rd Grade Class Page
+    site_id: 1x30kZaz22W2SSzdL3fTxNm0jbSVyKWo9
+    live: https://sites.google.com/sffriendsschool.org/sffs-3rd-class-page/
+    slots:
+      - page: home
+        embed: important-dates
+        box: {w: 935, h: 897}
+        status: pasted-code   # migrate to url
+  grade-1:
+    name: 1st Grade Class Page
+    site_id: 1vqA_IFOx0oCDUi95RtQ-PPo-3LcD_szY
+    live: https://sites.google.com/sffriendsschool.org/sffs-1st-class-page/home
+    slots:
+      - page: home
+        embed: important-dates
+        box: null             # not measured yet
+        status: pasted-code   # migrate to url
