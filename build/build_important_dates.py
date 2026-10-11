@@ -73,7 +73,7 @@ def outlook_url(e):
 
 
 def slugify(text):
-    """Same as the live embed, so UIDs match and re-importing never duplicates events."""
+    """Same as the live embed. Names per-event .ics files; UIDs are stored in data.json, not derived."""
     return re.sub(r"(^-|-$)", "", re.sub(r"[^a-z0-9]+", "-", (text or "").lower()))[:40] or "event"
 
 
@@ -97,11 +97,28 @@ def ics_calendar(vevents):
             "CALSCALE:GREGORIAN\r\n" + "\r\n".join(vevents) + "\r\nEND:VCALENDAR\r\n")
 
 
+def check_uids(events):
+    """Every event carries its own stored uid (docs/dates-pipeline.md). Never recompute one:
+    a changed UID duplicates the event in every family calendar that already imported it."""
+    errors, seen = [], set()
+    for e in events:
+        uid = e.get("uid")
+        if not uid:
+            errors.append(f"{e['date']} {e['title']!r}: no uid. Assign one once, when the event is approved, "
+                          f"e.g. {e['date']}-{slugify(e['title'])}@sffs-calendar, and never change it")
+        elif uid in seen:
+            errors.append(f"{e['date']} {e['title']!r}: duplicate uid {uid}")
+        seen.add(uid)
+    if errors:
+        sys.exit("uid check failed:\n  " + "\n  ".join(errors))
+
+
 def build(data):
+    check_uids(data["events"])
     raw = json.dumps(data, sort_keys=True, ensure_ascii=False).encode()
     version = f"{data['source']['revised']}.{hashlib.sha256(raw).hexdigest()[:8]}"
     events = sorted(data["events"], key=lambda e: e["date"])
-    seen, vevents, metas = {}, [], []
+    vevents, metas = [], []
 
     rows, months_seen = [], []
     for i, e in enumerate(events):
@@ -111,10 +128,7 @@ def build(data):
             months_seen.append(mkey)
             rows.append(f'<tr class="month-row" id="{mkey}" data-month="{mkey}">'
                         f'<td colspan="4">{MONTHS_LONG[a.month-1]} {a.year}</td></tr>')
-        base = f"{e['date']}-{slugify(e['title'])}"
-        seen[base] = seen.get(base, 0) + 1
-        uid = (base + (f"-{seen[base]}" if seen[base] > 1 else "")) + "@sffs-calendar"
-        vevents.append(ics_event(e, uid))
+        vevents.append(ics_event(e, e["uid"]))
         metas.append({"g": gcal_url(e), "o": outlook_url(e), "f": f"{e['date']}-{slugify(e['title'])}.ics", "t": e["title"]})
         cat = e["cat"]
         star = ' <span class="star" title="{0}" aria-label="{0}">*</span>'.format(html.escape(data["star_note"])) if e.get("star") else ""
