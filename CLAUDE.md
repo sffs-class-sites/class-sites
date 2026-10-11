@@ -72,7 +72,8 @@ Humans author in Google Docs and Sheets. A `Site Map` sheet (authored by Ahin) i
 - A push to `main` publishes to every live site. `main` is production: all changes go through a pull request.
 - `main` is protected by the ruleset **protect main** (id 24882477, active since 2026-10-11): require a PR (0 approvals), require the `build` check from GitHub Actions, block force-push and deletion, no bypass actors. Raise required approvals only once a second maintainer exists (GitHub won't let an author approve their own PR).
 - A direct push to `main` is refused with `GH013: Repository rule violations` ("Changes must be made through a pull request", "Required status check \"build\" is expected"). Tested 2026-10-11.
-- `SFQuakerBot` has write access, not admin, so it cannot edit or remove the ruleset. Ruleset changes are made by an org owner.
+- `SFQuakerBot` (the GitHub account Claude sessions use) is an **org owner**, alongside `Ahin-SFFS`. That is deliberate for setup and stays until §9 item 11. Owners get admin on every repo, so a per-repo downgrade does nothing while the role stands.
+- Residual risk: the ruleset has no bypass actors, so the bot **cannot** push past it (verified 2026-10-11, the direct push above was made while it was an owner). It **can** edit or delete the ruleset, because owners can manage rulesets. That follows from GitHub's permission model and was deliberately not tested. Until the demotion, no session should change rulesets, branch settings or org membership without Ahin asking for it in that session.
 - Every PR must be reviewable without reading code: CI posts desktop + phone screenshots and a plain-English summary (events added/changed/removed).
 - Rollback = revert the merge commit.
 
@@ -131,3 +132,4 @@ Humans author in Google Docs and Sheets. A `Site Map` sheet (authored by Ahin) i
 8. **Alerts**: who hears about failed CI, failed deploys, red/amber monitor, pending approvals.
 9. **Content standards**: accessibility checks in CI, Handbook accuracy with citations, search-engine indexing setting for sites showing personal data.
 10. **Keep Claude usage low**: routine checks run in Actions; Claude handles submissions, new embed types and judgment calls.
+11. **Demote `SFQuakerBot` to org Member with write access on this repo** once setup is done (ruleset, Pages, Actions secrets, bot credentials). Then it can no longer change the ruleset. An org owner must do it: the bot's token lacks `admin:org`. Afterwards, confirm through the API that its org role is `member` and its repo permission is `write`.
