@@ -70,7 +70,9 @@ Humans author in Google Docs and Sheets. A `Site Map` sheet (authored by Ahin) i
 ## 4. Change control
 
 - A push to `main` publishes to every live site. `main` is production: all changes go through a pull request.
-- Protect `main` with a ruleset: require a PR, require CI to pass, block force-push and deletion. Required approvals only once a second maintainer exists (GitHub won't let an author approve their own PR).
+- `main` is protected by the ruleset **protect main** (id 24882477, active since 2026-10-11): require a PR (0 approvals), require the `build` check from GitHub Actions, block force-push and deletion, no bypass actors. Raise required approvals only once a second maintainer exists (GitHub won't let an author approve their own PR).
+- A direct push to `main` is refused with `GH013: Repository rule violations` ("Changes must be made through a pull request", "Required status check \"build\" is expected"). Tested 2026-10-11.
+- `SFQuakerBot` has write access, not admin, so it cannot edit or remove the ruleset. Ruleset changes are made by an org owner.
 - Every PR must be reviewable without reading code: CI posts desktop + phone screenshots and a plain-English summary (events added/changed/removed).
 - Rollback = revert the merge commit.
 
@@ -103,13 +105,14 @@ Humans author in Google Docs and Sheets. A `Site Map` sheet (authored by Ahin) i
 - `shared/important-dates/` → https://sffs-class-sites.github.io/class-sites/shared/important-dates/ — 30 events for 2026–27, byte-identical to the local build.
 - Embedded by URL on the scratch site `sites.google.com/view/zz-sffs-embed-test-scratch-saf` (Ahin's personal Google account; delete once the pattern is proven). **The live 1st- and 3rd-grade homepages still carry the older pasted-code embed.**
 - CI: validate data vs `source-2026-27.txt` → build → `tests/render_check.py` (Playwright; iframe with Sites' exact sandbox attributes; desktop/tablet/phone) → deploy.
-- Not built yet: the `Site Map` index, Drive sync, the monitor/dashboard, branch protection, PR screenshots.
+- `main` ruleset is on (see §4).
+- Not built yet: the `Site Map` index, Drive sync, the monitor/dashboard, PR screenshots.
 
 ## 8. Next steps (one at a time)
 
 0. **Reconciliation pass, no code.** Read this file and both scoped docs. Confirm or add to the conflict list in §0. Produce one short memo: each conflict, the options, a recommendation, and what it costs. Change nothing until Ahin has answered. Anything you find that contradicts a decision in §1–§4 goes in the memo too.
 1. Commit this file. Freeze explicit `uid`s into `shared/important-dates/data.json`; keep CI green.
-2. Turn on the `main` ruleset; add the PR comment with screenshots and a plain-English change summary.
+2. ~~Turn on the `main` ruleset~~ (done 2026-10-11). Add the PR comment with screenshots and a plain-English change summary.
 3. Playwright job that opens the published scratch Site and clicks into the embed (filter, month jump, add button) — proves live-site behaviour without browser automation.
 4. Ahin swaps the live 3rd-grade homepage to the URL embed; human check desktop + iPhone; then 1st grade.
 5. `Site Map` sheet + generated copy in the repo; Drive sync job (read via bot identity, open a PR with a readable diff).
