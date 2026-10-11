@@ -17,7 +17,7 @@ A UID is the hidden identifier that travels into a parent's calendar when they a
 
 - **`uid` is stored explicitly on each event**, assigned once at first approval, and **never recomputed from the title**. Renaming an event changes the title only.
 - Retired UIDs stay on the record for near-match provenance. They are never reused.
-- **The code does not do this yet.** It currently derives the UID from date + title slug. That derivation was itself a fix for an earlier row-index-based scheme, and shipping it cost one accepted round of duplicates for families who had imported before the fix. Freezing the current values into `data.json` is the next step; the frozen values must match what the build produces today, exactly, or that cost is paid a second time.
+- **Done 2026-10-11:** `data.json` stores each event's `uid` and the build reads it; the frozen values were checked against both live pasted embeds and match exactly. History: the code used to derive the UID from date + title slug. That derivation was itself a fix for an earlier row-index-based scheme, and shipping it cost one accepted round of duplicates for families who had imported before the fix. The frozen values had to match the live embeds exactly, or that cost would have been paid a second time.
 
 ## Event schema
 
