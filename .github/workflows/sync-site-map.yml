@@ -1,0 +1,62 @@
+name: Sync Site Map
+
+# Reads the Site Map Google Sheet as the Drive bot and opens a PR when site-map.yaml changes.
+# Does nothing until it is configured (CLAUDE.md §8 step 5):
+#   secret   GOOGLE_SERVICE_ACCOUNT_JSON  the Drive bot's key, view-only on the Site Map
+#   secret   SYNC_BOT_TOKEN               a GitHub token that may open PRs. github.token can't:
+#                                         its PRs don't trigger CI, so the required `build` check never runs
+#   variable SITE_MAP_SHEET_ID            the Site Map spreadsheet's ID
+on:
+  schedule:
+    - cron: "5 15 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+      GH_TOKEN: ${{ secrets.SYNC_BOT_TOKEN }}
+      SHEET: ${{ vars.SITE_MAP_SHEET_ID }}
+    steps:
+      - name: Check configuration
+        id: cfg
+        run: |
+          if [ -z "$GOOGLE_SERVICE_ACCOUNT_JSON" ] || [ -z "$GH_TOKEN" ] || [ -z "$SHEET" ]; then
+            echo "Not configured yet: needs GOOGLE_SERVICE_ACCOUNT_JSON and SYNC_BOT_TOKEN secrets and the SITE_MAP_SHEET_ID variable. Nothing synced." >> "$GITHUB_STEP_SUMMARY"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.cfg.outputs.ready == 'true'
+        with:
+          token: ${{ secrets.SYNC_BOT_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        if: steps.cfg.outputs.ready == 'true'
+        with:
+          python-version: "3.12"
+
+      - name: Read the Site Map
+        if: steps.cfg.outputs.ready == 'true'
+        run: |
+          pip install pyyaml google-auth requests
+          python3 build/sync_site_map.py --sheet "$SHEET"
+
+      - name: Open or update the PR
+        if: steps.cfg.outputs.ready == 'true'
+        run: |
+          if git diff --quiet -- site-map.yaml; then echo "Site Map unchanged." >> "$GITHUB_STEP_SUMMARY"; exit 0; fi
+          git config user.name "SFQuakerBot"
+          git config user.email "sfquakerbot@gmail.com"
+          git switch -c sync/site-map-auto
+          git commit -m "Sync site-map.yaml from the Site Map sheet" -- site-map.yaml
+          git push -f origin sync/site-map-auto
+          gh pr view sync/site-map-auto --json state -q .state 2>/dev/null | grep -q OPEN \
+            || gh pr create --head sync/site-map-auto --base main --title "Site Map changed" \
+                 --body "The Site Map sheet changed. The diff below is the readable change; only rows marked publishable can reach the sites."
