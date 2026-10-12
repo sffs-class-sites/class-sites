@@ -45,6 +45,18 @@ def serve(directory, port):
     return srv
 
 
+def shot(page, path):
+    """Screenshots are for reviewers, not assertions: retry once, then just note it."""
+    for attempt in (1, 2):
+        try:
+            page.screenshot(path=str(path))
+            return
+        except Exception as e:
+            page.wait_for_timeout(500)
+            err = e
+    print(f"  note: no screenshot {path.name} ({str(err).splitlines()[0]})")
+
+
 def extract_checks(tmp):
     print("[extract]")
     rows = [l.split(",") for l in (FIX / "room-parents-live.csv").read_text().splitlines()]
@@ -128,7 +140,7 @@ def embed_checks(p, tmp):
                 check(a.get_attribute("href") == "mailto:parent.one@example.org" and a.get_attribute("target") == "_blank",
                       f"{label}: email opens mail in a new window, never navigates the frame")
                 check(fr.locator("text=Updated").count() == 1, f"{label}: shows when the list was updated")
-                page.screenshot(path=str(ROOT / "_harness" / f"room-parents-{label}.png"))
+                shot(page, ROOT / "_harness" / f"room-parents-{label}.png")
             if name == "load error":
                 check(fr.get_by_role("button", name="Try again").count() == 1, f"{label}: load error offers Try again")
             ctx.close()
