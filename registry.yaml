@@ -18,6 +18,10 @@ embeds:
     path: shared/important-dates/
     owner: platform
     match: "@sffs-calendar"
+  room-parents:
+    type: url
+    path: shared/room-parents/   # placed with ?class=YYYY; not on any site yet
+    owner: platform
 
 sites:
   class-2032:            # 3rd grade in 2026–27

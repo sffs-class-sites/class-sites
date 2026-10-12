@@ -134,7 +134,8 @@ The repo has no Actions secrets yet.
 - `main` ruleset is on (see §4).
 - Monitor: `tests/monitor.py` runs in every deploy and daily, and writes https://sffs-class-sites.github.io/class-sites/status/ from `registry.yaml` (plain HTTP, no browser). Per slot: URL embed present = green; old pasted copy = amber, with its hash compared to the recorded one; missing or page down = red. Red opens one issue for Ahin-SFFS and it closes itself when fixed. Amber never alerts.
 - Site Map: `build/sync_site_map.py` turns the sheet into `site-map.yaml` (generated; do not edit). It fails closed: a source is `publishable` only with Sync = Yes, a Drive file ID, a publish list, Approved by and Approved on; `tests/test_site_map.py` checks this in CI. `sync-site-map.yml` runs daily but does nothing until it has the Drive bot key, a PR-capable token and the sheet ID (see the workflow header). A draft sheet exists in Ahin's personal Drive, to move to the school account. Put a role, not a person's name, in Approved by, since it lands in public git.
-- Not built yet: the Drive bot identity, so no real sync has run. Also not built from §1: no `?class=` handling or grade calculation; one Important Dates URL serves every grade; `data.json` has `uid` but not `audience` or `start_time`/`end_time`.
+- Room parents (pattern A): `shared/room-parents/?class=YYYY` fetches `data/room-parents.json` at view time and shows loading, loaded, empty, not-published and error states. `build/extract_room_parents.py` writes that file at deploy time from the master sheet's Live tab, keeping only publish-list columns, and only when the Site Map marks room-parents publishable; an invalid row writes nothing and fails the deploy. The extract is never committed. `apps-script/room-parents/Code.gs` is the Draft/Live/Log/History Publish menu (not installed anywhere yet). `tests/room_parents_check.py` covers all three with fake people. The JSON shape in `build/build_room_parents.py` is the contract pattern B must keep.
+- Not built yet: the Drive bot identity, so no real sync or extract has run. Also not built from §1: no `?class=` handling or grade calculation; one Important Dates URL serves every grade; `data.json` has `uid` but not `audience` or `start_time`/`end_time`.
 
 ## 8. Next steps (one at a time)
 
@@ -144,7 +145,7 @@ The repo has no Actions secrets yet.
 3. ~~Playwright job that opens the published scratch Site and clicks into the embed (filter, month jump, add button)~~ (done 2026-10-11; also measures frame size per window width).
 4. Ahin swaps the live 3rd-grade homepage to the URL embed; human check desktop + iPhone; then 1st grade.
 5. `Site Map` sheet + generated copy in the repo; Drive sync job (read via bot identity, open a PR with a readable diff). *Built 2026-10-11 up to the credential boundary:* blocked on the Drive bot account, a `SYNC_BOT_TOKEN` (a PR opened with `github.token` never triggers the required `build` check), and moving the draft sheet to the school account.
-6. First pattern-A embed: room parent contacts (Draft/Live/Log/History tabs, Publish menu item, extract, loading and failure states).
+6. First pattern-A embed: room parent contacts (Draft/Live/Log/History tabs, Publish menu item, extract, loading and failure states). *Built and tested with fake data 2026-10-11.* To go live: the school's OK, the Drive bot, a master sheet in the school account with `Code.gs` installed and `PUBLISHERS` filled in, a Site Map row marked approved, then place the embed by URL with `?class=`.
 7. ~~Monitor + Harvey-ball dashboard across all sites~~ (done 2026-10-11: `/status/`; the ball fills as a site's slots become healthy URL embeds).
 
 ## 9. Scaling backlog (decisions still open)

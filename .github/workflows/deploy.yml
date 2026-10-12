@@ -18,6 +18,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      HAS_DRIVE_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON != '' }}
     outputs:
       monitor-status: ${{ steps.monitor.outputs.status }}
       monitor-broken: ${{ steps.monitor.outputs.broken }}
@@ -41,7 +43,20 @@ jobs:
           python3 tests/test_site_map.py
 
       - name: Build embeds
-        run: python3 build/build_important_dates.py
+        run: |
+          python3 build/build_important_dates.py
+          python3 build/build_room_parents.py
+
+      # Pattern A (CLAUDE.md §3): personal data is fetched at deploy time and never committed.
+      # Writes nothing unless the Site Map marks room-parents publishable. An invalid Live tab
+      # fails the build, so the previous deployment stays up rather than a partial list.
+      - name: Room parents extract
+        if: github.event_name != 'pull_request' && env.HAS_DRIVE_KEY == 'true'
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          pip install pyyaml google-auth requests
+          python3 build/extract_room_parents.py --sheet
 
       # Status page at /status/. Checks the live Sites, not this change, so it never blocks a deploy.
       - name: Monitor live sites
@@ -59,6 +74,9 @@ jobs:
 
       - name: Render check in a Google Sites-style sandbox (desktop, tablet, phone)
         run: python3 tests/render_check.py
+
+      - name: Room parents checks (fake data; extract, Apps Script validation, embed states)
+        run: python3 tests/room_parents_check.py
 
       - name: Upload screenshots
         if: always()
