@@ -5,6 +5,8 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: "41 14 * * *"   # daily: refresh the status page (tests/monitor.py)
 
 permissions:
   contents: read
@@ -17,6 +19,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     outputs:
+      monitor-status: ${{ steps.monitor.outputs.status }}
+      monitor-broken: ${{ steps.monitor.outputs.broken }}
       shot-desktop: ${{ steps.shot-desktop.outputs.artifact-url }}
       shot-tablet: ${{ steps.shot-tablet.outputs.artifact-url }}
       shot-phone: ${{ steps.shot-phone.outputs.artifact-url }}
@@ -33,6 +37,15 @@ jobs:
 
       - name: Build embeds
         run: python3 build/build_important_dates.py
+
+      # Status page at /status/. Checks the live Sites, not this change, so it never blocks a deploy.
+      - name: Monitor live sites
+        id: monitor
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        run: |
+          pip install pyyaml
+          python3 tests/monitor.py
 
       - name: Install Playwright
         run: |
@@ -124,6 +137,29 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
         run: gh pr comment "$PR" --body-file "$RUNNER_TEMP/comment.md" --edit-last --create-if-none
+
+  # Opens one issue for Ahin while the monitor shows something broken (red); closes it when fixed.
+  monitor-alert:
+    if: always() && github.event_name == 'schedule'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    env:
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      STATUS: ${{ needs.build.outputs.monitor-status }}
+      BROKEN: ${{ needs.build.outputs.monitor-broken }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Alert
+        run: |
+          if [ "$STATUS" = red ]; then result=fail; msg="Broken: $BROKEN"
+          elif [ -z "$STATUS" ]; then result=fail; msg="The monitor didn't report: it crashed, or the build failed before it ran."
+          else result=pass; msg=""; fi
+          printf '%s\n\nStatus page: https://sffs-class-sites.github.io/class-sites/status/\nRun: %s\n' "$msg" "$RUN_URL" > "$RUNNER_TEMP/body.md"
+          .github/scripts/alert.sh "Class sites monitor: something is broken" "$result" "$RUNNER_TEMP/body.md"
 
   deploy:
     if: github.event_name != 'pull_request'

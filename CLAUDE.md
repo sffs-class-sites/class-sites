@@ -132,7 +132,8 @@ The repo has no Actions secrets yet.
 - Embedded by URL on the scratch site `sites.google.com/view/zz-sffs-embed-test-scratch-saf` (Ahin's personal Google account; delete once the pattern is proven). **The live 1st- and 3rd-grade homepages still carry the older pasted-code embed.**
 - CI: validate data vs `source-2026-27.txt` → build → `tests/render_check.py` (Playwright; iframe with Sites' exact sandbox attributes; desktop/tablet/phone) → deploy. Daily, `.github/workflows/live-check.yml` opens the published scratch Site and clicks inside the embed (`tests/live_check.py`); a failure opens one issue assigned to Ahin-SFFS and it closes itself on the next pass. On a PR, the `pr-comment` job (not a required check) posts one comment, updated on every push: Important Dates events added/changed/removed, matched by `uid` (`tests/pr_summary.py`), plus links to each screenshot. The links need a GitHub login and expire after 90 days; screenshots are never committed (§3).
 - `main` ruleset is on (see §4).
-- Not built yet: the `Site Map` index, Drive sync, the monitor/dashboard. Also not built from §1: no `?class=` handling or grade calculation; one Important Dates URL serves every grade; `data.json` has `uid` but not `audience` or `start_time`/`end_time`.
+- Monitor: `tests/monitor.py` runs in every deploy and daily, and writes https://sffs-class-sites.github.io/class-sites/status/ from `registry.yaml` (plain HTTP, no browser). Per slot: URL embed present = green; old pasted copy = amber, with its hash compared to the recorded one; missing or page down = red. Red opens one issue for Ahin-SFFS and it closes itself when fixed. Amber never alerts.
+- Not built yet: the `Site Map` index, Drive sync. Also not built from §1: no `?class=` handling or grade calculation; one Important Dates URL serves every grade; `data.json` has `uid` but not `audience` or `start_time`/`end_time`.
 
 ## 8. Next steps (one at a time)
 
@@ -143,7 +144,7 @@ The repo has no Actions secrets yet.
 4. Ahin swaps the live 3rd-grade homepage to the URL embed; human check desktop + iPhone; then 1st grade.
 5. `Site Map` sheet + generated copy in the repo; Drive sync job (read via bot identity, open a PR with a readable diff).
 6. First pattern-A embed: room parent contacts (Draft/Live/Log/History tabs, Publish menu item, extract, loading and failure states).
-7. Monitor + Harvey-ball dashboard across all sites.
+7. ~~Monitor + Harvey-ball dashboard across all sites~~ (done 2026-10-11: `/status/`; the ball fills as a site's slots become healthy URL embeds).
 
 ## 9. Scaling backlog (decisions still open)
 
@@ -154,7 +155,7 @@ The repo has no Actions secrets yet.
 5. **Roles and access**, including yearly room-parent rotation, and a second maintainer.
 6. **Site template** with pre-sized embed slots so no one measures boxes per site.
 7. **Room-parent guide**: what to edit, what not to touch, how to request a change, how to undo.
-8. **Alerts**: who hears about failed CI, failed deploys, red/amber monitor, pending approvals.
+8. **Alerts**: who hears about failed CI, failed deploys, red/amber monitor, pending approvals. *So far:* red monitor and a failing live check open an issue assigned to Ahin-SFFS. Failed CI on a PR shows on the PR. Failed deploys and pending approvals alert nobody yet.
 9. **Content standards**: accessibility checks in CI, Handbook accuracy with citations, search-engine indexing setting for sites showing personal data.
 10. **Keep Claude usage low**: routine checks run in Actions; Claude handles submissions, new embed types and judgment calls.
 11. **Demote `SFQuakerBot` to org Member with write access on this repo** once setup is done (ruleset, Pages, Actions secrets, bot credentials). Then it can no longer change the ruleset. An org owner must do it: the bot's token lacks `admin:org`. Afterwards, confirm through the API that its org role is `member` and its repo permission is `write`.

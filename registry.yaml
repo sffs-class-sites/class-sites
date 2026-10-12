@@ -1,7 +1,10 @@
-# Which embed goes where. The monitor (not built yet) reads this file.
+# Which embed goes where. tests/monitor.py reads this file and builds the status page.
 #
 # type: url  -> the Sites slot holds our GitHub Pages URL; content updates automatically.
 # type: code -> the slot holds pasted embed code; we track its hash.
+# match: text that identifies this embed in a Site's HTML (URL embeds are found by their Pages URL).
+# live: the site's root URL; a slot's page is live + page.
+# status: url (placed by URL) | pasted-code (old copy; hash = sha256 of the pasted code, first 12 hex).
 # box: editor-canvas size, measured at a 1440px window. Only its shape (h / w) carries over:
 #      published width is Sites' content column (max 1154px), height = width × h / w (CLAUDE.md §0 #1).
 #
@@ -14,23 +17,34 @@ embeds:
     type: url
     path: shared/important-dates/
     owner: platform
+    match: "@sffs-calendar"
 
 sites:
   class-2032:            # 3rd grade in 2026–27
     name: 3rd Grade Class Page
     site_id: 1x30kZaz22W2SSzdL3fTxNm0jbSVyKWo9
-    live: https://sites.google.com/sffriendsschool.org/sffs-3rd-class-page/
+    live: https://sites.google.com/sffriendsschool.org/sffs-3rd-class-page
     slots:
       - page: home
         embed: important-dates
         box: {w: 935, h: 897}
         status: pasted-code   # migrate to url
+        hash: 86e0298ee805    # recorded 2026-10-11
   class-2034:            # 1st grade in 2026–27
     name: 1st Grade Class Page
     site_id: 1vqA_IFOx0oCDUi95RtQ-PPo-3LcD_szY
-    live: https://sites.google.com/sffriendsschool.org/sffs-1st-class-page/home
+    live: https://sites.google.com/sffriendsschool.org/sffs-1st-class-page
     slots:
       - page: home
         embed: important-dates
         box: null             # not measured yet
         status: pasted-code   # migrate to url
+        hash: 86e0298ee805    # recorded 2026-10-11
+  scratch:                 # test Site on Ahin's personal account; delete once the pattern is proven
+    name: Scratch embed test
+    kind: scratch
+    live: https://sites.google.com/view/zz-sffs-embed-test-scratch-saf
+    slots:
+      - page: home
+        embed: important-dates
+        status: url
