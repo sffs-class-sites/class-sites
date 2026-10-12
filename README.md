@@ -17,3 +17,4 @@ Every change runs through `.github/workflows/deploy.yml`: validate data against 
 | Embed | URL to paste into Google Sites (Insert → Embed → By URL → Whole page) |
 |---|---|
 | Important Dates | https://sffs-class-sites.github.io/class-sites/shared/important-dates/ |
+| Room Parents (not live yet) | https://sffs-class-sites.github.io/class-sites/shared/room-parents/?class=2034 (use the class's graduation year). Says "not published yet" until the school approves the list. |
