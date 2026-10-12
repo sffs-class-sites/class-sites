@@ -18,6 +18,7 @@ Three separate Claude threads fed this repo. Their notes live here as scoped doc
 | `CLAUDE.md` (this file) | Architecture, hosting, embed delivery, directory layout, naming, change control, personal data — repo-wide |
 | `docs/dates-pipeline.md` | Important Dates: event schema, UID rules, audience/grouping model, email ingestion, approval queues |
 | `docs/schedules.md` | Class schedule one-pagers: PDF extraction, colour/icon map, time-axis merge, fillable PDF form fields |
+| `docs/swap-to-url-embed.md` | Human checklist: swap a site's pasted copy to the URL embed, check desktop + iPhone, undo, then update `registry.yaml` |
 
 **Precedence.** This file wins on anything repo-wide. A scoped doc wins on the internals of its own artefact — the colour map, the axis-merge algorithm, the event schema. **Where they conflict outside that split, stop and ask Ahin.** Do not average two numbers, do not assume the newer doc is right, do not quietly pick one and carry on.
 
@@ -143,7 +144,7 @@ The repo has no Actions secrets yet.
 1. ~~Commit this file. Freeze explicit `uid`s into `shared/important-dates/data.json`; keep CI green~~ (done 2026-10-11; UIDs checked against both live pages first).
 2. ~~Turn on the `main` ruleset; add the PR comment with screenshots and a plain-English change summary~~ (done 2026-10-11; screenshots are links to CI files, not inline, so nothing lands in git).
 3. ~~Playwright job that opens the published scratch Site and clicks into the embed (filter, month jump, add button)~~ (done 2026-10-11; also measures frame size per window width).
-4. Ahin swaps the live 3rd-grade homepage to the URL embed; human check desktop + iPhone; then 1st grade.
+4. Ahin swaps the live 3rd-grade homepage to the URL embed; human check desktop + iPhone; then 1st grade. Checklist: `docs/swap-to-url-embed.md`.
 5. `Site Map` sheet + generated copy in the repo; Drive sync job (read via bot identity, open a PR with a readable diff). *Built 2026-10-11 up to the credential boundary:* blocked on the Drive bot account, a `SYNC_BOT_TOKEN` (a PR opened with `github.token` never triggers the required `build` check), and moving the draft sheet to the school account.
 6. First pattern-A embed: room parent contacts (Draft/Live/Log/History tabs, Publish menu item, extract, loading and failure states). *Built and tested with fake data 2026-10-11.* To go live: the school's OK, the Drive bot, a master sheet in the school account with `Code.gs` installed and `PUBLISHERS` filled in, a Site Map row marked approved, then place the embed by URL with `?class=`.
 7. ~~Monitor + Harvey-ball dashboard across all sites~~ (done 2026-10-11: `/status/`; the ball fills as a site's slots become healthy URL embeds).
