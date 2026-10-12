@@ -350,7 +350,7 @@ Chosen setting: **1022 × 1287 in the editor** (= 1154 × 1454 published), givin
 
 ### Other environment-dependent notes
 
-- **Web fonts were blocked.** That container's egress blocked `fonts.googleapis.com`, so PDFs silently rendered in the fallback while the web version would have used Nunito — two different-looking documents, and the one being verified was not the one families would see. GitHub Actions is not that container, so the *reason* no longer holds. Keep the rule anyway, per §12.
+- **Web fonts were blocked.** That container's egress blocked `fonts.googleapis.com`, so PDFs silently rendered in the fallback while the web version would have used Nunito — two different-looking documents, and the one being verified was not the one families would see. GitHub Actions is not that container, so that reason no longer holds. **Keep the rule for a different reason** (`CLAUDE.md` §0 item 7): CI runs on Linux and renders with fallback fonts (DejaVu/Liberation), not the San Francisco or Segoe families see. A system-font stack whose widest likely member is DejaVu lets CI verify the worst case; a web font would hide it.
 - **No API exists for current Google Sites.** Placing or resizing an embed box is a manual browser step. Content changes are not.
 - **Browser automation can't click inside a cross-origin iframe** on a published Site, so live-embed interaction can't be verified that way. Playwright in Actions can reach `sites.google.com`.
 - **The Drive API can't set gridlines or sharing** (§14). If that's still true, those two steps stay manual.

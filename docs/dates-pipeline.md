@@ -72,7 +72,7 @@ Everything in this section was true of a browser-driven workflow on a personal l
 - Browser automation against Google Sites timed out frequently on the personal laptop, suspected to be concurrent Claude sessions contending for the Chrome extension. GitHub Actions has no such contention.
 - Google Sites has no API, so placing or resizing an embed box stays a manual browser step. Content changes do not.
 - Identity: one institutionally-named Gmail service account for the class-sites work, since it will be handed to a successor. The school will issue a school-domain address somewhere between soon and twelve months out; the design should migrate without pausing work.
-- No pixel measurements were recorded by this pipeline. Embed sizing numbers live in `docs/schedules.md` and `CLAUDE.md` §0, where two conflicting scale factors are still unresolved.
+- No pixel measurements were recorded by this pipeline. Embed sizing is settled in `CLAUDE.md` §0 item 1: there is no scale factor; a box's shape carries over.
 
 ## Known gaps
 
