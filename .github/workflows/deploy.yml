@@ -35,6 +35,11 @@ jobs:
       - name: Validate data against source calendar
         run: python3 tests/validate_important_dates.py
 
+      - name: Site Map sync fails closed
+        run: |
+          pip install pyyaml
+          python3 tests/test_site_map.py
+
       - name: Build embeds
         run: python3 build/build_important_dates.py
 

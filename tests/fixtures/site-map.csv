@@ -1,0 +1,5 @@
+Source,Embed,Drive file ID,Shape,Key,Publish list,Approved by,Approved on,Sync,Notes
+Important Dates,important-dates,1E20hWbxEMMhRkEJEfQxO2ODfT1bcMYLz,Single file,school-year,"Every dated line: date, title, details, asterisk",,,No,School PDF. Transcribed by hand into the repo (source-2026-27.txt); not read from Drive yet.
+Room parent contacts,room-parents,,"Sheet, one row per person",class,"Class year, Name, Email",,,No,Proposal. Needs the school's OK and the Drive bot account before anything is published.
+Class schedules,schedules,,One file per homeroom per year,class,,,,No,Sections are reshuffled every year. Waiting on where the schedules code lives.
+Academics,academics,,,grade,,,,No,Shape not chosen yet.

@@ -133,7 +133,8 @@ The repo has no Actions secrets yet.
 - CI: validate data vs `source-2026-27.txt` → build → `tests/render_check.py` (Playwright; iframe with Sites' exact sandbox attributes; desktop/tablet/phone) → deploy. Daily, `.github/workflows/live-check.yml` opens the published scratch Site and clicks inside the embed (`tests/live_check.py`); a failure opens one issue assigned to Ahin-SFFS and it closes itself on the next pass. On a PR, the `pr-comment` job (not a required check) posts one comment, updated on every push: Important Dates events added/changed/removed, matched by `uid` (`tests/pr_summary.py`), plus links to each screenshot. The links need a GitHub login and expire after 90 days; screenshots are never committed (§3).
 - `main` ruleset is on (see §4).
 - Monitor: `tests/monitor.py` runs in every deploy and daily, and writes https://sffs-class-sites.github.io/class-sites/status/ from `registry.yaml` (plain HTTP, no browser). Per slot: URL embed present = green; old pasted copy = amber, with its hash compared to the recorded one; missing or page down = red. Red opens one issue for Ahin-SFFS and it closes itself when fixed. Amber never alerts.
-- Not built yet: the `Site Map` index, Drive sync. Also not built from §1: no `?class=` handling or grade calculation; one Important Dates URL serves every grade; `data.json` has `uid` but not `audience` or `start_time`/`end_time`.
+- Site Map: `build/sync_site_map.py` turns the sheet into `site-map.yaml` (generated; do not edit). It fails closed: a source is `publishable` only with Sync = Yes, a Drive file ID, a publish list, Approved by and Approved on; `tests/test_site_map.py` checks this in CI. `sync-site-map.yml` runs daily but does nothing until it has the Drive bot key, a PR-capable token and the sheet ID (see the workflow header). A draft sheet exists in Ahin's personal Drive, to move to the school account. Put a role, not a person's name, in Approved by, since it lands in public git.
+- Not built yet: the Drive bot identity, so no real sync has run. Also not built from §1: no `?class=` handling or grade calculation; one Important Dates URL serves every grade; `data.json` has `uid` but not `audience` or `start_time`/`end_time`.
 
 ## 8. Next steps (one at a time)
 
@@ -142,7 +143,7 @@ The repo has no Actions secrets yet.
 2. ~~Turn on the `main` ruleset; add the PR comment with screenshots and a plain-English change summary~~ (done 2026-10-11; screenshots are links to CI files, not inline, so nothing lands in git).
 3. ~~Playwright job that opens the published scratch Site and clicks into the embed (filter, month jump, add button)~~ (done 2026-10-11; also measures frame size per window width).
 4. Ahin swaps the live 3rd-grade homepage to the URL embed; human check desktop + iPhone; then 1st grade.
-5. `Site Map` sheet + generated copy in the repo; Drive sync job (read via bot identity, open a PR with a readable diff).
+5. `Site Map` sheet + generated copy in the repo; Drive sync job (read via bot identity, open a PR with a readable diff). *Built 2026-10-11 up to the credential boundary:* blocked on the Drive bot account, a `SYNC_BOT_TOKEN` (a PR opened with `github.token` never triggers the required `build` check), and moving the draft sheet to the school account.
 6. First pattern-A embed: room parent contacts (Draft/Live/Log/History tabs, Publish menu item, extract, loading and failure states).
 7. ~~Monitor + Harvey-ball dashboard across all sites~~ (done 2026-10-11: `/status/`; the ball fills as a site's slots become healthy URL embeds).
 
