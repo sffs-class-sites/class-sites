@@ -33,14 +33,14 @@ Reconciled 2026-10-11 (§8 step 0). Each item is **Open**, **Decided** or **Reso
 4. **Two test harnesses — Open: waiting on Ahin for where the schedules code lives.** The schedules code (`sched/`, `check.js`, `echeck.js`, `scrollcheck.js`, `fitcheck.js`, `mob.js`, `tap.js`, `shot.js`) is not in this repo. This repo tests with Python + Playwright (`tests/render_check.py`); the schedules checks are Node + Playwright and assert largely the same properties. Recommended: move the schedules code in unchanged, then port the checks to Python in a separate PR with identical assertions, before any behaviour change.
 5. **UID rule vs. the code — Resolved 2026-10-11.** Each event in `shared/important-dates/data.json` now stores its `uid`, and `build/build_important_dates.py` reads it and refuses to build if one is missing or duplicated. Before freezing, the live pasted embeds on the 1st- and 3rd-grade homepages were run in headless Chromium and their "Download all dates" .ics was compared with the build: all 30 UIDs, dates and titles matched exactly, on both pages.
 6. **Which way Google Sheets point — Open.** §2 here treats Sheets as the authoring source a bot reads. `docs/schedules.md` treats its Sheet as a dead-end snapshot export that nothing reads back. Both are deliberate; keep them distinct, and never let a contributor assume one behaves like the other. The schedules Sheet is shared *Anyone with the link → Editor*, so anyone can deface it. Recommended (manual, ~2 min): set it to Viewer and add "(snapshot, not read back)" to its title.
-7. **"No web fonts" — Open (wording only).** `docs/schedules.md` banned web fonts because its container blocked `fonts.googleapis.com`. That reason no longer holds in GitHub Actions. Keep the rule with a new reason: CI on Linux renders with fallback fonts (DejaVu/Liberation), not the San Francisco or Segoe families see, so verify against the widest likely font, and a web font would hide that.
+7. **"No web fonts" — Resolved 2026-10-11 (wording fixed in `docs/schedules.md`).** `docs/schedules.md` banned web fonts because its container blocked `fonts.googleapis.com`. That reason no longer holds in GitHub Actions. Keep the rule with a new reason: CI on Linux renders with fallback fonts (DejaVu/Liberation), not the San Francisco or Segoe families see, so verify against the widest likely font, and a web font would hide that.
 8. **Class vs. section — Decided 2026-10-11: children are reshuffled into new sections every school year, and schedules are made new every year.** A section (1A, 1B) is not a stable identity, so it must never be part of a long-lived URL: a family's bookmark for "section A" would show a different group of children next year. Follows from this: schedule embeds stay keyed by class (`?class=2034`), and each year's sections and their schedules are dated data inside that class, chosen in the embed. Exact UI (both sections shown, or a section picker) is open.
-9. **§1's design isn't built, and §7 doesn't say so — Open (doc fix).** There is no `?class=` handling or grade calculation yet, only one Important Dates URL serving all grades, and `data.json` has `uid` (item 5) but not the other dates-pipeline fields (`audience`, `start_time`). §7 should list these as not built.
+9. **§1's design isn't built, and §7 doesn't say so — Resolved 2026-10-11: §7 now lists it under "Not built yet".** There is no `?class=` handling or grade calculation yet, only one Important Dates URL serving all grades, and `data.json` has `uid` (item 5) but not the other dates-pipeline fields (`audience`, `start_time`). §7 should list these as not built.
 10. **`registry.yaml` keyed sites by grade — Decided 2026-10-11: rekeyed to `class-2032` (3rd grade in 2026–27) and `class-2034` (1st grade).** Its comment no longer states 1.234 or cites a "playbook §2.1" that isn't in the repo. Site names and URLs still contain the grade (§9 items 2–3).
 11. **Extra hosting locations — Open (part of the schedules move).** Schedules publish a claude.ai artifact page tied to one person's account, and a PDF on Drive (`pdf_url`). That contradicts §1. Recommended: serve the page and the PDF from Pages under the class path.
-12. **Room-parent approval vs. the PR gate — Decided 2026-10-11: (a) a bot opens the PR, links the room-parent approval record, and auto-merges once CI passes; the room-parent approval is the human review.** Ahin does not merge every PR. With 0 required approvals the ruleset already gates only on `build`, so no ruleset change is needed. §4 needs a matching line; the auto-merge job is built with §8 step 5.
+12. **Room-parent approval vs. the PR gate — Decided 2026-10-11: (a) a bot opens the PR, links the room-parent approval record, and auto-merges once CI passes; the room-parent approval is the human review.** Ahin does not merge every PR. With 0 required approvals the ruleset already gates only on `build`, so no ruleset change is needed. §4 needs a matching line; the auto-merge job is built with §8 step 5. §4 line added 2026-10-11.
 13. **Personal data in email ingestion — Open (design constraint).** Forwarded school emails carry family and staff names and addresses, and the alias ledger's storage is undecided. Recommended: raw emails and the ledger live in restricted Drive; the repo receives only approved event records (§3).
-14. **Identities are scattered — Open (doc fix).** `docs/dates-pipeline.md` says the bot is a Gmail account; §3 says a service account or school user. The scratch site sits on Ahin's personal Google account, and the GitHub bot is an org owner. Recommended: one table in §3 listing each identity, what it can access, and whether it exists yet.
+14. **Identities are scattered — Resolved 2026-10-11: one table in §3.** Rows marked *unconfirmed* still need Ahin. `docs/dates-pipeline.md` says the bot is a Gmail account; §3 says a service account or school user. The scratch site sits on Ahin's personal Google account, and the GitHub bot is an org owner. Recommended: one table in §3 listing each identity, what it can access, and whether it exists yet.
 
 ## 1. Architecture (decided)
 
@@ -76,6 +76,21 @@ Humans author in Google Docs and Sheets. A `Site Map` sheet (authored by Ahin) i
 
 **Bot identity:** a dedicated account (service account, or a school user like `sites-bot@sffriendsschool.org`), view-only on the specific Drive folder, credential stored as a GitHub Actions secret. Never Ahin's personal account.
 
+**Identities** (checked 2026-10-11 unless marked *unconfirmed*):
+
+| Identity | What it is | Can access | Exists? |
+|---|---|---|---|
+| `Ahin-SFFS` | Ahin's GitHub account | Org owner (admin on every repo) | Yes |
+| `SFQuakerBot` | GitHub account Claude sessions use; commits as `sfquakerbot@gmail.com` | Org owner today (§4); token scopes `repo`, `workflow`, `read:org`, `gist` — no `admin:org` | Yes; demote per §9 item 11 |
+| `github-actions[bot]` | Per-run token inside workflows | What each job's `permissions:` grants: PR comments, issues for alerts, Pages deploy | Yes |
+| `sfquakerbot@gmail.com` | Gmail behind the GitHub bot. *Unconfirmed* whether this is also the "institutionally-named Gmail" `docs/dates-pipeline.md` plans for Drive | *Unconfirmed* | Yes |
+| Drive bot identity (§3) | Service account or school user that reads the publish-list columns | View-only on one Drive folder; credential as an Actions secret | **No** — blocks Drive sync and pattern A |
+| School-domain bot address | e.g. `sites-bot@sffriendsschool.org`; replaces any Gmail bot | Same as above | **No** — school to issue |
+| Ahin's personal Google account | Owns the scratch Site (§7) | Scratch Site | Yes; scratch Site to be deleted once proven |
+| School Google accounts | Edit the live class Sites on `sffriendsschool.org` | Live Sites | Yes; *unconfirmed* who holds edit access |
+
+The repo has no Actions secrets yet.
+
 ## 4. Change control
 
 - A push to `main` publishes to every live site. `main` is production: all changes go through a pull request.
@@ -84,6 +99,7 @@ Humans author in Google Docs and Sheets. A `Site Map` sheet (authored by Ahin) i
 - `SFQuakerBot` (the GitHub account Claude sessions use) is an **org owner**, alongside `Ahin-SFFS`. That is deliberate for setup and stays until §9 item 11. Owners get admin on every repo, so a per-repo downgrade does nothing while the role stands.
 - Residual risk: the ruleset has no bypass actors, so the bot **cannot** push past it (verified 2026-10-11, the direct push above was made while it was an owner). It **can** edit or delete the ruleset, because owners can manage rulesets. That follows from GitHub's permission model and was deliberately not tested. Until the demotion, no session should change rulesets, branch settings or org membership without Ahin asking for it in that session.
 - Every PR must be reviewable without reading code: CI posts desktop + phone screenshots and a plain-English summary (events added/changed/removed).
+- **Who merges** (§0 item 12): content PRs from the approval pipeline are merged by the bot once CI passes; the room parent's approval, linked in the PR, is the human review. Ahin does not merge every PR. The repo's auto-merge setting is off, so the job merges explicitly; turning the setting on is Ahin's call (§4 residual risk).
 - Rollback = revert the merge commit.
 
 **Sheet-sourced personal data has its own approval, in the sheet:**
@@ -116,7 +132,7 @@ Humans author in Google Docs and Sheets. A `Site Map` sheet (authored by Ahin) i
 - Embedded by URL on the scratch site `sites.google.com/view/zz-sffs-embed-test-scratch-saf` (Ahin's personal Google account; delete once the pattern is proven). **The live 1st- and 3rd-grade homepages still carry the older pasted-code embed.**
 - CI: validate data vs `source-2026-27.txt` → build → `tests/render_check.py` (Playwright; iframe with Sites' exact sandbox attributes; desktop/tablet/phone) → deploy. Daily, `.github/workflows/live-check.yml` opens the published scratch Site and clicks inside the embed (`tests/live_check.py`); a failure opens one issue assigned to Ahin-SFFS and it closes itself on the next pass. On a PR, the `pr-comment` job (not a required check) posts one comment, updated on every push: Important Dates events added/changed/removed, matched by `uid` (`tests/pr_summary.py`), plus links to each screenshot. The links need a GitHub login and expire after 90 days; screenshots are never committed (§3).
 - `main` ruleset is on (see §4).
-- Not built yet: the `Site Map` index, Drive sync, the monitor/dashboard.
+- Not built yet: the `Site Map` index, Drive sync, the monitor/dashboard. Also not built from §1: no `?class=` handling or grade calculation; one Important Dates URL serves every grade; `data.json` has `uid` but not `audience` or `start_time`/`end_time`.
 
 ## 8. Next steps (one at a time)
 
