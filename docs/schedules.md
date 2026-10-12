@@ -345,6 +345,8 @@ Chosen setting: **1022 × 1287 in the editor** (= 1154 × 1454 published), givin
 | Narrower laptop | 900 | 1134 | **clipped by 153px** |
 
 > **This is conflict #1 in `CLAUDE.md` §0.** Editor 1022 → published 1154 is a factor of **1.129**. `CLAUDE.md` §5 records **1.234**, measured at a 1440px browser window. Both were measured live, so the factor most likely depends on window width — which would make both numbers wrong as constants. The window width for the measurements above was **not recorded**. Measure the factor as a function of window width before any doc states a number.
+>
+> **Resolved 2026-10-11** (see `CLAUDE.md` §0 item 1): there is no factor. Published width is Sites' content column (max 1154px), and height is width × the editor box's h ÷ w.
 
 ### Other environment-dependent notes
 

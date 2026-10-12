@@ -2,8 +2,8 @@
 #
 # type: url  -> the Sites slot holds our GitHub Pages URL; content updates automatically.
 # type: code -> the slot holds pasted embed code; we track its hash.
-# box: editor-canvas size, measured at a 1440px window. How editor size maps to the
-#      published frame is unresolved (CLAUDE.md §0 #1); don't derive published sizes from it.
+# box: editor-canvas size, measured at a 1440px window. Only its shape (h / w) carries over:
+#      published width is Sites' content column (max 1154px), height = width × h / w (CLAUDE.md §0 #1).
 #
 # Sites are keyed by graduating class, not grade (CLAUDE.md §1): a site follows its class
 # for nine years. The grade in each `name` and `live` URL is today's and goes stale at
