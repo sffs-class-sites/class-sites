@@ -114,15 +114,15 @@ Humans author in Google Docs and Sheets. A `Site Map` sheet (authored by Ahin) i
 
 - `shared/important-dates/` → https://sffs-class-sites.github.io/class-sites/shared/important-dates/ — 30 events for 2026–27, byte-identical to the local build.
 - Embedded by URL on the scratch site `sites.google.com/view/zz-sffs-embed-test-scratch-saf` (Ahin's personal Google account; delete once the pattern is proven). **The live 1st- and 3rd-grade homepages still carry the older pasted-code embed.**
-- CI: validate data vs `source-2026-27.txt` → build → `tests/render_check.py` (Playwright; iframe with Sites' exact sandbox attributes; desktop/tablet/phone) → deploy.
+- CI: validate data vs `source-2026-27.txt` → build → `tests/render_check.py` (Playwright; iframe with Sites' exact sandbox attributes; desktop/tablet/phone) → deploy. On a PR, the `pr-comment` job (not a required check) posts one comment, updated on every push: Important Dates events added/changed/removed, matched by `uid` (`tests/pr_summary.py`), plus links to each screenshot. The links need a GitHub login and expire after 90 days; screenshots are never committed (§3).
 - `main` ruleset is on (see §4).
-- Not built yet: the `Site Map` index, Drive sync, the monitor/dashboard, PR screenshots.
+- Not built yet: the `Site Map` index, Drive sync, the monitor/dashboard.
 
 ## 8. Next steps (one at a time)
 
 0. **Reconciliation pass, no code.** Read this file and both scoped docs. Confirm or add to the conflict list in §0. Produce one short memo: each conflict, the options, a recommendation, and what it costs. Change nothing until Ahin has answered. Anything you find that contradicts a decision in §1–§4 goes in the memo too.
 1. ~~Commit this file. Freeze explicit `uid`s into `shared/important-dates/data.json`; keep CI green~~ (done 2026-10-11; UIDs checked against both live pages first).
-2. ~~Turn on the `main` ruleset~~ (done 2026-10-11). Add the PR comment with screenshots and a plain-English change summary.
+2. ~~Turn on the `main` ruleset; add the PR comment with screenshots and a plain-English change summary~~ (done 2026-10-11; screenshots are links to CI files, not inline, so nothing lands in git).
 3. Playwright job that opens the published scratch Site and clicks into the embed (filter, month jump, add button) — proves live-site behaviour without browser automation.
 4. Ahin swaps the live 3rd-grade homepage to the URL embed; human check desktop + iPhone; then 1st grade.
 5. `Site Map` sheet + generated copy in the repo; Drive sync job (read via bot identity, open a PR with a readable diff).

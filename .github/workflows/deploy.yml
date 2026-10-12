@@ -16,6 +16,11 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      shot-desktop: ${{ steps.shot-desktop.outputs.artifact-url }}
+      shot-tablet: ${{ steps.shot-tablet.outputs.artifact-url }}
+      shot-phone: ${{ steps.shot-phone.outputs.artifact-url }}
+      shot-phone-tall: ${{ steps.shot-phone-tall.outputs.artifact-url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -44,11 +49,81 @@ jobs:
           name: render-screenshots
           path: _harness/*.png
 
+      # One unzipped file per screenshot, so the PR comment can link straight to each image.
+      - name: Upload desktop screenshot
+        id: shot-desktop
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v7
+        with:
+          path: _harness/shot-desktop.png
+          archive: false
+          if-no-files-found: warn
+
+      - name: Upload tablet screenshot
+        id: shot-tablet
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v7
+        with:
+          path: _harness/shot-tablet.png
+          archive: false
+          if-no-files-found: warn
+
+      - name: Upload phone screenshot
+        id: shot-phone
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v7
+        with:
+          path: _harness/shot-phone.png
+          archive: false
+          if-no-files-found: warn
+
+      - name: Upload phone-tall screenshot
+        id: shot-phone-tall
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v7
+        with:
+          path: _harness/shot-phone-tall.png
+          archive: false
+          if-no-files-found: warn
+
       - name: Upload Pages artifact
         if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
         with:
           path: _site
+
+  # Plain-English summary + screenshot links, as one comment that is updated on every push.
+  # Not a required check. Skipped for PRs from forks, whose token cannot comment.
+  pr-comment:
+    if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2   # HEAD is the PR merged into its base; HEAD^1 is the base
+
+      - name: Write the summary
+        env:
+          SHOT_DESKTOP: ${{ needs.build.outputs.shot-desktop }}
+          SHOT_TABLET: ${{ needs.build.outputs.shot-tablet }}
+          SHOT_PHONE: ${{ needs.build.outputs.shot-phone }}
+          SHOT_PHONE_TALL: ${{ needs.build.outputs.shot-phone-tall }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          git show HEAD^1:shared/important-dates/data.json > "$RUNNER_TEMP/base.json" 2>/dev/null || : > "$RUNNER_TEMP/base.json"
+          python3 tests/pr_summary.py --base "$RUNNER_TEMP/base.json" --head shared/important-dates/data.json \
+            --files "$(git diff --name-only HEAD^1 HEAD)" --run-url "$RUN_URL" > "$RUNNER_TEMP/comment.md"
+          cat "$RUNNER_TEMP/comment.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Post or update the PR comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: gh pr comment "$PR" --body-file "$RUNNER_TEMP/comment.md" --edit-last --create-if-none
 
   deploy:
     if: github.event_name != 'pull_request'
