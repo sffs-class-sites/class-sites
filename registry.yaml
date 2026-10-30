@@ -31,9 +31,8 @@ sites:
     slots:
       - page: home
         embed: important-dates
-        box: {w: 935, h: 897}
-        status: pasted-code   # migrate to url
-        hash: 86e0298ee805    # recorded 2026-10-11
+        box: {w: 935, h: 935}   # editor; publishes 1154 x 1154, iPhone 13 352 x 352 (measured 2026-10-30)
+        status: url           # swapped 2026-10-30
   class-2034:            # 1st grade in 2026–27
     name: 1st Grade Class Page
     site_id: 1vqA_IFOx0oCDUi95RtQ-PPo-3LcD_szY
@@ -41,9 +40,8 @@ sites:
     slots:
       - page: home
         embed: important-dates
-        box: null             # not measured yet
-        status: pasted-code   # migrate to url
-        hash: 86e0298ee805    # recorded 2026-10-11
+        box: {w: 935, h: 935}   # editor; publishes 1154 x 1154, iPhone 13 352 x 352 (measured 2026-10-30)
+        status: url           # swapped 2026-10-30
       # Class-2034-ONLY: room-parent list with glitter (snippets/glitter-hover/), pasted
       # code in a 296x252 box under the welcome text on home. Don't add it to other sites.
       # Not listed as a slot: it holds names/emails (never committed), and tests/monitor.py

@@ -1,6 +1,6 @@
 # Swapping a site to the URL embed
 
-A human task, about 10 minutes per site (CLAUDE.md §8 step 4). Do the 3rd grade first, check it, then the 1st grade. Nothing in the repo changes until step 7.
+A human task, about 10 minutes per site (CLAUDE.md §8 step 4). Do the 3rd grade first, check it, then the 1st grade. Nothing in the repo changes until the swap is published (section 4).
 
 **Steps marked *untested*** are how Google Sites is expected to behave. Nobody has done them on a live site yet.
 
@@ -20,7 +20,8 @@ A human task, about 10 minutes per site (CLAUDE.md §8 step 4). Do the 3rd grade
 5. **Keep the box the same size.** Only its shape matters (CLAUDE.md §5). On the 3rd-grade page the box is 935 × 897 in the editor, and it publishes at 1154 × 1107 on a desktop and about 352 × 338 on an iPhone.
    - **Height ÷ width must be at least 0.95**, or phones show fewer than three upcoming dates before scrolling. 935 × 897 is 0.96, so it passes. On the 1st-grade page, check the box's size first; if it is wider than it is tall, make it about square.
    - If the dialog won't switch to By URL, delete the box, use **Insert → Embed → By URL → Whole page**, and drag the new box to the full column width and the same height as the old one.
-6. **Publish.**
+6. **Check the shape again before you publish.** On 2026-10-30 the swap changed the box's shape on both sites (3rd grade to 0.59, 1st grade to 0.78), so phones showed one or two dates. Drag the bottom edge until the box is about square, then publish.
+7. **Publish.**
 
 ## 2. Check it (desktop, then iPhone)
 
@@ -40,7 +41,7 @@ On an iPhone, in Safari and in Chrome:
 ## 3. If something is wrong
 
 - *Untested:* in the Sites editor, **⋮ → Version history** restores the previous version, and then you publish again.
-- If that's unavailable: the 1st-grade page still has the identical pasted copy. Copy its embed code (click the box, then the pencil) into this page and publish.
+- If that's unavailable: since 2026-10-30 no class page has the pasted copy. The last one (identical on both pages, hash `86e0298ee805`) was saved on Ahin's Mac as `notes/1st-grade-pasted-important-dates-2026-10-30.html`, which is not in git. Paste it into the box's **Embed code** tab and publish. For a new site there is nothing to roll back to: delete the box.
 
 ## 4. Afterwards
 
