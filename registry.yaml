@@ -1,10 +1,11 @@
 # Which embed goes where. tests/monitor.py reads this file and builds the status page.
 #
 # type: url  -> the Sites slot holds our GitHub Pages URL; content updates automatically.
-# type: code -> the slot holds pasted embed code; we track its hash.
+# type: code -> lives only as pasted code on a Site (nothing on Pages); we track its hash.
 # match: text that identifies this embed in a Site's HTML (URL embeds are found by their Pages URL).
 # live: the site's root URL; a slot's page is live + page.
-# status: url (placed by URL) | pasted-code (old copy; hash = sha256 of the pasted code, first 12 hex).
+# status: url (placed by URL) | pasted-code (old copy; hash = sha256 of the pasted code, first 12 hex)
+#         | code (pasted by design, for type: code embeds; hash as for pasted-code).
 # box: editor-canvas size, measured at a 1440px window. Only its shape (h / w) carries over:
 #      published width is Sites' content column (max 1154px), height = width × h / w (CLAUDE.md §0 #1).
 #
@@ -22,6 +23,12 @@ embeds:
     type: url
     path: shared/room-parents/   # placed with ?class=YYYY; not on any site yet
     owner: platform
+  room-parents-glitter:
+    type: code
+    template: snippets/glitter-hover/   # placeholder-only version
+    owner: class-2034
+    scope: class-2034-only              # don't add to other sites
+    match: "data-glitter"
 
 sites:
   class-2032:            # 3rd grade in 2026–27
@@ -42,10 +49,11 @@ sites:
         embed: important-dates
         box: {w: 935, h: 935}   # editor; publishes 1154 x 1154, iPhone 13 352 x 352 (measured 2026-10-30)
         status: url           # swapped 2026-10-30
-      # Class-2034-ONLY: room-parent list with glitter (snippets/glitter-hover/), pasted
-      # code in a 296x252 box under the welcome text on home. Don't add it to other sites.
-      # Not listed as a slot: it holds names/emails (never committed), and tests/monitor.py
-      # can't check code-only embeds yet (it expects every embed to have a Pages path).
+      - page: home
+        embed: room-parents-glitter   # Class-2034 only; room-parent list under the welcome text
+        box: {w: 296, h: 252}
+        status: code          # pasted by design: holds names/emails, never committed
+        hash: ea6c6cbb5f06    # recorded 2026-10-30
   scratch:                 # test Site on Ahin's personal account; delete once the pattern is proven
     name: Scratch embed test
     kind: scratch
