@@ -4,12 +4,11 @@ Scope: the Important Dates embed and the email-to-event pipeline that will feed 
 
 > **Provenance.** Reconstructed from the decision record of the "Extract dates f/ email" conversation, not written by that conversation. The decisions below are reliable. Implementation detail that was never written down is missing — see **Known gaps** at the end. Treat this as a complete record of *what was decided* and an incomplete record of *what was built*.
 
-## Current state
+## Current state (updated 2026-10-30)
 
-- The embed is live on the 1st grade (Class of 2034) and 3rd grade (Class of 2032) Home pages, byte-identical on both.
-- Those live copies are **hand-pasted HTML**: 30 event rows as `<tr data-date>`, month chips, an ED/A3 star, and preference pills choosing Google / Outlook / Apple add buttons.
-- A URL-embedded version built from `data.json` exists in the repo and is live on the scratch Site. The live class pages have **not** been swapped to it yet.
-- A do-not-hand-edit-UIDs comment exists in the working file but was never deployed to either site.
+- The embed is live on the 1st grade (Class of 2034) and 3rd grade (Class of 2032) Home pages as a **URL embed** built from `shared/important-dates/data.json` (swapped 2026-10-30, `CLAUDE.md` §7). No hand-pasted copy remains; the last pasted copy is kept locally, uncommitted, for rollback.
+- 30 events for 2026–27, each with a stored `uid`. `audience`, `start_time` and `end_time` are in the schema below but not yet in `data.json` or the build (`docs/ROADMAP.md` D2).
+- Email ingestion and approval: designed, decisions recorded below, nothing built (`docs/ROADMAP.md` §E).
 
 ## UID rules — the part that must not be got wrong
 
@@ -28,7 +27,7 @@ A UID is the hidden identifier that travels into a parent's calendar when they a
 - `start_time` / `end_time` — optional. Absent means all-day; present means timed.
 - Per-grade verdicts live on one shared record: approved / rejected / pending tracked per grade, while date and title stay shared.
 - Per-grade overrides carry only what differs — usually a time.
-- Grade is **computed, never stored**: `grade = 8 - (gradYear - schoolYearEndYear)`, rolling over in August. The same config block drives header strings like "Welcome to X grade (Class of Y)".
+- Grade is **computed, never stored**: `grade = 8 - (gradYear - schoolYearEndYear)`, rolling over on the last day of school (Ahin, 2026-10-30). The same config block drives header strings like "Welcome to X grade (Class of Y)".
 
 ## Schoolwide events
 
@@ -65,13 +64,24 @@ Early importers keep their all-day block, because per-event adds are detached co
 - Any one room parent can reject independently; it does not affect other grades' decisions.
 - A scope change (grade → schoolwide) **escalates to Ahin** rather than executing.
 
+## Email pipeline: decisions made 2026-10-30
+
+These settle the "where does it run and who approves" questions above. Build order is in `docs/ROADMAP.md` §E.
+
+- **Build ingestion and extraction first, with no app.** Ahin is the sole approver until the approval app exists; candidates are reviewed in the Claude session or PR that produced them.
+- **Approval app on Cloudflare Workers + D1**, chosen over Google Apps Script so the app's code lives in this repo under the same PR + CI gate as everything else. (Apps Script code lives in Google's editor, outside change control.)
+- **Security by unlisted URL is accepted** for the approval app. No sign-in layer at first; the URL is shared only with the designated approvers. Revisit if the app ever shows more than event candidates.
+- **Pilot on 1st and 3rd grade together** (the two live sites), then the **next wave is kindergarten and 2nd grade**.
+- **Volume target:** roughly 15 school emails per grade per month, across nine grades, so about 135 a month at full scale. Dedupe across queues matters at that volume because most of those are the same schoolwide email forwarded by several room parents.
+- Still undecided: how a room parent is designated as a grade's approver and how that rotates yearly (`docs/ROADMAP.md` E4), and where raw emails and the alias ledger are stored (`CLAUDE.md` §0 item 13; the recommendation there is restricted Drive, with D1 now a second candidate for the ledger).
+
 ## Environment assumptions (verify these)
 
 Everything in this section was true of a browser-driven workflow on a personal laptop. The repo now builds in GitHub Actions, so re-check each one.
 
 - Browser automation against Google Sites timed out frequently on the personal laptop, suspected to be concurrent Claude sessions contending for the Chrome extension. GitHub Actions has no such contention.
 - Google Sites has no API, so placing or resizing an embed box stays a manual browser step. Content changes do not.
-- Identity: one institutionally-named Gmail service account for the class-sites work, since it will be handed to a successor. The school will issue a school-domain address somewhere between soon and twelve months out; the design should migrate without pausing work.
+- Identity: one institutionally-named Gmail account for the class-sites work, since it will be handed to a successor. **Confirmed 2026-10-30: it is `sfquakerbot@gmail.com`** (`CLAUDE.md` §3). The school-domain address is deferred because the school account cannot share files outside the school; the design should still migrate without pausing work when that changes.
 - No pixel measurements were recorded by this pipeline. Embed sizing is settled in `CLAUDE.md` §0 item 1: there is no scale factor; a box's shape carries over.
 
 ## Known gaps
@@ -81,7 +91,7 @@ Things that were decided but whose implementation detail is not recorded here, b
 - How events are actually extracted from an email — prompt design, what fields are parsed, how dates in prose are interpreted, handling of date ranges and ambiguous years.
 - The near-match scoring itself: what makes two events a candidate pair, and how candidates are ranked.
 - The ledger's storage format and where it lives.
-- Where the approval queues are presented to a room parent, and how they authenticate.
-- Whether any of this was built, or whether it is all design.
+- How approvers authenticate beyond the unlisted URL (decided 2026-10-30: the queues are presented by an app on Cloudflare Workers + D1, see above).
+- ~~Whether any of this was built, or whether it is all design.~~ It is all design (confirmed 2026-10-30).
 
 If a future session needs one of these, ask Ahin before inventing it.
