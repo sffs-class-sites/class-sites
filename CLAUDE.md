@@ -88,7 +88,8 @@ Humans author in Google Docs and Sheets. A `Site Map` sheet (authored by Ahin) i
 | Drive bot identity (§3) | Service account or school user that reads the publish-list columns | View-only on one Drive folder; credential as an Actions secret | **No** — blocks Drive sync and pattern A |
 | School-domain bot address | e.g. `sites-bot@sffriendsschool.org`; replaces any Gmail bot | Same as above | **No** — school to issue |
 | Ahin's personal Google account | Owns the scratch Site (§7) | Scratch Site | Yes; scratch Site to be deleted once proven |
-| School Google accounts | Edit the live class Sites on `sffriendsschool.org` | Live Sites | Yes; *unconfirmed* who holds edit access |
+| `classpages@sffriendsschool.org` | School account for the class sites; meant to become the service identity | Admin on the 1st- and 3rd-grade Sites. **Cannot share Workspace files with accounts outside the school** (school setting), so during development parents use their own accounts; once a finished site can be shown, the school is to allow a fixed set of parents to share with school accounts | Yes (Ahin, 2026-10-30). A Claude session drove the Sites editor as this account on 2026-10-30, signed in by Ahin in a local browser profile; publishing stayed with Ahin |
+| School Google accounts | Edit the live class Sites on `sffriendsschool.org` | Live Sites | Yes; *unconfirmed* who else holds edit access |
 
 The repo has no Actions secrets yet.
 
@@ -131,7 +132,7 @@ The repo has no Actions secrets yet.
 ## 7. Current state
 
 - `shared/important-dates/` → https://sffs-class-sites.github.io/class-sites/shared/important-dates/ — 30 events for 2026–27, byte-identical to the local build.
-- Embedded by URL on the scratch site `sites.google.com/view/zz-sffs-embed-test-scratch-saf` (Ahin's personal Google account; delete once the pattern is proven). **The live 1st- and 3rd-grade homepages still carry the older pasted-code embed.**
+- Embedded by URL on the scratch site `sites.google.com/view/zz-sffs-embed-test-scratch-saf` (Ahin's personal Google account; delete once the pattern is proven). The live 1st- and 3rd-grade homepages switched to the URL embed on 2026-10-30, boxes 935 × 935 in the editor (1154 × 1154 published, 352 × 352 on an iPhone 13, 4 dates visible). No pasted copy is live any more; the last one is kept locally (not committed) in case of rollback.
 - CI: validate data vs `source-2026-27.txt` → build → `tests/render_check.py` (Playwright; iframe with Sites' exact sandbox attributes; desktop/tablet/phone) → deploy. Daily, `.github/workflows/live-check.yml` opens the published scratch Site and clicks inside the embed (`tests/live_check.py`); a failure opens one issue assigned to Ahin-SFFS and it closes itself on the next pass. On a PR, the `pr-comment` job (not a required check) posts one comment, updated on every push: Important Dates events added/changed/removed, matched by `uid` (`tests/pr_summary.py`), plus links to each screenshot. The links need a GitHub login and expire after 90 days; screenshots are never committed (§3).
 - `main` ruleset is on (see §4).
 - Monitor: `tests/monitor.py` runs in every deploy and daily, and writes https://sffs-class-sites.github.io/class-sites/status/ from `registry.yaml` (plain HTTP, no browser). Per slot: URL embed present = green; old pasted copy = amber, with its hash compared to the recorded one; missing or page down = red. Red opens one issue for Ahin-SFFS and it closes itself when fixed. Amber never alerts.
@@ -145,7 +146,7 @@ The repo has no Actions secrets yet.
 1. ~~Commit this file. Freeze explicit `uid`s into `shared/important-dates/data.json`; keep CI green~~ (done 2026-10-11; UIDs checked against both live pages first).
 2. ~~Turn on the `main` ruleset; add the PR comment with screenshots and a plain-English change summary~~ (done 2026-10-11; screenshots are links to CI files, not inline, so nothing lands in git).
 3. ~~Playwright job that opens the published scratch Site and clicks into the embed (filter, month jump, add button)~~ (done 2026-10-11; also measures frame size per window width).
-4. Ahin swaps the live 3rd-grade homepage to the URL embed; human check desktop + iPhone; then 1st grade. Checklist: `docs/swap-to-url-embed.md`.
+4. ~~Ahin swaps the live 3rd-grade homepage to the URL embed; human check desktop + iPhone; then 1st grade~~ (done 2026-10-30). Checklist: `docs/swap-to-url-embed.md`.
 5. `Site Map` sheet + generated copy in the repo; Drive sync job (read via bot identity, open a PR with a readable diff). *Built 2026-10-11 up to the credential boundary:* blocked on the Drive bot account, a `SYNC_BOT_TOKEN` (a PR opened with `github.token` never triggers the required `build` check), and moving the draft sheet to the school account.
 6. First pattern-A embed: room parent contacts (Draft/Live/Log/History tabs, Publish menu item, extract, loading and failure states). *Built and tested with fake data 2026-10-11.* To go live: the school's OK, the Drive bot, a master sheet in the school account with `Code.gs` installed and `PUBLISHERS` filled in, a Site Map row marked approved, then place the embed by URL with `?class=`.
 7. ~~Monitor + Harvey-ball dashboard across all sites~~ (done 2026-10-11: `/status/`; the ball fills as a site's slots become healthy URL embeds).
