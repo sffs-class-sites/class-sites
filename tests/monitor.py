@@ -5,6 +5,10 @@ Plain HTTP, no browser: fetches each published Site page and looks for each slot
 either by its Pages URL (URL embed) or by its `match` text inside pasted code. Also checks
 each shared embed on Pages. Clicking inside embeds is tests/live_check.py's job.
 
+Embeds with `type: code` live only as pasted code on a Site (no Pages copy), e.g. one that
+holds personal data. They skip the Pages check; their slots (`status: code`) are green when
+the pasted code is there and matches the recorded hash.
+
 Writes _site/status/index.html and status.json. Never fails the build; prints
 status=green|amber|red to $GITHUB_OUTPUT for the alert job (red alerts, amber doesn't).
 """
@@ -43,6 +47,8 @@ def worst(states):
 
 
 def check_embed(eid, emb, today):
+    if emb.get("type") == "code":
+        return {"id": eid, "url": None, "state": "green", "version": None, "notes": ["pasted code only; nothing on Pages"]}
     url = PAGES + emb["path"]
     code, body = fetch(url)
     m = re.search(r'name="sffs-embed" content="([^"]+)"', body)
@@ -60,11 +66,17 @@ def check_embed(eid, emb, today):
 
 
 def check_slot(slot, emb, page_html):
-    url_found = (PAGES + emb["path"]).split("://", 1)[1] in page_html
+    url_found = bool(emb.get("path")) and (PAGES + emb["path"]).split("://", 1)[1] in page_html
     codes = [html.unescape(c) for c in re.findall(r'data-code="([^"]*)"', page_html)]
     pasted = [c for c in codes if emb.get("match") and emb["match"] in c]
     digest = hashlib.sha256(pasted[0].encode()).hexdigest()[:12] if pasted else None
     want = slot.get("status")
+    if emb.get("type") == "code":
+        if not pasted:
+            return "red", "embed not found on the page", None
+        if slot.get("hash") and slot["hash"] != digest:
+            return "amber", f"pasted code edited since it was recorded (hash {digest}, recorded {slot['hash']})", digest
+        return "green", "pasted code in place (by design)", digest
     if url_found:
         if want == "url":
             return "green", "URL embed in place", digest
@@ -105,7 +117,7 @@ def run(reg, today):
 
 
 def ball(done, total):
-    """Harvey ball: share of a site's slots that are healthy URL embeds, in quarters."""
+    """Harvey ball: share of a site's slots that are healthy (URL embeds, or pasted code by design), in quarters."""
     q = round(4 * done / total) if total else 0
     paths = {0: "", 1: "M12 12V3A9 9 0 0 1 21 12Z", 2: "M12 12V3A9 9 0 0 1 12 21Z",
              3: "M12 12V3A9 9 0 1 1 3 12Z", 4: '<circle cx="12" cy="12" r="9"/>'}
@@ -133,7 +145,7 @@ def page(st):
     emb_rows = "".join(
         f'<tr><td><a href="{e(x["url"])}" target="_blank" rel="noopener">{e(x["id"])}</a></td><td>{dot(x["state"])}</td>'
         f'<td><code>{e(x["version"] or "-")}</code></td><td>{e("; ".join(x["notes"]) or "-")}</td></tr>'
-        for x in st["embeds"])
+        for x in st["embeds"] if x["url"])
     return f"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex"><title>Class Sites Status</title>
@@ -168,7 +180,7 @@ small{{color:var(--sub)}} code{{font-size:.8rem}}
 <div class="wrap"><table><thead><tr><th>Site</th><th>On URL embeds</th><th>Status</th><th>Details</th></tr></thead><tbody>{site_rows}</tbody></table></div>
 <h2>Shared embeds</h2>
 <div class="wrap"><table><thead><tr><th>Embed</th><th>Status</th><th>Version</th><th>Notes</th></tr></thead><tbody>{emb_rows}</tbody></table></div>
-<p class="legend">The ball fills as a site's embed slots move to healthy URL embeds (empty = none, full = all).
+<p class="legend">The ball fills as a site's embed slots become healthy: URL embeds, or pasted code where that's by design (empty = none, full = all).
 <b>Needs attention</b> means it works but has a to-do, such as an old pasted copy. <b>Broken</b> opens an issue for Ahin.</p>
 </main></body></html>
 """
