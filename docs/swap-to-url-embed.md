@@ -18,6 +18,7 @@ A human task, about 10 minutes per site (CLAUDE.md §8 step 4). Do the 3rd grade
    `https://sffs-class-sites.github.io/class-sites/shared/important-dates/`
 4. Choose **Whole page**, then **Insert** (or **Update**).
 5. **Keep the box the same size.** Only its shape matters (CLAUDE.md §5). On the 3rd-grade page the box is 935 × 897 in the editor, and it publishes at 1154 × 1107 on a desktop and about 352 × 338 on an iPhone.
+   - **Height ÷ width must be at least 0.95**, or phones show fewer than three upcoming dates before scrolling. 935 × 897 is 0.96, so it passes. On the 1st-grade page, check the box's size first; if it is wider than it is tall, make it about square.
    - If the dialog won't switch to By URL, delete the box, use **Insert → Embed → By URL → Whole page**, and drag the new box to the full column width and the same height as the old one.
 6. **Publish.**
 
@@ -32,6 +33,7 @@ On a desktop browser, at the published address (not the editor):
 
 On an iPhone, in Safari and in Chrome:
 - [ ] The box is roughly square and you can scroll inside it. "Scroll for more ↓" shows at the bottom.
+- [ ] The next three dates show in full under the filter buttons without scrolling.
 - [ ] Tapping a filter or month changes the list in place, and the page doesn't jump or open a new window.
 - [ ] **+ Google** or **+ Apple** works.
 
@@ -47,4 +49,4 @@ On an iPhone, in Safari and in Chrome:
 
 ## Box shapes for new embeds
 
-Sites keeps a box's shape on phones, so a wide, short box is a letterbox there. The scratch Site's box (h/w 0.59) is 352 × 206 on an iPhone. For anything with a list, aim for a shape of about 1 (h ≈ w). Picking a standard shape per embed is §9 item 6, the site template.
+Sites keeps a box's shape on phones, so a wide, short box is a letterbox there. The scratch Site's box (h/w 0.59) is 352 × 206 on an iPhone. For anything with a list, aim for a shape of about 1 (h ≈ w). Important Dates needs at least 0.95 to show three dates on a 315px-wide phone; CI checks that at 315 × 302 for every day of the year. Picking a standard shape per embed is §9 item 6, the site template.

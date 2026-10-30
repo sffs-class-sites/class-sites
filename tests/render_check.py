@@ -8,7 +8,9 @@ what decides whether filters stay in place and links open new tabs.
 Usage: python3 tests/render_check.py   (expects ./_site built)
 """
 import contextlib
+import datetime
 import functools
+import json
 import http.server
 import pathlib
 import sys
@@ -25,6 +27,26 @@ SANDBOX = ("allow-scripts allow-popups allow-forms allow-same-origin allow-popup
 # Phone = Sites' ~315px column, height from the same aspect ratio.
 FRAMES = [("desktop", 1154, 1107), ("tablet", 700, 672), ("phone", 315, 302), ("phone-tall", 315, 560)]
 TODAY = "2026-09-16"
+
+# Phone: the next three dates must be fully visible on first load, below the sticky filter bar and
+# above the scroll pill, on every day of the year (the upcoming set changes as dates pass).
+# 315x302 is the narrowest phone column at the live 3rd-grade box's shape (897/935 = 0.959).
+THREE_UP_FRAME = (315, 302)
+UPCOMING_JS = """() => {
+  const w = document.getElementById('wrap'), bar = document.getElementById('toolbar');
+  const wr = w.getBoundingClientRect(), top = Math.max(wr.top, bar.getBoundingClientRect().bottom);
+  const hint = document.querySelector('.sffs-hint'), lim = hint.hidden ? wr.bottom : hint.getBoundingClientRect().top;
+  return [...document.querySelectorAll('tr.ev')].filter(r => !r.hidden).filter(r => {
+    const b = r.getBoundingClientRect(); return b.top >= top - 1 && b.bottom <= lim + 1; }).length;
+}"""
+
+
+def upcoming_days():
+    """First day of school, plus the day after each date ends: every distinct 'next three'."""
+    events = json.loads((SITE / "shared/important-dates/data.json").read_text())["events"]
+    ends = [e.get("end") or e["date"] for e in events]
+    days = {events[0]["date"]} | {(datetime.date.fromisoformat(x) + datetime.timedelta(days=1)).isoformat() for x in ends}
+    return sorted(d for d in days if sum(x >= d for x in ends) >= 3)
 
 
 def serve(directory, port):
@@ -162,6 +184,25 @@ def main():
 
             page.screenshot(path=str(ROOT / "_harness" / f"shot-{label}.png"))
             ctx.close()
+
+        fw, fh = THREE_UP_FRAME
+        print(f"[phone {fw}x{fh}: three upcoming dates without scrolling, every day of the year]")
+        short = []
+        ctx = browser.new_context(viewport={"width": 390, "height": fh + 40})
+        for day in upcoming_days():
+            (harness_dir / "index.html").write_text(
+                f'<!doctype html><body style="margin:0"><iframe id="f" sandbox="{SANDBOX}" '
+                f'src="http://127.0.0.1:8701/shared/important-dates/?today={day}" style="border:0;width:{fw}px;height:{fh}px"></iframe></body>')
+            page = ctx.new_page()
+            page.goto("http://127.0.0.1:8702/index.html")
+            page.wait_for_timeout(1300)  # on-load scroll to the filter bar
+            fr = next(f for f in page.frames if "important-dates" in f.url)
+            n = fr.evaluate(UPCOMING_JS)
+            if n < 3:
+                short.append(f"{day}: {n}")
+            page.close()
+        ctx.close()
+        check(not short, f"3 upcoming dates fully visible on load ({len(upcoming_days())} days checked; short: {short[:5]})")
         browser.close()
     s1.shutdown(); s2.shutdown()
     print("\nRESULT:", "PASS" if not failures else f"FAIL ({len(failures)})")

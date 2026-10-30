@@ -237,21 +237,39 @@ footer p{margin:4px 0}
 .sffs-fade{position:fixed;left:2px;right:2px;bottom:2px;height:58px;z-index:8;pointer-events:none;background:linear-gradient(to bottom,rgba(255,255,255,0),#fff 72%);border-radius:0 0 10px 10px}
 .sffs-hint{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:9;pointer-events:none;white-space:nowrap;font:600 12px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#3457a6;background:#eaeffb;border:1px solid #d6dff5;padding:7px 13px;border-radius:999px;box-shadow:0 1px 5px rgba(0,0,0,.13)}
 .sffs-fade[hidden],.sffs-hint[hidden]{display:none}
+/* Phone: three upcoming dates must fit under the filter bar on first load (tests/render_check.py).
+   Filters become one swipeable row; each date is two lines: date, badge, add / title · details. */
 @media (max-width:560px){
   .wrap{padding:12px}
-  .toolbar{top:-12px;margin:0 -12px;padding:8px 12px}
+  .toolbar{top:-12px;margin:0 -12px;padding:7px 12px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+  .toolbar::-webkit-scrollbar{display:none}
+  .toolbar .row{flex:0 0 auto;overflow:visible;padding-bottom:0}
+  .toolbar .row+.row{margin-top:0;padding-left:6px;border-left:1px solid var(--line)}
+  .chip{padding:6px 10px;font-size:.78rem}
+  .toggle{margin-left:0;padding-right:4px}
   h1{font-size:1.15rem}
   table,tbody,tr,td{display:block;width:100%}
-  tr.month-row td{margin-top:8px;border-radius:8px;border:0}
-  tr.ev{border:1px solid var(--line);border-radius:12px;padding:9px 11px;margin:8px 0;display:grid;grid-template-columns:auto 1fr;column-gap:10px;row-gap:4px}
+  table{margin-top:0}
+  /* Month headings repeat the card dates, so collapse them; they stay in place as month-jump targets. */
+  tr.month-row td{height:0;margin:0;padding:0;border:0;overflow:hidden;font-size:0;line-height:0}
+  tr.ev{border:1px solid var(--line);border-radius:10px;padding:4px 9px;margin:4px 0;display:grid;grid-template-columns:auto 1fr auto;column-gap:8px;row-gap:2px;align-items:center}
   tr.ev[hidden]{display:none}
-  tr.ev td{border:0;padding:0;width:auto}
-  .date-cell{grid-column:1}
-  .badge-cell{grid-column:2;text-align:right}
-  .what-cell{grid-column:1/3}
-  .action-cell{grid-column:1/3;text-align:left}
-  .add{margin:2px 6px 0 0}
-  .toggle{margin-left:0}
+  tr.ev td{border:0;padding:0;width:auto;font-size:.86rem;line-height:1.25}
+  tr.today{background:var(--today-bg);border-color:var(--today-border)}
+  tr.today td{background:none}
+  tr.today td:first-child{box-shadow:none}
+  .date-cell{grid-column:1;grid-row:1}
+  .badge-cell{grid-column:2;grid-row:1}
+  .badge{font-size:.68rem;padding:4px 7px}
+  .action-cell{grid-column:3;grid-row:1}
+  .what-cell{grid-column:1/4;grid-row:2}
+  .event-title,.event-details{display:inline}
+  .event-details{font-size:.8rem}
+  .event-details::before{content:" · "}
+  .next-flag{margin-left:6px;font-size:.6rem;padding:2px 6px}
+  .add{margin:0;padding:5px 8px;font-size:.72rem}
+  .sffs-fade{height:30px}
+  .sffs-hint{bottom:6px;padding:5px 11px;font-size:11px}
 }
 @media print{html,body{height:auto}body{overflow:visible}.wrap{height:auto;overflow:visible;border:0}.toolbar,.action-cell,.header-actions,.sffs-fade,.sffs-hint{display:none}}
 </style>
