@@ -5,22 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Glitter hover (Google Sites embed)</title>
 <!--
-  Glitter-on-hover text block for Google Sites "Embed code" boxes.
-  Any element with the attribute data-glitter rains glitter over the whole
-  embed when hovered (desktop) or tapped (phones/tablets).
+  Room-parent list with glitter, for a Google Sites "Embed code" box.
+  USED ONLY ON THE CLASS OF 2034 SITE. Not a standard component: don't add it
+  to other class sites without asking Ahin.
 
-  This file holds PLACEHOLDER text only. The repo is public: never commit
-  real names or emails here (CLAUDE.md §3). Copy this file, swap in the
-  real text, and paste the copy into Sites; don't commit the copy.
+  Desktop: hovering over the element marked data-glitter rains glitter over
+  the embed. Phones/tablets: any tap anywhere in the embed does (links still work).
 
-  Styling defaults match the 1st-grade class page body text as measured
-  2026-10-29 (Verdana 18.67px, centered, black, links rgb(0,65,165)).
+  PLACEHOLDER text only. The repo is public: never commit real names or
+  emails (CLAUDE.md §3). Fill in a copy outside the repo and paste that.
+
+  Sizing: text scales with the box so the list fills it at every width.
+  --design-w is the published box width at which text equals the page's
+  18.67px (Verdana 14pt). Built for a 296 x 252 editor box (h/w 0.85),
+  centered on the Sites grid; see README.md.
 -->
 <style>
   :root{
     --text:#000;
     --link:rgb(0,65,165);
-    --size:18.6667px;
+    --size:min(20px, calc(100vw * 18.6667 / var(--design-w)));
+    --design-w:365;
     --leading:1.38;
   }
   html,body{height:100%;margin:0;background:transparent;}
@@ -29,9 +34,11 @@
     height:100%;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;
     font:400 var(--size)/var(--leading) Verdana,Geneva,Tahoma,sans-serif;
     color:var(--text);text-align:center;
-    box-sizing:border-box;padding:0 8px;
+    box-sizing:border-box;padding:0;
   }
-  .wrap p{margin:0;}
+  .rp{margin:0 0 0.55em;}
+  .rp:last-child{margin-bottom:0;}
+  .wrap{display:flex;flex-direction:column;justify-content:flex-start;}
   .wrap a{color:var(--link);text-decoration:underline;overflow-wrap:anywhere;}
   /* The trigger looks exactly like plain text. */
   [data-glitter]{cursor:default;-webkit-tap-highlight-color:transparent;}
@@ -40,10 +47,9 @@
 </head>
 <body>
 <div class="wrap">
-  <p>Welcome paragraph goes here. Replace this with the real text.</p>
-  <p>&nbsp;</p>
-  <p><span data-glitter>Parent Name One</span> (Child) &lt;<a href="mailto:parent.one@example.com" target="_blank" rel="noopener">parent.one@example.com</a>&gt;;</p>
-  <p>Parent Name Two (Child) &lt;<a href="mailto:parent.two@example.com" target="_blank" rel="noopener">parent.two@example.com</a>&gt;</p>
+  <div class="rp"><div><span data-glitter>Parent Name One</span> (Child)</div><div><a href="mailto:parent.one@example.com" target="_blank" rel="noopener">parent.one@example.com</a></div></div>
+  <div class="rp"><div>Parent Name Two (Child)</div><div><a href="mailto:parent.two@example.com" target="_blank" rel="noopener">parent.two@example.com</a></div></div>
+  <div class="rp"><div>Parent Name Three (Child)</div><div><a href="mailto:parent.three@example.com" target="_blank" rel="noopener">parent.three@example.com</a></div></div>
 </div>
 <canvas id="glitter" aria-hidden="true"></canvas>
 <script>
@@ -51,11 +57,11 @@
   var canvas=document.getElementById('glitter'),
       ctx=canvas.getContext('2d'),
       reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-      colors=['#e6b422','#d4a017','#ff3d9a','#a259ff','#1fb8e0','#b0b0b8','#ff8a3d'],
-      bits=[],running=false,last=0,dpr=1;
+      colors=['#e6b422','#d4a017','#ffcf3d','#ff3d9a','#ff6fd8','#a259ff','#1fb8e0','#3ddc97','#b0b0b8','#ff8a3d'],
+      bits=[],running=false,last=0;
 
   function size(){
-    dpr=window.devicePixelRatio||1;
+    var dpr=window.devicePixelRatio||1;
     canvas.width=Math.round(innerWidth*dpr);
     canvas.height=Math.round(innerHeight*dpr);
     ctx.setTransform(dpr,0,0,dpr,0,0);
@@ -65,54 +71,95 @@
   function burst(){
     if(reduce)return;
     var now=Date.now();
-    if(now-last<400)return;          // hover + tap fire together on phones
+    if(now-last<500)return;           // hover/tap events can arrive in pairs
     last=now;
-    var n=Math.min(260,Math.round(innerWidth*innerHeight/2000)+80);
-    for(var i=0;i<n;i++){
+    var area=innerWidth*innerHeight,
+        flakes=Math.min(420,Math.round(area/450)+120),
+        stars=Math.min(40,Math.round(area/5000)+12);
+    for(var i=0;i<flakes;i++){
       bits.push({
+        star:false,
         x:Math.random()*innerWidth,
-        y:-10-Math.random()*innerHeight*0.6,
-        vy:0.8+Math.random()*1.6,
+        y:-12-Math.random()*innerHeight*0.9,
+        vy:1.1+Math.random()*1.9,
         sway:Math.random()*Math.PI*2,
-        swaySpeed:0.02+Math.random()*0.04,
+        swaySpeed:0.02+Math.random()*0.05,
         rot:Math.random()*Math.PI,
-        spin:(Math.random()-0.5)*0.25,
-        w:3+Math.random()*4,
-        h:2+Math.random()*3,
+        spin:(Math.random()-0.5)*0.3,
+        w:4+Math.random()*6,
+        h:3+Math.random()*4,
         c:colors[(Math.random()*colors.length)|0],
         life:0,
-        maxLife:150+Math.random()*120
+        maxLife:200+Math.random()*140
+      });
+    }
+    // Twinkling four-point sparkles scattered through the shower.
+    for(var j=0;j<stars;j++){
+      bits.push({
+        star:true,
+        x:Math.random()*innerWidth,
+        y:-12-Math.random()*innerHeight*0.9,
+        vy:0.9+Math.random()*1.4,
+        sway:Math.random()*Math.PI*2,
+        swaySpeed:0.03+Math.random()*0.04,
+        r:5+Math.random()*6,
+        tw:Math.random()*Math.PI*2,
+        c:Math.random()<0.6?'#fff6c2':'#ffffff',
+        life:0,
+        maxLife:200+Math.random()*120
       });
     }
     if(!running){running=true;requestAnimationFrame(tick);}
+  }
+
+  function drawStar(b,alpha){
+    var s=b.r*(0.6+0.4*Math.abs(Math.sin(b.tw)));
+    ctx.save();
+    ctx.globalAlpha=alpha;
+    ctx.translate(b.x,b.y);
+    ctx.shadowColor='#ffd84a';ctx.shadowBlur=8;
+    ctx.fillStyle=b.c;
+    ctx.beginPath();
+    ctx.moveTo(0,-s);ctx.quadraticCurveTo(0,0,s,0);
+    ctx.quadraticCurveTo(0,0,0,s);ctx.quadraticCurveTo(0,0,-s,0);
+    ctx.quadraticCurveTo(0,0,0,-s);
+    ctx.fill();
+    ctx.restore();
   }
 
   function tick(){
     ctx.clearRect(0,0,innerWidth,innerHeight);
     for(var i=bits.length-1;i>=0;i--){
       var b=bits[i];
-      b.life++;b.sway+=b.swaySpeed;b.rot+=b.spin;
-      b.y+=b.vy;b.x+=Math.sin(b.sway)*0.8;
-      var fade=Math.min(1,(b.maxLife-b.life)/40);
-      if(b.life>b.maxLife||b.y>innerHeight+10){bits.splice(i,1);continue;}
-      // Flip-card shimmer: width oscillates as the flake turns.
+      b.life++;b.sway+=b.swaySpeed;
+      b.y+=b.vy;b.x+=Math.sin(b.sway)*0.9;
+      if(b.life>b.maxLife||b.y>innerHeight+14){bits.splice(i,1);continue;}
+      var fade=Math.max(0,Math.min(1,(b.maxLife-b.life)/40));
+      if(b.star){b.tw+=0.18;drawStar(b,fade);continue;}
+      b.rot+=b.spin;
+      // Flip-card shimmer: width oscillates as the flake turns; bright flash when face-on.
       var flip=Math.abs(Math.cos(b.rot*2));
       ctx.save();
-      ctx.globalAlpha=Math.max(0,fade)*(0.55+0.45*flip);
+      ctx.globalAlpha=fade*(0.7+0.3*flip);
       ctx.translate(b.x,b.y);ctx.rotate(b.rot);
-      ctx.fillStyle=b.c;
-      ctx.fillRect(-b.w*flip/2,-b.h/2,b.w*flip+0.5,b.h);
+      ctx.fillStyle=flip>0.93?'#ffffff':b.c;
+      ctx.fillRect(-b.w*flip/2,-b.h/2,b.w*flip+0.6,b.h);
       ctx.restore();
     }
     if(bits.length){requestAnimationFrame(tick);}
     else{running=false;ctx.clearRect(0,0,innerWidth,innerHeight);}
   }
 
+  // Desktop: hovering over the marked name.
   var triggers=document.querySelectorAll('[data-glitter]');
   for(var i=0;i<triggers.length;i++){
     triggers[i].addEventListener('mouseenter',burst);
-    triggers[i].addEventListener('pointerdown',burst);
   }
+  // Phones/tablets: any tap anywhere in the embed (links still work).
+  document.addEventListener('pointerdown',function(e){
+    if(e.pointerType&&e.pointerType!=='mouse')burst();
+  },{passive:true});
+  document.addEventListener('touchstart',burst,{passive:true});
   window.glitterBurst=burst;          // handy for testing
 })();
 </script>
