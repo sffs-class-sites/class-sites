@@ -44,6 +44,10 @@ sites:
         box: null             # not measured yet
         status: pasted-code   # migrate to url
         hash: 86e0298ee805    # recorded 2026-10-11
+      # Class-2034-ONLY: room-parent list with glitter (snippets/glitter-hover/), pasted
+      # code in a 296x252 box under the welcome text on home. Don't add it to other sites.
+      # Not listed as a slot: it holds names/emails (never committed), and tests/monitor.py
+      # can't check code-only embeds yet (it expects every embed to have a Pages path).
   scratch:                 # test Site on Ahin's personal account; delete once the pattern is proven
     name: Scratch embed test
     kind: scratch
