@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glitter hover (Google Sites embed)</title>
+<!--
+  Glitter-on-hover text block for Google Sites "Embed code" boxes.
+  Any element with the attribute data-glitter rains glitter over the whole
+  embed when hovered (desktop) or tapped (phones/tablets).
+
+  This file holds PLACEHOLDER text only. The repo is public: never commit
+  real names or emails here (CLAUDE.md §3). Copy this file, swap in the
+  real text, and paste the copy into Sites; don't commit the copy.
+
+  Styling defaults match the 1st-grade class page body text as measured
+  2026-10-29 (Verdana 18.67px, centered, black, links rgb(0,65,165)).
+-->
+<style>
+  :root{
+    --text:#000;
+    --link:rgb(0,65,165);
+    --size:18.6667px;
+    --leading:1.38;
+  }
+  html,body{height:100%;margin:0;background:transparent;}
+  body{overflow:hidden;}
+  .wrap{
+    height:100%;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;
+    font:400 var(--size)/var(--leading) Verdana,Geneva,Tahoma,sans-serif;
+    color:var(--text);text-align:center;
+    box-sizing:border-box;padding:0 8px;
+  }
+  .wrap p{margin:0;}
+  .wrap a{color:var(--link);text-decoration:underline;overflow-wrap:anywhere;}
+  /* The trigger looks exactly like plain text. */
+  [data-glitter]{cursor:default;-webkit-tap-highlight-color:transparent;}
+  #glitter{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:10;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p>Welcome paragraph goes here. Replace this with the real text.</p>
+  <p>&nbsp;</p>
+  <p><span data-glitter>Parent Name One</span> (Child) &lt;<a href="mailto:parent.one@example.com" target="_blank" rel="noopener">parent.one@example.com</a>&gt;;</p>
+  <p>Parent Name Two (Child) &lt;<a href="mailto:parent.two@example.com" target="_blank" rel="noopener">parent.two@example.com</a>&gt;</p>
+</div>
+<canvas id="glitter" aria-hidden="true"></canvas>
+<script>
+(function(){
+  var canvas=document.getElementById('glitter'),
+      ctx=canvas.getContext('2d'),
+      reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+      colors=['#e6b422','#d4a017','#ff3d9a','#a259ff','#1fb8e0','#b0b0b8','#ff8a3d'],
+      bits=[],running=false,last=0,dpr=1;
+
+  function size(){
+    dpr=window.devicePixelRatio||1;
+    canvas.width=Math.round(innerWidth*dpr);
+    canvas.height=Math.round(innerHeight*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener('resize',size);size();
+
+  function burst(){
+    if(reduce)return;
+    var now=Date.now();
+    if(now-last<400)return;          // hover + tap fire together on phones
+    last=now;
+    var n=Math.min(260,Math.round(innerWidth*innerHeight/2000)+80);
+    for(var i=0;i<n;i++){
+      bits.push({
+        x:Math.random()*innerWidth,
+        y:-10-Math.random()*innerHeight*0.6,
+        vy:0.8+Math.random()*1.6,
+        sway:Math.random()*Math.PI*2,
+        swaySpeed:0.02+Math.random()*0.04,
+        rot:Math.random()*Math.PI,
+        spin:(Math.random()-0.5)*0.25,
+        w:3+Math.random()*4,
+        h:2+Math.random()*3,
+        c:colors[(Math.random()*colors.length)|0],
+        life:0,
+        maxLife:150+Math.random()*120
+      });
+    }
+    if(!running){running=true;requestAnimationFrame(tick);}
+  }
+
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    for(var i=bits.length-1;i>=0;i--){
+      var b=bits[i];
+      b.life++;b.sway+=b.swaySpeed;b.rot+=b.spin;
+      b.y+=b.vy;b.x+=Math.sin(b.sway)*0.8;
+      var fade=Math.min(1,(b.maxLife-b.life)/40);
+      if(b.life>b.maxLife||b.y>innerHeight+10){bits.splice(i,1);continue;}
+      // Flip-card shimmer: width oscillates as the flake turns.
+      var flip=Math.abs(Math.cos(b.rot*2));
+      ctx.save();
+      ctx.globalAlpha=Math.max(0,fade)*(0.55+0.45*flip);
+      ctx.translate(b.x,b.y);ctx.rotate(b.rot);
+      ctx.fillStyle=b.c;
+      ctx.fillRect(-b.w*flip/2,-b.h/2,b.w*flip+0.5,b.h);
+      ctx.restore();
+    }
+    if(bits.length){requestAnimationFrame(tick);}
+    else{running=false;ctx.clearRect(0,0,innerWidth,innerHeight);}
+  }
+
+  var triggers=document.querySelectorAll('[data-glitter]');
+  for(var i=0;i<triggers.length;i++){
+    triggers[i].addEventListener('mouseenter',burst);
+    triggers[i].addEventListener('pointerdown',burst);
+  }
+  window.glitterBurst=burst;          // handy for testing
+})();
+</script>
+</body>
+</html>
