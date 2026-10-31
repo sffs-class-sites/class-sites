@@ -21,14 +21,8 @@ embeds:
     match: "@sffs-calendar"
   room-parents:
     type: url
-    path: shared/room-parents/   # placed with ?class=YYYY; not on any site yet
+    path: shared/room-parents/   # placed with ?class=YYYY (pattern A: names come from the master sheet's Live tab at deploy time)
     owner: platform
-  room-parents-glitter:
-    type: code
-    template: snippets/glitter-hover/   # placeholder-only version
-    owner: class-2034
-    scope: class-2034-only              # don't add to other sites
-    match: "data-glitter"
 
 sites:
   class-2032:            # 3rd grade in 2026–27
@@ -50,10 +44,9 @@ sites:
         box: {w: 935, h: 625}   # editor (h/w 0.668); publishes 1154 x 770, iPhone 13 352 x 235, 4 dates visible (resized and measured 2026-10-31)
         status: url           # swapped 2026-10-30
       - page: home
-        embed: room-parents-glitter   # Class-2034 only; room-parent list under the welcome text
-        box: {w: 296, h: 252}
-        status: code          # pasted by design: holds names/emails, never committed
-        hash: ea6c6cbb5f06    # recorded 2026-10-30
+        embed: room-parents   # ?class=2034, under the welcome text; replaced the pasted glitter list 2026-10-31
+        box: {w: 935, h: 549}   # editor (h/w 0.587); desktop shows all cards, a phone scrolls after the first two
+        status: url
   scratch:                 # test Site on Ahin's personal account; delete once the pattern is proven
     name: Scratch embed test
     kind: scratch
