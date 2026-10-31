@@ -2,3 +2,6 @@ _site/
 _harness/
 __pycache__/
 _live/
+
+# Claude Code personal settings (permission rules for this machine)
+.claude/settings.local.json

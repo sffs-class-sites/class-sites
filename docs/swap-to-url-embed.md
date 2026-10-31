@@ -17,7 +17,7 @@ A human task, about 10 minutes per site (CLAUDE.md §8 step 4). Do the 3rd grade
 3. Choose **By URL** and paste:
    `https://sffs-class-sites.github.io/class-sites/shared/important-dates/`
 4. Choose **Whole page**, then **Insert** (or **Update**).
-5. **Keep the box the same size.** Only its shape matters (CLAUDE.md §5). Both live pages use 935 × 935 in the editor, which publishes at 1154 × 1154 on a desktop and 352 × 352 on an iPhone.
+5. **Keep the box the same size.** Only its shape matters (CLAUDE.md §5). Both live pages use 935 × 625 in the editor (since 2026-10-31), which publishes at 1154 × 770 on a desktop and 352 × 235 on an iPhone.
    - **Height ÷ width must be at least 0.67** (since 2026-10-31; it was 0.95 before the compact phone layout), or phones show fewer than three upcoming dates before scrolling. The recommended box is **935 × 625** (0.67 with a little margin): 1154 × 770 published, 352 × 235 on an iPhone.
    - If the dialog won't switch to By URL, delete the box, use **Insert → Embed → By URL → Whole page**, and drag the new box to the full column width and the same height as the old one.
 6. **Check the shape again before you publish.** On 2026-10-30 the swap changed the box's shape on both sites (3rd grade to 0.59, 1st grade to 0.78), so phones showed one or two dates. Drag the bottom edge until the box is at least two-thirds as tall as it is wide, then publish.

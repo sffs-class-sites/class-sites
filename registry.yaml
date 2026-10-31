@@ -38,7 +38,7 @@ sites:
     slots:
       - page: home
         embed: important-dates
-        box: {w: 935, h: 935}   # editor; publishes 1154 x 1154, iPhone 13 352 x 352 (measured 2026-10-30). Can shrink to 935 x 625 (CLAUDE.md §5)
+        box: {w: 935, h: 625}   # editor (h/w 0.668); publishes 1154 x 770, iPhone 13 352 x 235, 4 dates visible (resized and measured 2026-10-31)
         status: url           # swapped 2026-10-30
   class-2034:            # 1st grade in 2026–27
     name: 1st Grade Class Page
@@ -47,7 +47,7 @@ sites:
     slots:
       - page: home
         embed: important-dates
-        box: {w: 935, h: 935}   # editor; publishes 1154 x 1154, iPhone 13 352 x 352 (measured 2026-10-30). Can shrink to 935 x 625 (CLAUDE.md §5)
+        box: {w: 935, h: 625}   # editor (h/w 0.668); publishes 1154 x 770, iPhone 13 352 x 235, 4 dates visible (resized and measured 2026-10-31)
         status: url           # swapped 2026-10-30
       - page: home
         embed: room-parents-glitter   # Class-2034 only; room-parent list under the welcome text
