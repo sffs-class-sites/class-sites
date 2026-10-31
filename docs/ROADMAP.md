@@ -50,7 +50,7 @@ Everything in Site Map sync and room parents is waiting on three things. None of
 
 **C1. ~~Phone layout for Important Dates~~ (done 2026-10-31).** Below 400px the embed is one line per date with badge and details on tap, plus a "Full page" link; three dates fit at h ÷ w ≥ 0.67 instead of 0.95, and `render_check.py` now asserts tap-target size, text size, tap-to-open and the link at phone widths. Both homepage boxes were resized to 935 × 625 the same day (published 1154 × 770, iPhone 352 × 235, four dates visible) and recorded in `registry.yaml`. Original note: The 935×935 box gets 352px and four dates on a phone — workable, and it cost a 1154px-tall square on desktop. The better fix is inside the embed: below ~400px, a compact layout showing three upcoming dates without scrolling, a bordered scroll region with a sticky "scroll for more" pill, and a link to the full page. `docs/schedules.md` §10 is the pattern. Then the box can come back down. Add phone-width **usability** assertions to `render_check.py` — today it only proves nothing overflows, which a useless layout also passes.
 
-**C2. Room parents go live.** School's OK on publishing names/emails → install `apps-script/room-parents/Code.gs` on the master sheet (in the bot's Drive) and fill `PUBLISHERS` → mark the Site Map row approved → place the embed by URL with `?class=2034` on the 1st-grade site. Then replace the pasted "glitter" room-parent list on that site, which is currently uncheckable by the monitor.
+**C2. Room parents go live.** School's OK on publishing names/emails (**given 2026-10-31**) → install `apps-script/room-parents/Code.gs` on the master sheet (in the bot's Drive) and fill `PUBLISHERS` → mark the Site Map row approved → place the embed by URL with `?class=2034` on the 1st-grade site. Then replace the pasted "glitter" room-parent list on that site, which is currently uncheckable by the monitor.
 
 **C3. Point the live check at a real site**, not the scratch one, then delete scratch (A5).
 
@@ -62,7 +62,7 @@ Everything in Site Map sync and room parents is waiting on three things. None of
 
 ## D. The class/grade model (not built — the architecture depends on it)
 
-**D1. `?class=YYYY` handling and the grade calculation** in the shared embeds: `grade = 8 − (gradYear − schoolYearEndYear)`, rolling over on the **last day of school**, with `?grade=N` as a preview override. The config block also drives header strings ("Welcome to 3rd grade — Class of 2032").
+**D1. ~~`?class=YYYY` handling and the grade calculation~~ (built 2026-10-31: `shared/class/class.js` + `shared/school-years.json`, mirrored by `build/classinfo.py`; both embeds use it; Python and browser tests share one table. The live embeds get `?class=` added once D3 exists, so Sites is edited once.)** Original note: `grade = 8 − (gradYear − schoolYearEndYear)`, rolling over on the **last day of school**, with `?grade=N` as a preview override. The config block also drives header strings ("Welcome to 3rd grade — Class of 2032").
 
 **D2. `audience` and `start_time`/`end_time` on Important Dates events**, per the agreed schema: audience as a grouping key or grade list, resolved list snapshotted at approval; absent times mean all-day; a timed version replaces an all-day one with a new UID.
 
@@ -96,7 +96,7 @@ Build in this order, each step useful on its own:
 
 **F4. Alerts that reach someone other than Ahin.** Today red monitor and failed live checks open an issue assigned to `Ahin-SFFS`; failed deploys and pending approvals alert nobody. Define who hears what, through what channel (email is simplest), per role.
 
-**F5. Roles and access written down**: who holds the org, who holds the bot identity, who is Sites owner per site, what rotates yearly, and what happens at hand-off. Include demoting `SFQuakerBot` to org Member (§9 item 11) once B is done.
+**F5. Roles and access written down**: who holds the org, who holds the bot identity, who is Sites owner per site, what rotates yearly, and what happens at hand-off. `SFQuakerBot` was demoted to org Member with write on 2026-10-31 (§9 item 11, done).
 
 **F6. Content standards**: accessibility checks in CI; Handbook accuracy with citations; search-engine indexing turned off on any site showing personal data.
 

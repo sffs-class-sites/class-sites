@@ -12,6 +12,10 @@ is the contract and must stay stable:
   {"schema": 1, "updated": "<ISO time>", "classes": {"2034": [{"name": "...", "email": "..."}]}}
 """
 import pathlib
+import sys
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import classinfo
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 OUT = ROOT / "_site" / "shared" / "room-parents"
@@ -55,6 +59,9 @@ footer{margin-top:14px;color:var(--sub);font-size:.78rem}
   <div id="body" aria-live="polite"><ul aria-hidden="true"><li class="skel"></li><li class="skel"></li></ul></div>
   <footer id="foot"></footer>
 </div>
+<script>
+{{CLASS_JS}}
+</script>
 <script>
 (function(){
   var DATA_URL = '../../data/room-parents.json';
@@ -102,10 +109,12 @@ footer{margin-top:14px;color:var(--sub);font-size:.78rem}
     if (updated) document.getElementById('foot').textContent = 'Updated ' + new Date(updated).toLocaleDateString(undefined, {month: 'long', day: 'numeric', year: 'numeric'}) + '.';
   }
 
-  var m = /[?&]class=(\d{4})(?:&|$)/.exec(location.search);
-  var cls = m && m[1];
+  /* Class and grade from the address (CLAUDE.md section 1): ?class=2034, optional ?grade= preview. */
+  var ci = SFFS.classInfo(location.search);
+  var cls = ci.cls && String(ci.cls);
   if (cls) {
-    document.getElementById('title').textContent = 'Class of ' + cls + ' room parents';
+    document.getElementById('title').textContent = (ci.status === 'ok' ? ci.gradeName + ' room parents' : 'Class of ' + cls + ' room parents');
+    document.getElementById('sub').textContent = ci.heading + " \u00b7 your class's volunteer contacts.";
   }
 
   function start(){
@@ -114,7 +123,7 @@ footer{margin-top:14px;color:var(--sub);font-size:.78rem}
     var slow = setTimeout(function(){ document.getElementById('sub').textContent = 'Still loading…'; }, 4000);
     loadData().then(function(res){
       clearTimeout(slow);
-      document.getElementById('sub').textContent = "Your class's volunteer contacts.";
+      document.getElementById('sub').textContent = ci.heading + " \u00b7 your class's volunteer contacts.";
       if (res.status === 'unpublished') { message('Room parent contacts haven’t been published yet.'); return; }
       render(pick(res.data, cls), res.data.updated);
     }).catch(function(){
@@ -132,8 +141,9 @@ footer{margin-top:14px;color:var(--sub);font-size:.78rem}
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    (OUT / "index.html").write_text(PAGE)
-    print(f"room-parents -> {OUT / 'index.html'} ({len(PAGE)} bytes)")
+    page = PAGE.replace("{{CLASS_JS}}", classinfo.class_js())
+    (OUT / "index.html").write_text(page)
+    print(f"room-parents -> {OUT / 'index.html'} ({len(page)} bytes)")
 
 
 if __name__ == "__main__":

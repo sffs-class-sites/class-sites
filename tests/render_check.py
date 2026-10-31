@@ -236,6 +236,30 @@ def main():
             page.screenshot(path=str(ROOT / "_harness" / f"shot-{label}.png"))
             ctx.close()
 
+        # Class and grade model: the browser module must agree with build/classinfo.py on every row of
+        # the shared table, and the header must show the class line only when ?class= is present.
+        print("[class and grade model]")
+        table = json.loads((ROOT / "tests" / "classinfo_table.json").read_text())
+        ctx = browser.new_context(viewport={"width": 700, "height": 700})
+        page = ctx.new_page()
+        page.goto("http://127.0.0.1:8701/shared/important-dates/?class=2034&today=2026-09-16")
+        page.wait_for_timeout(300)
+        wrong = []
+        for q, today, want in table:
+            got = page.evaluate("([q, t]) => SFFS.classInfo(q, t ? new Date(t.slice(0,4), t.slice(5,7) - 1, t.slice(8,10)) : null).heading", [q, today])
+            if got != want:
+                wrong.append(f"{q} on {today}: {got!r} != {want!r}")
+        check(not wrong, f"class.js agrees with classinfo.py on {len(table)} cases ({wrong[:2]})")
+        line = page.evaluate("() => { const l = document.getElementById('class-line'); return [l.hidden, l.textContent]; }")
+        check(line == [False, "1st grade · Class of 2034"], f"?class=2034 shows the grade in the header ({line})")
+        page.goto("http://127.0.0.1:8701/shared/important-dates/?today=2026-09-16")
+        page.wait_for_timeout(300)
+        check(page.evaluate("() => document.getElementById('class-line').hidden"), "no ?class=: no class line (schoolwide calendar)")
+        page.goto("http://127.0.0.1:8701/shared/important-dates/?class=2034&grade=3&today=2026-09-16")
+        page.wait_for_timeout(300)
+        check(page.evaluate("() => document.getElementById('class-line').textContent") == "3rd grade · Class of 2034 (preview)", "?grade=3 previews another grade")
+        ctx.close()
+
         fw, fh = THREE_UP_FRAME
         print(f"[phone {fw}x{fh}: three upcoming dates without scrolling, every day of the year]")
         short = []
