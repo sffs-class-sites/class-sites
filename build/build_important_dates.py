@@ -206,6 +206,7 @@ h1{font-size:1.35rem;margin:0 0 4px}
 .chip.on,.chip.pref.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .chip:focus-visible,.btn:focus-visible,.add:focus-visible{outline:3px solid #f0a055;outline-offset:2px}
 .chip[hidden]{display:none}
+.chip.full{display:none;text-decoration:none;color:var(--accent)}
 .toggle{font-size:.8rem;color:var(--sub);display:inline-flex;align-items:center;gap:6px;margin-left:auto;white-space:nowrap}
 .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
 .dot.noschool{background:var(--noschool)}.dot.break{background:var(--break)}.dot.early{background:var(--early)}.dot.event{background:var(--event)}.dot.info{background:var(--info)}
@@ -217,7 +218,7 @@ td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top;font-s
 .badge.noschool{color:var(--noschool);background:var(--noschool-bg)}.badge.break{color:var(--break);background:var(--break-bg)}
 .badge.early{color:var(--early);background:var(--early-bg)}.badge.event{color:var(--event);background:var(--event-bg)}.badge.info{color:var(--info);background:var(--info-bg)}
 .event-title{font-weight:600}
-.next-flag{display:inline-block;margin-left:8px;font-size:.64rem;font-weight:800;letter-spacing:.04em;color:#fff;background:var(--accent);border-radius:999px;padding:3px 7px;vertical-align:2px}
+.next-flag{display:inline-block;margin-left:8px;font-size:.7rem;font-weight:800;letter-spacing:.04em;color:#fff;background:var(--accent);border-radius:999px;padding:3px 7px;vertical-align:2px}
 .addall-note{margin:8px 0 0;color:var(--sub);font-size:.8rem}
 .pref-row{margin-top:10px;padding:10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:12px}
 .pref-label{margin:0 0 8px;font-size:.84rem;font-weight:600}
@@ -266,10 +267,35 @@ footer p{margin:4px 0}
   .event-title,.event-details{display:inline}
   .event-details{font-size:.8rem}
   .event-details::before{content:" · "}
-  .next-flag{margin-left:6px;font-size:.6rem;padding:2px 6px}
+  .next-flag{margin-left:6px;font-size:.7rem;padding:2px 6px}
   .add{margin:0;padding:5px 8px;font-size:.72rem}
   .sffs-fade{height:30px}
   .sffs-hint{bottom:6px;padding:5px 11px;font-size:11px}
+  .chip.full:not([hidden]){display:inline-flex}
+}
+/* Narrow phone column (Sites gives 315-352px): one line per date so three fit in a short box.
+   The category shows as a coloured edge (the filter chips above are the legend); tap a date for
+   its badge and details. Measured in tests/render_check.py (THREE_UP_FRAME). */
+@media (max-width:400px){
+  .toolbar{padding:5px 12px}
+  .chip{padding:6px 9px}
+  tr.ev{grid-template-columns:auto 1fr auto;column-gap:6px;row-gap:3px;padding:4px 6px 4px 7px;margin:2px 0;border-left-width:4px;border-left-color:var(--info);cursor:pointer}
+  tr.ev[data-cat="noschool"]{border-left-color:var(--noschool)}tr.ev[data-cat="break"]{border-left-color:var(--break)}
+  tr.ev[data-cat="early"]{border-left-color:var(--early)}tr.ev[data-cat="event"]{border-left-color:var(--event)}
+  tr.ev td{font-size:.84rem;line-height:1.2}
+  .date-cell{grid-column:1;grid-row:1;align-self:start;padding-top:1px}
+  .what-cell{grid-column:2;grid-row:1;align-self:center}
+  .action-cell{grid-column:3;grid-row:1;align-self:start}
+  .badge-cell{display:none}
+  .event-details{display:none}
+  tr.ev.open .badge-cell{display:block;grid-column:1/4;grid-row:2}
+  tr.ev.open .event-details{display:block;margin-top:2px}
+  tr.ev.open .event-details::before{content:none}
+  .add{padding:5px 6px;min-height:24px}
+  .add .add-label{display:none}
+  .add::after{content:" Add"}
+  .date-cell .next-flag{display:block;width:max-content;margin:3px 0 0;font-size:.7rem;padding:2px 5px}
+  .sffs-hint{bottom:4px;padding:4px 10px}
 }
 @media print{html,body{height:auto}body{overflow:visible}.wrap{height:auto;overflow:visible;border:0}.toolbar,.action-cell,.header-actions,.sffs-fade,.sffs-hint{display:none}}
 </style>
@@ -298,7 +324,9 @@ footer p{margin:4px 0}
     <div class="row" role="group" aria-label="Show">{{CAT_BUTTONS}}
       <label class="toggle"><input type="checkbox" id="showpast"> Show past dates</label>
     </div>
-    <div class="row" role="group" aria-label="Jump to month">{{MONTH_BUTTONS}}</div>
+    <div class="row" role="group" aria-label="Jump to month">{{MONTH_BUTTONS}}
+      <a class="chip full" id="fullpage" href="" target="_blank" rel="noopener noreferrer" hidden>Full page &#8599;</a>
+    </div>
   </nav>
   <table><tbody id="cal-body">
 {{ROWS}}
@@ -340,8 +368,9 @@ footer p{margin:4px 0}
     if (!upcoming && b >= today) upcoming = r;
   });
   if (upcoming && !upcoming.classList.contains('today')) {
-    var flag = document.createElement('span'); flag.className = 'next-flag'; flag.textContent = 'NEXT UP';
-    upcoming.querySelector('.event-title').appendChild(flag);
+    var flag = document.createElement('span'); flag.className = 'next-flag'; flag.textContent = innerWidth <= 400 ? 'NEXT' : 'NEXT UP';
+    /* Narrow frames: under the date, where there is room beside a two-line title. */
+    upcoming.querySelector(innerWidth <= 400 ? '.date-cell' : '.event-title').appendChild(flag);
   }
 
   function apply(){
@@ -368,6 +397,18 @@ footer p{margin:4px 0}
   }
 
   cats.forEach(function(c){ c.addEventListener('click', function(){ state.cat = c.getAttribute('data-cat'); apply(); }); });
+  /* Narrow frames hide each date's badge and details; tapping the date shows them. */
+  rows.forEach(function(r){
+    r.setAttribute('aria-expanded', 'false');
+    r.addEventListener('click', function(ev){
+      if (ev.target.closest('.cal-btn') || innerWidth > 400) return;
+      var open = !r.classList.contains('open'); r.classList.toggle('open', open); r.setAttribute('aria-expanded', open); hint();
+    });
+  });
+  /* In a Sites frame on a phone the box is small; offer the same page in a full tab. */
+  var full = document.getElementById('fullpage');
+  full.href = location.origin + location.pathname;
+  if (window.self !== window.top) full.hidden = false;
   jumps.forEach(function(j){ j.addEventListener('click', function(){ jump(j.getAttribute('data-jump')); }); });
   showPast.addEventListener('change', apply);
 
@@ -402,7 +443,8 @@ footer p{margin:4px 0}
         el.target = '_blank'; el.rel = 'noopener noreferrer';
       }
       el.className = 'add cal-btn';
-      el.textContent = '+ ' + LABEL[pref];
+      el.textContent = '+';
+      var lab = document.createElement('span'); lab.className = 'add-label'; lab.textContent = ' ' + LABEL[pref]; el.appendChild(lab);
       el.setAttribute('aria-label', 'Add ' + m.t + ' to ' + LABEL[pref] + (pref === 'apple' ? ' Calendar' : ''));
       cell.appendChild(el);
     });

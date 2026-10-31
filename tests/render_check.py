@@ -23,15 +23,18 @@ SITE = ROOT / "_site"
 SANDBOX = ("allow-scripts allow-popups allow-forms allow-same-origin allow-popups-to-escape-sandbox "
            "allow-downloads allow-storage-access-by-user-activation")
 
-# (label, frame width, frame height). Desktop = measured published homepage box.
-# Phone = Sites' ~315px column, height from the same aspect ratio.
-FRAMES = [("desktop", 1154, 1107), ("tablet", 700, 672), ("phone", 315, 302), ("phone-tall", 315, 560)]
+# (label, frame width, frame height). Desktop = the live homepage box (1154 x 1154 published).
+# Phone = Sites' narrowest phone column (315px) at the recommended box shape; phone-tall = a taller box.
+FRAMES = [("desktop", 1154, 1154), ("tablet", 700, 672), ("phone", 315, 210), ("phone-tall", 315, 560)]
 TODAY = "2026-09-16"
 
 # Phone: the next three dates must be fully visible on first load, below the sticky filter bar and
 # above the scroll pill, on every day of the year (the upcoming set changes as dates pass).
-# 315x302 is the narrowest phone column at the live 3rd-grade box's shape (897/935 = 0.959).
-THREE_UP_FRAME = (315, 302)
+# 315 x 210 (h / w = 0.667) is the shape the embed is designed for: an editor box of about 935 x 625,
+# which publishes at 1154 x 770 and 352 x 235 on an iPhone 13. Below 400px the embed switches to one
+# line per date (the compact layout); this frame is the floor that layout must keep clearing.
+THREE_UP_FRAME = (315, 210)
+PHONE_MAX = 400  # the compact layout's breakpoint, in the embed's CSS
 UPCOMING_JS = """() => {
   const w = document.getElementById('wrap'), bar = document.getElementById('toolbar');
   const wr = w.getBoundingClientRect(), top = Math.max(wr.top, bar.getBoundingClientRect().bottom);
@@ -145,6 +148,54 @@ def main():
 
             nxt = fr.evaluate("() => [...document.querySelectorAll('.next-flag')].map(f => f.closest('tr').dataset.date)")
             check(nxt == ["2026-09-17"], f"NEXT UP flag on the next upcoming date ({nxt})")
+
+            # Phone usability: the compact layout must stay usable, not just fit. Wider frames keep the
+            # full layout: details inline, no tap-to-open, no full-page link.
+            frame.locator("#showpast").uncheck()
+            page.wait_for_timeout(150)
+            u = fr.evaluate("""() => {
+              const box = e => e.getBoundingClientRect();
+              const vis = e => box(e).height > 0 && box(e).width > 0;  // collapsed month headings don't count
+              const targets = [...document.querySelectorAll('.chip, .add, .toggle')].filter(vis);
+              const small = targets.filter(e => box(e).height < 24 || box(e).width < 24).map(e => e.textContent.trim().slice(0, 12) + ' ' + Math.round(box(e).width) + 'x' + Math.round(box(e).height));
+              const texty = [...document.querySelectorAll('td, .chip, .add, .next-flag, .sffs-hint, .badge, .event-details, .toggle')].filter(vis);
+              const tiny = texty.filter(e => parseFloat(getComputedStyle(e).fontSize) < 11).map(e => e.className + ' ' + getComputedStyle(e).fontSize);
+              const full = document.getElementById('fullpage');
+              const row = [...document.querySelectorAll('tr.ev')].find(r => !r.hidden && r.querySelector('.event-details'));
+              return {small, tiny, fullShown: vis(full), fullHref: full.href, fullBlank: full.target === '_blank',
+                      detailsShown: !!row && vis(row.querySelector('.event-details')), rowDate: row && row.dataset.date};
+            }""")
+            check(not u["small"], f"every tap target is at least 24px ({u['small'][:3]})")
+            check(not u["tiny"], f"no text under 11px ({u['tiny'][:3]})")
+            embed_url = src.split("?")[0]
+            if fw <= PHONE_MAX:
+                check(u["fullShown"] and u["fullHref"] == embed_url and u["fullBlank"], f"'Full page' link shows in a phone frame and opens the embed in a new tab ({u['fullHref']})")
+                check(not u["detailsShown"], "compact layout: details hidden until tapped")
+                row = frame.locator(f'tr.ev[data-date="{u["rowDate"]}"]')
+                row.locator(".what-cell").click()
+                page.wait_for_timeout(150)
+                opened = fr.evaluate(f"() => {{ const r = document.querySelector('tr.ev[data-date=\"{u['rowDate']}\"]'); return r.classList.contains('open') && r.getAttribute('aria-expanded') === 'true' && r.querySelector('.event-details').getClientRects().length > 0 && r.querySelector('.badge').getClientRects().length > 0; }}")
+                check(opened, f"tapping a date shows its badge and details ({u['rowDate']})")
+                row.locator(".what-cell").click()
+                page.wait_for_timeout(150)
+                closed = fr.evaluate(f"() => {{ const r = document.querySelector('tr.ev[data-date=\"{u['rowDate']}\"]'); return !r.classList.contains('open') && r.querySelector('.event-details').getClientRects().length === 0; }}")
+                check(closed, "tapping again hides them")
+                check(fr.url == url0 and not popups, "tapping a date: no navigation, no new tab")
+                with ctx.expect_page(timeout=5000) as newp:
+                    frame.locator("#fullpage").click()
+                pg = newp.value
+                pg.wait_for_load_state()
+                check(pg.url == embed_url, f"'Full page' opens the embed itself in a new tab ({pg.url})")
+                pg.close()
+                popups.clear()
+            else:
+                check(not u["fullShown"], "no 'Full page' link in a wide frame")
+                check(u["detailsShown"], "wide frame: details shown inline")
+                frame.locator(f'tr.ev[data-date="{u["rowDate"]}"] .what-cell').click()
+                page.wait_for_timeout(100)
+                check(not fr.evaluate("() => !!document.querySelector('tr.ev.open')"), "wide frame: clicking a date does nothing")
+            frame.locator("#showpast").check()  # back to the state the next checks expect
+            page.wait_for_timeout(150)
 
             # Calendar preference: Google (default) -> link in new tab
             n_btn = fr.evaluate("() => [...document.querySelectorAll('tr.ev')].filter(r => r.querySelectorAll('.cal-btn').length === 1).length")
