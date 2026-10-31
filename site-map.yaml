@@ -21,22 +21,19 @@ sources:
   notes: School PDF. Transcribed by hand into the repo (source-2026-27.txt); not read from Drive yet.
 - embed: room-parents
   source: Room parent contacts
-  drive_file_id: null
+  drive_file_id: 1no4dA_ot7Hg3KTQLN1uFsUUn3IH6H3EIatn7arrZxNs
   shape: Sheet, one row per person
   key: class
   publish:
   - Class year
   - Name
   - Email
-  approved_by: null
-  approved_on: null
-  publishable: false
-  blocked:
-  - Sync is not Yes
-  - no Drive file ID
-  - no Approved by
-  - no Approved on
-  notes: Proposal. Needs the school's OK and the Drive bot account before anything is published.
+  approved_by: School administration
+  approved_on: '2026-10-31'
+  publishable: true
+  blocked: null
+  notes: School approved publishing names and emails 2026-10-31. Master sheet (Draft/Live/Log/History) in Ahin's Drive; the
+    sites read the Live tab only.
 - embed: schedules
   source: Class schedules
   drive_file_id: null
