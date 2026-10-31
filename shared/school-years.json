@@ -1,0 +1,6 @@
+{
+  "_comment": "One row per school year, newest last. end_year is the calendar year the year ends in. last_day is the rollover: through that day a site shows this year's grade; from the next day it shows next year's (CLAUDE.md section 1, decided 2026-10-30). Add next year's row as soon as the school publishes its calendar; until then the embeds assume the year ends June 30 and say so in the console.",
+  "years": [
+    {"end_year": 2027, "label": "2026–27", "first_day": "2026-08-26", "last_day": "2027-06-09"}
+  ]
+}

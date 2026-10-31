@@ -19,6 +19,9 @@ import re
 import sys
 import urllib.parse
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import classinfo
+
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SRC = ROOT / "shared" / "important-dates" / "data.json"
 OUT = ROOT / "_site" / "shared" / "important-dates"
@@ -166,6 +169,7 @@ def build(data):
         "{{ICS_EVENTS_JSON}}": json.dumps(vevents).replace("</", "<\\/"),
         "{{META_JSON}}": json.dumps(metas, ensure_ascii=False).replace("</", "<\\/"),
         "{{YEAR}}": data["title"].split()[1],
+        "{{CLASS_JS}}": classinfo.class_js(),
     }.items():
         page = page.replace(k, v)
     return page, ics_calendar(vevents), version
@@ -194,6 +198,8 @@ body{overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Rob
 header{margin-bottom:10px}
 h1{font-size:1.35rem;margin:0 0 4px}
 .subtitle{margin:0 0 10px;color:var(--sub);font-size:.9rem}
+.class-line{display:inline-block;margin:0 0 8px;padding:4px 10px;border-radius:999px;background:var(--accent-light);color:var(--accent);font-weight:700;font-size:.82rem}
+.class-line[hidden]{display:none}
 .header-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .btn,.source-link{display:inline-flex;align-items:center;gap:6px;font-family:inherit;font-weight:600;font-size:.82rem;line-height:1;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--accent);text-decoration:none;cursor:pointer}
 .btn:hover,.source-link:hover{background:var(--accent-light)}
@@ -304,6 +310,7 @@ footer p{margin:4px 0}
 <div class="wrap" id="wrap">
   <header>
     <h1>{{TITLE}}</h1>
+    <p class="class-line" id="class-line" hidden></p>
     <p class="subtitle">{{SUBTITLE}}</p>
     <div class="header-actions">
       <a class="source-link" href="{{SOURCE_URL}}" target="_blank" rel="noopener noreferrer">{{SOURCE_LABEL}} ↗</a>
@@ -339,6 +346,9 @@ footer p{margin:4px 0}
 <div class="sffs-fade" hidden></div>
 <div class="sffs-hint" hidden>Scroll for more &#8595;</div>
 <script>
+{{CLASS_JS}}
+</script>
+<script>
 (function(){
   var ICS = {{ICS_EVENTS_JSON}};
   var META = {{META_JSON}};
@@ -359,6 +369,12 @@ footer p{margin:4px 0}
   var today = new Date(); today.setHours(0,0,0,0);
   if (/[?&]today=\d{4}-\d{2}-\d{2}/.test(location.search)) { today = ymd(location.search.match(/today=(\d{4}-\d{2}-\d{2})/)[1]); }  // for tests
   function isPast(r){ return ymd(r.getAttribute('data-date-end') || r.getAttribute('data-date')) < today; }
+
+  /* Class and grade (CLAUDE.md section 1): placed with ?class=2034, the header names the grade this
+     school year; ?grade=N previews another. Without ?class= the page is the schoolwide calendar. */
+  var ci = SFFS.classInfo(location.search, today), classLine = document.getElementById('class-line');
+  if (ci.cls) { classLine.textContent = ci.heading; classLine.hidden = false; }
+  document.documentElement.setAttribute('data-class-status', ci.status);
   var allPast = rows.every(isPast);  // year over or stale calendar: never render empty
 
   var upcoming = null;
