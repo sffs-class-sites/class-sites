@@ -1,0 +1,617 @@
+{
+  "schema": 1,
+  "id": "updates",
+  "title": "SFFS Updates",
+  "subtitle": "What the school emails said, organised: things to do, this week, what changed.",
+  "school_year": {"label": "2026–27", "first_day": "2026-08-26", "last_day": "2027-06-09", "end_year": 2027},
+  "built_through": "2026-10-29",
+  "log": {
+    "note": "Full text of every email lives in Google Docs in the bot's Drive, one document per stream per school year. Each email is a dated heading; the pipeline fills doc_url and the per-source anchor once the documents exist.",
+    "docs": {"circle-back": null, "head": null, "digest-1": null, "digest-3": null}
+  },
+  "streams": {
+    "circle-back": {"label": "Circle Back", "cadence": "Weekly, Thursday afternoon", "audience": "all"},
+    "head": {"label": "From the Head's Desk", "cadence": "About monthly", "audience": "all"},
+    "digest-1": {"label": "1st Grade Room Parent Digest", "cadence": "Every other Tuesday", "audience": ["1"]},
+    "digest-3": {"label": "3rd Grade Room Parent Digest", "cadence": "Every other Tuesday", "audience": ["3"]}
+  },
+  "sources": [
+    {"id": "hd-0818", "stream": "head", "date": "2026-08-18", "subject": "From the Head's Desk: August 18, 2026"},
+    {"id": "hd-0904", "stream": "head", "date": "2026-09-04", "subject": "From the Head's Desk: September 4, 2026"},
+    {"id": "cb-0917", "stream": "circle-back", "date": "2026-09-17", "subject": "SFFS Circle Back: September 17, 2026"},
+    {"id": "hd-0918", "stream": "head", "date": "2026-09-18", "subject": "From the Head's Desk: Friends Community Commitments"},
+    {"id": "d1-0922", "stream": "digest-1", "date": "2026-09-22", "subject": "SFFS 1st Grade | Room Parent Digest | 09-22-26", "note": "Sent twice; the second copy only fixed a typo in the sign-off."},
+    {"id": "d3-0922", "stream": "digest-3", "date": "2026-09-22", "subject": "SFFS 3rd Grade | Room Parent Digest | 09-22-26"},
+    {"id": "cb-0924", "stream": "circle-back", "date": "2026-09-24", "subject": "SFFS Circle Back: September 24, 2026"},
+    {"id": "cb-1001", "stream": "circle-back", "date": "2026-10-01", "subject": "SFFS Circle Back: October 1, 2026"},
+    {"id": "d3-1006", "stream": "digest-3", "date": "2026-10-06", "subject": "SFFS 3rd Grade | Room Parent Digest | 10-06-26"},
+    {"id": "d1-1006", "stream": "digest-1", "date": "2026-10-07", "subject": "SFFS 1st Grade | Room Parent Digest | 10-06-26"},
+    {"id": "cb-1008", "stream": "circle-back", "date": "2026-10-08", "subject": "SFFS Circle Back: October 8, 2026"},
+    {"id": "cb-1015", "stream": "circle-back", "date": "2026-10-15", "subject": "SFFS Circle Back: October 15, 2026"},
+    {"id": "d3-1020", "stream": "digest-3", "date": "2026-10-20", "subject": "SFFS 3rd Grade | Room Parent Digest | 10-20-26"},
+    {"id": "d1-1020", "stream": "digest-1", "date": "2026-10-21", "subject": "SFFS 1st Grade | Room Parent Digest | 10-20-26"},
+    {"id": "cb-1022", "stream": "circle-back", "date": "2026-10-22", "subject": "SFFS Circle Back: October 22, 2026"},
+    {"id": "hd-1023", "stream": "head", "date": "2026-10-23", "subject": "From the Head's Desk: October 23, 2026"},
+    {"id": "cb-1029", "stream": "circle-back", "date": "2026-10-29", "subject": "SFFS Circle Back: October 29, 2026"}
+  ],
+  "topics": [
+    {
+      "id": "letter-2026-08-18", "kind": "letter", "audience": "all",
+      "title": "Head's letter: eight days to go, and who's new this year",
+      "summary": "Brenda Leaks' first back-to-school letter introduces new faculty and staff: Yara Herman (Lower School art), Helena Rodgers (4th grade lead), Kajsiab Linda Moua (2nd grade, covering a leave), Marcelo Muñoz (Middle School Dean of Students), Hannah Caminos (Spanish), Paula Ciraulo, Russell Wright (drama, grades 3–8), Paul Rendón (5th grade math through winter break), Eliza Cohen (Dean of Service Learning and Field Studies) and Vivian Racz (Development). Three departures over the summer; replacements to be announced in Circle Back.",
+      "updates": [{"source": "hd-0818", "date": "2026-08-18", "note": "Sent."}]
+    },
+    {
+      "id": "letter-2026-09-04", "kind": "letter", "audience": "all",
+      "title": "Head's letter: settling in",
+      "summary": "A reflection on transitions at the start of the year and the Quaker practice of settling in. No dates or actions.",
+      "updates": [{"source": "hd-0904", "date": "2026-09-04", "note": "Sent."}]
+    },
+    {
+      "id": "climate-survey-results", "kind": "notice", "audience": "all",
+      "title": "Climate survey results published",
+      "summary": "Results of last year's community climate survey are out. 47% of families responded; the school wants a higher response rate in 2027 and says more requests for feedback are coming.",
+      "links": [{"label": "Survey summary", "url": "https://docs.google.com/document/d/1z1h4myDOlo622YRU6KsHixQC7UV55-0YH3W6HLFcjLI/edit?tab=t.0"}],
+      "updates": [{"source": "hd-0918", "date": "2026-09-18", "note": "Published, with four more coffee and tea gatherings added for follow-up questions."}]
+    },
+    {
+      "id": "letter-2026-10-23", "kind": "letter", "audience": "all",
+      "title": "Head's letter: what is your vision for Friends?",
+      "summary": "From the coffee gatherings: families value the Quaker grounding, the strength of community, and how well children are known. The most common wish is clarity on the school's direction. Brenda's answer is the mission statement, quoted in full. Families who missed a coffee are asked to answer the same two questions in a short survey.",
+      "action": "Take the two-question survey if you missed a coffee",
+      "links": [{"label": "Survey", "url": "https://docs.google.com/forms/d/e/1FAIpQLSfArNWNPWmF9e96Jp-6WIe7_tvbP-HsTRWttS6oNYtDO3V8Xg/viewform?usp=send_form"}],
+      "updates": [{"source": "hd-1023", "date": "2026-10-23", "note": "Sent."}]
+    },
+    {
+      "id": "coffee-tea-with-brenda", "kind": "event", "audience": "all",
+      "title": "Coffee & Tea with Brenda (small-group gatherings)",
+      "summary": "Small-group morning coffees and afternoon teas with the Head of School through September and October. RSVP required; the form lists the dates.",
+      "when": {"date": "2026-09-08", "end": "2026-10-27", "location": "SFFS"},
+      "action": "RSVP",
+      "links": [{"label": "RSVP form", "url": "https://docs.google.com/forms/d/1OTlXoCQpFprbcAcB4FJVR47t6fH7z3ucqMhmET-PBhU/viewform?edit_requested=true"}],
+      "updates": [
+        {"source": "hd-0818", "date": "2026-08-18", "note": "Announced."},
+        {"source": "cb-0917", "date": "2026-09-17", "note": "Four dates added: Oct 20, 21, 26 and 27."},
+        {"source": "d1-0922", "date": "2026-09-22", "note": "Room parents: spots are filling."}
+      ]
+    },
+    {
+      "id": "community-mfw-2026-09-09", "kind": "event", "audience": "all",
+      "title": "Coffee Under the Awning + Community Meeting for Worship",
+      "summary": "First parent/guardian Community Meeting for Worship of the year, with coffee beforehand.",
+      "when": {"date": "2026-09-09", "start_time": "08:15", "end_time": "09:15", "location": "Yard and Meeting Room"},
+      "official": true,
+      "updates": [{"source": "hd-0818", "date": "2026-08-18", "note": "Announced."}]
+    },
+    {
+      "id": "ls-back-to-school-night", "kind": "event", "audience": "lower",
+      "title": "Lower School Back to School Night",
+      "summary": "Welcome reception and check-in 5:00–6:00 on the yard, program at 6:00 sharp. Childcare registration closed (at capacity).",
+      "when": {"date": "2026-09-17", "start_time": "17:00", "end_time": "20:00", "location": "SFFS campus"},
+      "official": true,
+      "updates": [{"source": "cb-0917", "date": "2026-09-17", "note": "Reminder on the day; childcare full."}]
+    },
+    {
+      "id": "ms-back-to-school-night", "kind": "event", "audience": "middle",
+      "title": "Middle School Back to School Night",
+      "summary": "Welcome reception 5:00–6:00 on the yard, program at 6:00. Limited free childcare, first come first served; ED/A3 runs as usual until 6:00.",
+      "when": {"date": "2026-09-24", "start_time": "17:00", "end_time": "20:30", "location": "SFFS campus"},
+      "official": true,
+      "updates": [{"source": "cb-0917", "date": "2026-09-17", "note": "Announced with childcare registration."}, {"source": "cb-0924", "date": "2026-09-24", "note": "Reminder on the day."}]
+    },
+    {
+      "id": "ls-new-family-check-in", "kind": "event", "audience": "lower",
+      "title": "Lower School New Family Check-In",
+      "summary": "For new Lower School families: routines, cognitive load, and settling in, with the student learning support and counseling teams. RSVP requested.",
+      "when": {"date": "2026-10-01", "start_time": "08:45", "end_time": "09:45", "location": "Room 234"},
+      "action": "RSVP",
+      "links": [{"label": "RSVP", "url": "https://docs.google.com/forms/d/e/1FAIpQLSee5YzhE3GA_rb_eabsFb5xuE11AhRDeZnXxIOeH0knioSkHg/viewform"}],
+      "updates": [{"source": "cb-0917", "date": "2026-09-17", "note": "Announced."}, {"source": "d1-0922", "date": "2026-09-22", "note": "Repeated in both grade digests."}, {"source": "cb-1001", "date": "2026-10-01", "note": "Reminder on the day."}]
+    },
+    {
+      "id": "ms-new-family-check-in", "kind": "event", "audience": "middle",
+      "title": "Middle School New Family Check-In",
+      "summary": "New Middle School parents and guardians: stay after Community Meeting for Worship for coffee and a check-in. RSVP requested.",
+      "when": {"date": "2026-10-07", "start_time": "09:30", "end_time": "10:30", "location": "Meeting Room"},
+      "action": "RSVP",
+      "links": [{"label": "RSVP", "url": "https://docs.google.com/forms/d/e/1FAIpQLSec4w06bg8VLTYZCtpeTlrAhTW3H0pHN9OtT95PfapGPiYQ2w/viewform"}],
+      "updates": [{"source": "cb-0917", "date": "2026-09-17", "note": "Announced."}]
+    },
+    {
+      "id": "community-mfw-2026-10-07", "kind": "event", "audience": "all",
+      "title": "Coffee Under the Awning + Community Meeting for Worship",
+      "summary": "Coffee at 8:15, then an adults-only Meeting for Worship 8:45–9:15 in the Meeting Room.",
+      "when": {"date": "2026-10-07", "start_time": "08:15", "end_time": "09:15", "location": "Yard and Meeting Room"},
+      "official": true,
+      "updates": [{"source": "cb-0917", "date": "2026-09-17", "note": "Announced."}, {"source": "d3-0922", "date": "2026-09-22", "note": "Repeated in both grade digests."}]
+    },
+    {
+      "id": "community-mfw-2026-11-04", "kind": "event", "audience": "all",
+      "title": "Coffee Under the Awning + Community Meeting for Worship",
+      "summary": "Coffee at 8:15, Community Meeting for Worship 8:45–9:15 in the Meeting Room.",
+      "when": {"date": "2026-11-04", "start_time": "08:15", "end_time": "09:15", "location": "Yard and Meeting Room"},
+      "official": true,
+      "updates": [{"source": "cb-1015", "date": "2026-10-15", "note": "Announced."}, {"source": "d3-1020", "date": "2026-10-20", "note": "Repeated in both grade digests."}]
+    },
+    {
+      "id": "ages-stages-k", "kind": "event", "audience": ["K"],
+      "title": "Kindergarten Ages & Stages",
+      "summary": "Conversation on social and emotional development for five- to six-year-olds, with Lower School Head Amabelle Sze and Mental Health Specialist Katherine Preston. Moved from Oct 8 to Oct 13; anyone who RSVPed for the old date was asked to RSVP again.",
+      "when": {"date": "2026-10-13", "start_time": "08:45", "end_time": "09:45", "location": "Meeting Room"},
+      "action": "RSVP",
+      "links": [{"label": "RSVP", "url": "https://docs.google.com/forms/d/e/1FAIpQLSdmGmF-K-V4NLjPoBrjpnyaVUy27PzmA4cUkfqV-g_baD1Diw/viewform?usp=header"}],
+      "updates": [{"source": "cb-0917", "date": "2026-09-17", "note": "Announced for Thu Oct 8."}, {"source": "cb-1008", "date": "2026-10-08", "note": "NEW DATE: Tue Oct 13. RSVP again."}]
+    },
+    {
+      "id": "ages-stages-3-4", "kind": "event", "audience": ["3", "4"],
+      "title": "3rd & 4th Grade Ages & Stages",
+      "summary": "Conversation on social and emotional development for eight- to ten-year-olds, with Amabelle Sze and Katherine Preston. RSVP requested.",
+      "when": {"date": "2026-10-22", "start_time": "08:45", "end_time": "09:45", "location": "Meeting Room"},
+      "action": "RSVP",
+      "links": [{"label": "RSVP", "url": "https://docs.google.com/forms/d/e/1FAIpQLSdzOAXQ8ILGhbsdTX4p4h4WjmqT8nifk9wvBIA-liaSS0OkJQ/viewform"}],
+      "updates": [{"source": "cb-1015", "date": "2026-10-15", "note": "Announced."}, {"source": "d3-1020", "date": "2026-10-20", "note": "Reminder in the 3rd grade digest."}]
+    },
+    {
+      "id": "ages-stages-1-2", "kind": "event", "audience": ["1", "2"],
+      "title": "1st & 2nd Grade Ages & Stages",
+      "summary": "Conversation on social and emotional development, raising children at home and partnering with SFFS, with Amabelle Sze and Katherine Preston. RSVP requested.",
+      "when": {"date": "2026-11-02", "start_time": "08:30", "end_time": "09:30", "location": "Meeting Room"},
+      "action": "RSVP",
+      "links": [{"label": "RSVP", "url": "https://docs.google.com/forms/d/e/1FAIpQLSdWHb92f8aHjyLxFF7LHstSOvNjoHCAajuLmoqQR3dg_oYjvQ/viewform?usp=header"}],
+      "updates": [{"source": "cb-1015", "date": "2026-10-15", "note": "Announced."}, {"source": "cb-1029", "date": "2026-10-29", "note": "This week."}]
+    },
+    {
+      "id": "ages-stages-ms-2", "kind": "event", "audience": "middle",
+      "title": "Middle School Ages & Stages II: Healthy Relationships",
+      "summary": "How to help middle schoolers navigate shifting friendships, with Katherine Preston and Middle School Counselor Kylie Dayan. On Zoom. RSVP requested.",
+      "when": {"date": "2026-11-09", "start_time": "19:00", "end_time": "20:00", "location": "Zoom"},
+      "action": "RSVP",
+      "links": [{"label": "RSVP", "url": "https://docs.google.com/forms/d/e/1FAIpQLSdQY9YOG-8yXj406QGE0JYy2N6jdOGn0ZyWjyw6sy44i4xm5g/viewform?usp=header"}],
+      "updates": [{"source": "cb-1022", "date": "2026-10-22", "note": "Announced."}]
+    },
+    {
+      "id": "8th-grade-parent-coffee", "kind": "event", "audience": ["8"],
+      "title": "High School Transition: 8th Grade Parent Coffee",
+      "summary": "Managing and supporting your teenager (and yourself) through the high school application season, with Kristen Daniel and Katherine Preston. RSVP requested.",
+      "when": {"date": "2026-11-05", "start_time": "08:45", "end_time": "09:30", "location": "Meeting Room"},
+      "action": "RSVP",
+      "links": [{"label": "RSVP", "url": "https://docs.google.com/forms/d/e/1FAIpQLSd1YeIsUgaw4SVBGSmZFsJTgWUFwkhEWaBRkmZ1H5lvCZ4t4A/viewform"}],
+      "updates": [{"source": "cb-1015", "date": "2026-10-15", "note": "Announced."}]
+    },
+    {
+      "id": "school-pictures-2026", "kind": "event", "audience": "all",
+      "title": "School Picture Days",
+      "summary": "Individual photos Oct 19–20, class photos Oct 21. One make-up day only, at the photographer's discretion. The schedule by class and section is published. 8th grade families: avoid booking high school visits on these days. Volunteers were wanted for picture days.",
+      "when": {"date": "2026-10-19", "end": "2026-10-21", "location": "SFFS"},
+      "links": [{"label": "Photo schedule", "url": "https://drive.google.com/file/d/1MimqWJ4cQhReDJULnNsH0Ekhqc4qb26z/view?usp=sharing"}, {"label": "Volunteer sign-up", "url": "https://www.signupgenius.com/go/10C0E4AA9AD28ABFBC25-66246824-picture#/"}],
+      "updates": [
+        {"source": "cb-0917", "date": "2026-09-17", "note": "Announced; schedule to follow."},
+        {"source": "d1-1006", "date": "2026-10-07", "note": "Volunteer sign-up for picture days (both grade digests)."},
+        {"source": "cb-1015", "date": "2026-10-15", "note": "Schedule published."}
+      ]
+    },
+    {
+      "id": "fall-conferences-2026", "kind": "event", "audience": "all",
+      "title": "Fall Conferences",
+      "summary": "No school and no enrichment on Oct 29–30. Sign up for your conference slot in the Family Portal by Mon Oct 26. Childcare 8am–6pm: free during your child's conference (no registration), registration required and a fee outside your slot. Middle Schoolers lead their own conferences.",
+      "when": {"date": "2026-10-29", "end": "2026-10-30", "location": "SFFS"},
+      "deadline": {"date": "2026-10-26", "what": "Sign up for a conference slot in the Family Portal"},
+      "official": true,
+      "links": [{"label": "Family Portal (sign-up)", "url": "https://accounts.veracross.com/sffs/portals/login"}, {"label": "Childcare registration", "url": "https://www.ultracamp.com/clientlogin.aspx?idCamp=549&campCode=sfs"}],
+      "updates": [
+        {"source": "d1-0922", "date": "2026-09-22", "note": "Dates and no-school reminder (both grade digests)."},
+        {"source": "d3-1006", "date": "2026-10-06", "note": "Sign-ups open Oct 19."},
+        {"source": "cb-1008", "date": "2026-10-08", "note": "Childcare details and registration."},
+        {"source": "cb-1022", "date": "2026-10-22", "note": "Sign up by Mon Oct 26."}
+      ]
+    },
+    {
+      "id": "no-school-oct-9-12", "kind": "event", "audience": "all",
+      "title": "Four-day weekend: no school Oct 9 and Oct 12",
+      "summary": "Fri Oct 9 is a professional development day; Mon Oct 12 is Indigenous Peoples' Day. No school, no ED, A3 or enrichment either day.",
+      "when": {"date": "2026-10-09", "end": "2026-10-12"},
+      "official": true,
+      "updates": [{"source": "d1-0922", "date": "2026-09-22", "note": "Reminder in both grade digests."}, {"source": "d1-1006", "date": "2026-10-07", "note": "Reminder."}]
+    },
+    {
+      "id": "grandfriends-day-2026", "kind": "event", "audience": "all",
+      "title": "GrandFriends Day",
+      "summary": "Grandparents and special friends visit classrooms. Light refreshments in the Gym, program at 10:00. Register your child's GrandFriend. Added later: Nov 20 is an early dismissal day for all students at 11:30; ED/A3 available, bring a lunch (no ChoiceLunch).",
+      "when": {"date": "2026-11-20", "start_time": "10:00", "location": "Gym and classrooms"},
+      "action": "Register your GrandFriend",
+      "links": [{"label": "Register", "url": "https://www.boostmyschool.com/orgs/sffriendsschool/events/grandfriends/register/step-1"}],
+      "updates": [
+        {"source": "cb-1001", "date": "2026-10-01", "note": "Save the date; registration open."},
+        {"source": "d1-1006", "date": "2026-10-07", "note": "Repeated in both grade digests."},
+        {"source": "cb-1029", "date": "2026-10-29", "note": "Added: early dismissal 11:30 for all; ED/A3 available; no ChoiceLunch."}
+      ]
+    },
+    {
+      "id": "fall-break-2026", "kind": "event", "audience": "all",
+      "title": "Fall break",
+      "summary": "No school the week of Thanksgiving.",
+      "when": {"date": "2026-11-23", "end": "2026-11-27"},
+      "official": true,
+      "updates": [{"source": "d1-1006", "date": "2026-10-07", "note": "Reminder in both grade digests."}]
+    },
+    {
+      "id": "december-dates-2026", "kind": "event", "audience": "all",
+      "title": "Looking ahead to December",
+      "summary": "Craft Fair Dec 12, candlelight Meeting for Worship Dec 16, Winter Celebration Dec 18, winter break Dec 21 to Jan 1, first day back Jan 4. All already on Important Dates.",
+      "when": {"date": "2026-12-12", "end": "2027-01-04"},
+      "official": true,
+      "updates": [{"source": "d3-1020", "date": "2026-10-20", "note": "Listed in both grade digests."}]
+    },
+    {
+      "id": "ms-fall-play-2026", "kind": "event", "audience": "all",
+      "title": "Middle School Fall Play: Romeo and Juliet—Together [and Alive!] at Last!",
+      "summary": "A comedy that upends Shakespeare through a middle school production gone wild. Thu Nov 12 and Fri Nov 13 at 7:00, Sat Nov 14 at 1:00 and 5:00. Tickets go on sale Mon Nov 2. Families who need ticket support can contact drama teacher Russell Wright (rwright@sffriendsschool.org).",
+      "when": {"date": "2026-11-12", "end": "2026-11-14", "start_time": "19:00", "end_time": "21:00", "location": "SFFS"},
+      "action": "Buy tickets from Nov 2",
+      "updates": [
+        {"source": "cb-1015", "date": "2026-10-15", "note": "Save the date; ticket information coming."},
+        {"source": "d3-1020", "date": "2026-10-20", "note": "Repeated in both grade digests."},
+        {"source": "cb-1029", "date": "2026-10-29", "note": "Tickets on sale Mon Nov 2; ticket support available."}
+      ]
+    },
+    {
+      "id": "emergency-alert-test-2026-10-30", "kind": "notice", "audience": "all",
+      "title": "Emergency alert system test",
+      "summary": "Test message at 1:00 pm Fri Oct 30 by phone, text and email. All parents are opted in automatically.",
+      "when": {"date": "2026-10-30", "start_time": "13:00"},
+      "updates": [{"source": "cb-1015", "date": "2026-10-15", "note": "Announced."}, {"source": "cb-1029", "date": "2026-10-29", "note": "Reminder: tomorrow."}]
+    },
+    {
+      "id": "annual-fund-2026", "kind": "notice", "audience": "all",
+      "title": "Annual Fund",
+      "summary": "Goal $1.2M. Every trustee and administrative leader has given, plus a third of faculty and staff. A class volunteer will be in touch. Latest: over 20% of families, $350,000 raised (Oct 29).",
+      "action": "Make a gift",
+      "links": [{"label": "Make a gift", "url": "https://www.boostmyschool.com/orgs/sffriendsschool/campaigns/sffs-annual-fund"}],
+      "updates": [
+        {"source": "cb-1008", "date": "2026-10-08", "note": "Letter coming by mail; $250,000 raised."},
+        {"source": "cb-1015", "date": "2026-10-15", "note": "10% of families; over $250,000."},
+        {"source": "cb-1022", "date": "2026-10-22", "note": "20% of families; over $335,000."},
+        {"source": "cb-1029", "date": "2026-10-29", "note": "Over 20% of families; $350,000."}
+      ]
+    },
+    {
+      "id": "play-structure-2026", "kind": "notice", "audience": "all",
+      "title": "Yard play structure",
+      "summary": "Reopened after repairs (Oct 29). It had been closed since early October while the school looked at upgrades.",
+      "updates": [
+        {"source": "cb-1008", "date": "2026-10-08", "note": "Closed while looking at ways to upgrade."},
+        {"source": "cb-1022", "date": "2026-10-22", "note": "Temporarily closed exploring repairs to make it safer."},
+        {"source": "cb-1029", "date": "2026-10-29", "note": "Open again after repairs."}
+      ]
+    },
+    {
+      "id": "candy-monster-2026", "kind": "event", "audience": "all",
+      "title": "Candy Monster is back",
+      "summary": "Bring individually wrapped fun-size Halloween candy to the lobby Nov 2–6 for At The Crossroads, a San Francisco nonprofit working with youth experiencing housing instability. Please keep personal Halloween candy at home; it distracts younger students.",
+      "when": {"date": "2026-11-02", "end": "2026-11-06", "location": "Lobby"},
+      "links": [{"label": "About At The Crossroads", "url": "https://atthecrossroads.org/"}],
+      "updates": [{"source": "cb-1022", "date": "2026-10-22", "note": "Announced."}]
+    },
+    {
+      "id": "admissions-tours-2026", "kind": "notice", "audience": "all",
+      "title": "Admissions: Open House and school tours",
+      "summary": "Know a family who might be interested in Friends? Open House was Thu Oct 8; school tours run from Fri Oct 16 through mid-January, registration on Ravenna. Questions to José Zamora (jzamora@sffriendsschool.org) or Chloe Campbell (ccampbell@sffriendsschool.org).",
+      "when": {"date": "2026-10-16", "end": "2027-01-15"},
+      "links": [{"label": "School tours flyer", "url": "https://drive.google.com/file/d/1ddLMrJbNXYuUBm3io_TKlE48SWeqBVa5/view"}],
+      "updates": [{"source": "cb-0917", "date": "2026-09-17", "note": "Open House Oct 8 and tours announced."}, {"source": "cb-1008", "date": "2026-10-08", "note": "Open House done; tours continue."}]
+    },
+    {
+      "id": "carpool-traffic-safety", "kind": "notice", "audience": "all",
+      "title": "Morning carpool traffic safety",
+      "summary": "Cross Valencia at 14th Street with the crossing guard, never mid-block, and children never alone. Bikes ride with traffic in the bike lane. Avoid turning onto Brosnan Street 8:00–8:30.",
+      "updates": [{"source": "cb-0924", "date": "2026-09-24", "note": "Announced."}, {"source": "cb-1001", "date": "2026-10-01", "note": "Repeated."}]
+    },
+    {
+      "id": "valencia-island-parking", "kind": "notice", "audience": "all",
+      "title": "Parking on the Valencia Street island",
+      "summary": "You may park or load anywhere on the island including in front of the ramp, but not in the red zone. The white zone is passenger loading (5 minutes) 7:30–8:30 am and 1–6 pm on school days; otherwise 2-hour metered parking. Move your car by 1 pm. Tickets can be contested with SFMTA.",
+      "links": [{"label": "Contest a citation (SFMTA)", "url": "https://www.sfmta.com/getting-around/drive-park/citations/contest-citation"}],
+      "updates": [{"source": "cb-1022", "date": "2026-10-22", "note": "Announced."}]
+    },
+    {
+      "id": "ms-dismissal-reminders", "kind": "notice", "audience": "middle",
+      "title": "Middle School dismissal",
+      "summary": "Dismissal is 3:15 (Mon, Tue, Thu, Fri) and 2:05 on Wednesdays. Students should come down right away when called. Tell your carpool if your student might be in A3, and keep tutoring, enrichment, athletics and rehearsal schedules in mind.",
+      "updates": [{"source": "cb-1008", "date": "2026-10-08", "note": "Announced."}]
+    },
+    {
+      "id": "vidigami-reinstall", "kind": "notice", "audience": "all",
+      "title": "Vidigami app: delete and reinstall",
+      "summary": "The photo app shipped a new version with automatic updates. Older installs are misbehaving; delete and reinstall from the App Store or Google Play, then log in again.",
+      "updates": [{"source": "cb-0924", "date": "2026-09-24", "note": "Announced."}]
+    },
+    {
+      "id": "jigsaw-puzzles-lc", "kind": "volunteer", "audience": "all",
+      "title": "Donate jigsaw puzzles to the Middle School Learning Commons",
+      "summary": "Drop unused puzzles at the front desk labelled \"LC\" or \"Jason\". A missing piece or two is fine.",
+      "updates": [{"source": "cb-1001", "date": "2026-10-01", "note": "Announced."}, {"source": "d1-1006", "date": "2026-10-07", "note": "Repeated in both grade digests."}]
+    },
+    {
+      "id": "let-your-life-speak", "kind": "notice", "audience": "all",
+      "title": "Let Your Life Speak chalkboard",
+      "summary": "A large chalkboard rotating around the building poses a question for students, faculty, parents and guests. First question: How will you change the world?",
+      "updates": [{"source": "cb-1022", "date": "2026-10-22", "note": "Announced."}]
+    },
+    {
+      "id": "dia-de-los-muertos-altar", "kind": "event", "audience": "all",
+      "title": "Día de los Muertos altar",
+      "summary": "The altar is up by the front desk; families can add photos of loved ones. Information from Camilo, Mónica and Yara.",
+      "when": {"date": "2026-10-26", "end": "2026-11-02", "location": "Front desk"},
+      "links": [{"label": "Altar information", "url": "https://docs.google.com/document/d/1VmNj_3URcYqafeUWQjBBzQPYPSWlxwGgeE6SZItZn7c/edit?tab=t.0"}],
+      "updates": [{"source": "cb-1022", "date": "2026-10-22", "note": "Announced."}]
+    },
+    {
+      "id": "horizons-gala-2026", "kind": "event", "audience": "all",
+      "title": "Horizons at SFFS Future Makers Gala",
+      "summary": "Fundraiser for Horizons, the summer program for San Francisco public school students that SFFS sponsors. Dancing, food trucks and performances at SOMArts. Result: a record night, almost 200 people and $200,000 raised.",
+      "when": {"date": "2026-10-01", "start_time": "18:00", "end_time": "22:00", "location": "SOMArts"},
+      "links": [{"label": "Horizons events", "url": "https://www.horizonsatsffs.org/events"}],
+      "updates": [{"source": "cb-0917", "date": "2026-09-17", "note": "Tickets on sale."}, {"source": "cb-1008", "date": "2026-10-08", "note": "Record-breaking: $200,000 raised."}]
+    },
+    {
+      "id": "pga-kickoff-2026", "kind": "event", "audience": "all",
+      "title": "Fall PGA Kickoff Meeting",
+      "summary": "Open to all parents and guardians: the work, spirit and needs of the Parent/Guardian Association. Mingle from 4:30, meeting 5:00–6:00, kept to an hour so families can use ED/A3.",
+      "when": {"date": "2026-09-30", "start_time": "17:00", "end_time": "18:00", "location": "260 Valencia"},
+      "links": [{"label": "RSVP", "url": "https://docs.google.com/forms/d/e/1FAIpQLSeVkNT2M8a4eZZmd7PVvYg-ZA7jjiXWEHWIQvFmc2Seq1BMPA/viewform?usp=dialog"}],
+      "updates": [{"source": "cb-0917", "date": "2026-09-17", "note": "Announced."}]
+    },
+    {
+      "id": "pga-service-kickoff-2026", "kind": "event", "audience": "all",
+      "title": "PGA Service Committee kick-off meeting",
+      "summary": "Help shape the school's commitment to service and community. Longtime volunteers and newcomers welcome.",
+      "when": {"date": "2026-10-05", "start_time": "17:00", "end_time": "18:00", "location": "260 Valencia"},
+      "updates": [{"source": "cb-0924", "date": "2026-09-24", "note": "Announced."}]
+    },
+    {
+      "id": "pga-eib-meeting-2026-10", "kind": "event", "audience": "all",
+      "title": "PGA Equity, Inclusion & Belonging Committee meeting",
+      "summary": "First EI&B meeting of the year, with Head of School Brenda Leaks on priorities. In person at 260 Valencia or on Zoom.",
+      "when": {"date": "2026-10-06", "start_time": "16:00", "end_time": "17:30", "location": "260 Valencia Meeting Room / Zoom"},
+      "links": [{"label": "RSVP / join the committee", "url": "https://docs.google.com/forms/d/e/1FAIpQLScwzFMy2D0AfiNhD9uDLXGS8ojG3aKKNdkaZNJjRPFE131BSw/viewform?usp=dialog"}],
+      "updates": [{"source": "cb-0924", "date": "2026-09-24", "note": "Announced."}, {"source": "d3-1006", "date": "2026-10-06", "note": "Reminder on the day in both grade digests."}]
+    },
+    {
+      "id": "betsy-cornwell-evening", "kind": "event", "audience": "all",
+      "title": "An Evening with Betsy Cornwell",
+      "summary": "Conversation and Q&A with the New York Times bestselling author about her memoir Ring of Salt and her upcoming novel Suffs, co-written with Shaina Taub. RSVP by Sep 25.",
+      "when": {"date": "2026-10-06", "start_time": "16:30", "end_time": "18:00", "location": "Meeting Room"},
+      "deadline": {"date": "2026-09-25", "what": "RSVP"},
+      "links": [{"label": "RSVP", "url": "https://docs.google.com/forms/d/e/1FAIpQLScuB3AkEPYkC4PrDV9rlRSoue5BgUCH0HKsT_WvajTd2K2A8w/viewform"}],
+      "updates": [{"source": "cb-0917", "date": "2026-09-17", "note": "Announced, RSVP by Sep 25."}, {"source": "d1-1006", "date": "2026-10-07", "note": "Reminder in both grade digests (RSVP still open)."}]
+    },
+    {
+      "id": "spanish-speaking-potluck-2026", "kind": "event", "audience": "all",
+      "title": "Spanish-Speaking PGA Committee fall potluck",
+      "summary": "Music, food, a piñata and good company. Bring a dish for about 8. You don't need to speak Spanish.",
+      "when": {"date": "2026-10-02", "start_time": "18:00", "end_time": "19:30", "location": "Room 234"},
+      "links": [{"label": "RSVP and food sign-up", "url": "https://docs.google.com/spreadsheets/d/1qhEeicQOyITVE7EtFSPIrdgrI_GuAep0uISeKNi9BZ8/edit?gid=0#gid=0"}],
+      "updates": [{"source": "cb-0917", "date": "2026-09-17", "note": "Announced."}]
+    },
+    {
+      "id": "mid-autumn-scavenger-hunt-2026", "kind": "event", "audience": "all",
+      "title": "Mid-Autumn Moon Festival family outing at the Asian Art Museum",
+      "summary": "Family scavenger hunt hosted by the AAPI Family Affinity Group, then mahjong and mooncakes in Bogart Court. Admission is free on the first Sunday of the month. All families welcome.",
+      "when": {"date": "2026-10-04", "start_time": "13:00", "end_time": "15:00", "location": "Asian Art Museum"},
+      "links": [{"label": "RSVP", "url": "https://partiful.com/e/w9WRC3jIJlhckQzIJ2yd"}],
+      "updates": [{"source": "cb-0924", "date": "2026-09-24", "note": "Announced."}]
+    },
+    {
+      "id": "lgbtqia-affinity-coffee-2026-09", "kind": "event", "audience": "all",
+      "title": "LGBTQIA+ Affinity Group coffee meet-up",
+      "summary": "Coffee after drop-off at Four Barrel. A WhatsApp group link is in the email.",
+      "when": {"date": "2026-09-25", "start_time": "08:15", "end_time": "09:15", "location": "Four Barrel, Valencia"},
+      "updates": [{"source": "cb-0917", "date": "2026-09-17", "note": "Announced."}]
+    },
+    {
+      "id": "jewish-family-affinity-potluck-2026-09", "kind": "event", "audience": "all",
+      "title": "PGA Jewish Family Affinity Group Sukkot potluck",
+      "summary": "Kickoff potluck at a host family's home. Bring whoever in your family is available; RSVP and snack sign-up details are in the email.",
+      "when": {"date": "2026-09-27", "start_time": "14:00", "end_time": "16:00", "location": "A host family's home (see the email)"},
+      "updates": [{"source": "cb-0917", "date": "2026-09-17", "note": "Announced."}]
+    },
+    {
+      "id": "family-affinity-groups", "kind": "notice", "audience": "all",
+      "title": "Family affinity and alliance groups",
+      "summary": "SFFS has family affinity and alliance groups for parents and guardians who share an identity or lived experience. A list of current groups and an interest form are available.",
+      "links": [{"label": "Current groups", "url": "https://docs.google.com/document/d/1jJ7nLYJy7gNovo0DhFDdhEBHbmWVpc2q1W4nzwNklIY/edit?tab=t.0"}, {"label": "Interest form", "url": "https://docs.google.com/forms/d/e/1FAIpQLSdx1BVZECs2p_DYAldxss2CFXvGwe1QFrDZ9erAh9aCUbTg_g/viewform"}],
+      "updates": [{"source": "d1-1006", "date": "2026-10-07", "note": "Listed in both grade digests."}]
+    },
+    {
+      "id": "school-store-2026", "kind": "notice", "audience": "all",
+      "title": "PGA School Store",
+      "summary": "The store is almost fully online, with the new logo and the FRIENDS collection. A $5 and $10 flash sale of old-logo stock ran Wed Oct 14 on the patio. The committee is also looking for designers to help build the merch line; contact details are in the email.",
+      "links": [{"label": "Shop online", "url": "https://san-francisco-friends-school-store.bigcartel.com/"}],
+      "updates": [{"source": "cb-0917", "date": "2026-09-17", "note": "Pop-up at Back to School Nights; designers wanted."}, {"source": "cb-1008", "date": "2026-10-08", "note": "$5 and $10 flash sale Wed Oct 14, 2:30–5:30."}]
+    },
+    {
+      "id": "friends-love-spices-tee", "kind": "deadline", "audience": "all",
+      "title": "Friends Love Spices: limited-edition SFFS tee",
+      "summary": "A community-testimony shirt designed and printed locally by SFFS parents, in kids' and adult sizes. All proceeds go to tuition assistance. Orders close Nov 1.",
+      "deadline": {"date": "2026-11-01", "what": "Order"},
+      "links": [{"label": "Order form", "url": "https://docs.google.com/forms/d/e/1FAIpQLSeQr14csspAPSy2vnL0E6SR1fGH1dw6ZZsC1FEuE_uRcgKOiQ/viewform"}],
+      "updates": [{"source": "d3-1020", "date": "2026-10-20", "note": "Announced in both grade digests."}]
+    },
+    {
+      "id": "mixed-up-potlucks-2026", "kind": "deadline", "audience": "all",
+      "title": "PGA Mixed-Up Potlucks",
+      "summary": "Hosts and guests are matched for casual adults-only or family potlucks in November, December and January. Host sign-up closed Oct 14. Guest sign-up: pick up to three dates; closes Nov 1, and matches go out by email after that. Questions to the Mixed-Up Potluck clerk (contact in the email).",
+      "deadline": {"date": "2026-11-01", "what": "Sign up as a guest"},
+      "links": [{"label": "Guest sign-up", "url": "https://docs.google.com/forms/d/e/1FAIpQLScFFfM34bv4XMPyVw6QXjrfxMgXXAmr7WWxtfIbOq3JjD8x5Q/viewform"}],
+      "updates": [
+        {"source": "cb-1001", "date": "2026-10-01", "note": "Hosts wanted; host registration open until Oct 14."},
+        {"source": "cb-1015", "date": "2026-10-15", "note": "Guest sign-up open; matches by email on Nov 1."},
+        {"source": "d1-1020", "date": "2026-10-21", "note": "Room parents: fill out the guest form by Oct 30."},
+        {"source": "cb-1029", "date": "2026-10-29", "note": "Last call: guest sign-up ends Nov 1."}
+      ]
+    },
+    {
+      "id": "speak-ai-eric-hudson", "kind": "event", "audience": "all",
+      "title": "SPEAK: AI is Moving Fast, What Parents Need to Know (Eric Hudson)",
+      "summary": "Educator and school advisor Eric Hudson on how AI is changing education and how adults can help young people use it well. Doors 6:45. Sold out; a waitlist is open.",
+      "when": {"date": "2026-11-02", "start_time": "19:00", "end_time": "20:30", "location": "Mount Tamalpais School, 100 Harvard Ave"},
+      "action": "Join the waitlist",
+      "links": [{"label": "Waitlist (Eventbrite)", "url": "https://www.eventbrite.com/e/ai-is-moving-fast-what-parents-need-to-know-tickets-2000287412497?aff=oddtdtcreator"}],
+      "updates": [{"source": "cb-1001", "date": "2026-10-01", "note": "Registration opens Oct 1 at 10:00."}, {"source": "cb-1008", "date": "2026-10-08", "note": "Sold out; waitlist."}]
+    },
+    {
+      "id": "community-cleanup-2026-11-07", "kind": "event", "audience": "all",
+      "title": "PGA Service Committee: SFFS community cleanup (Castro)",
+      "summary": "Monthly cleanups with Civic Joy Fund, November through May. First one in the Castro. Two steps: add your household to the SFFS sheet and register with Civic Joy Fund.",
+      "when": {"date": "2026-11-07", "start_time": "10:00", "end_time": "11:00", "location": "The Castro"},
+      "action": "Sign up (two steps)",
+      "links": [{"label": "SFFS sign-up sheet", "url": "https://docs.google.com/spreadsheets/d/1D3ihbgOvr-Bs50Gt4D9Uxt-UbxCf8tzQ/edit?gid=792802364#gid=792802364"}, {"label": "Civic Joy Fund registration", "url": "https://www.mobilize.us/civicjoyfund/event/786831/"}],
+      "updates": [{"source": "cb-1015", "date": "2026-10-15", "note": "Announced."}, {"source": "d3-1020", "date": "2026-10-20", "note": "Repeated in both grade digests."}]
+    },
+    {
+      "id": "stay-over-program-volunteering", "kind": "volunteer", "audience": "all",
+      "title": "Volunteer at the Stay Over Program (Sundays)",
+      "summary": "Families volunteer 2–4 pm on Sundays at Downtown High School with a family shelter serving SFUSD students, bringing games, crafts and healthy snacks for about 32 people. Sign up for a slot (through December). Questions to friendsatSOP@gmail.com.",
+      "when": {"date": "2026-09-21", "end": "2026-12-31", "start_time": "14:00", "end_time": "16:00", "location": "Downtown High School"},
+      "action": "Sign up for a Sunday",
+      "links": [{"label": "Volunteer sign-up", "url": "https://www.signupgenius.com/go/805084CA4AC28ABFB6-52066300-buena#/"}],
+      "updates": [{"source": "cb-0917", "date": "2026-09-17", "note": "Announced, with a parent video."}, {"source": "cb-1015", "date": "2026-10-15", "note": "Student reflection added."}]
+    },
+    {
+      "id": "tsa-holiday-card-art", "kind": "deadline", "audience": "all",
+      "title": "Holiday card art for teachers and staff",
+      "summary": "The PGA Teacher and Staff Appreciation committee wants a drawing by a student or parent for the front of this year's winter holiday cards. Send designs to tsa@sffriendsschool.org by Nov 10.",
+      "deadline": {"date": "2026-11-10", "what": "Submit a drawing"},
+      "updates": [{"source": "cb-1015", "date": "2026-10-15", "note": "Announced."}, {"source": "d3-1020", "date": "2026-10-20", "note": "Repeated in both grade digests."}]
+    },
+    {
+      "id": "quaker-youth-leadership-program", "kind": "notice", "audience": "middle",
+      "title": "Quaker Youth Leadership Program (grades 7–12)",
+      "summary": "San Francisco Friends Meeting invites 7th to 12th graders to a youth-led Sunday community: Sundays at the Meetinghouse (65 9th Street), some Sundays in Golden Gate Park, four Friday food-sharing service evenings and an October weekend in the Santa Cruz Mountains. Participants earn a certificate. Email children@sfquakers.org.",
+      "when": {"date": "2026-09-20", "end": "2026-12-13"},
+      "updates": [{"source": "cb-0917", "date": "2026-09-17", "note": "Announced with the full date list."}, {"source": "d1-1006", "date": "2026-10-07", "note": "Repeated in both grade digests."}]
+    },
+    {
+      "id": "ms-athletics-2026-fall", "kind": "notice", "audience": "middle",
+      "title": "Middle School athletics: volleyball and cross country",
+      "summary": "Circle Back lists each week's games. Coming up: three home volleyball games Wed Nov 4 (8th White 3:45, 6th 4:45, 7th Blue 5:45) and Friends Volleyball Night Fri Nov 6 from 3:45 with home scrimmages at 4:00, 5:00 and 6:00. The full schedule is in the Family Portal's athletics calendar.",
+      "when": {"date": "2026-11-04", "end": "2026-11-06", "location": "SFFS"},
+      "links": [{"label": "Family Portal", "url": "https://accounts.veracross.com/sffs/portals/login"}],
+      "updates": [{"source": "cb-0924", "date": "2026-09-24", "note": "Weekly game list starts."}, {"source": "cb-1029", "date": "2026-10-29", "note": "Nov 4 home games and Nov 6 Friends Volleyball Night."}]
+    },
+    {
+      "id": "library-volunteers-2026", "kind": "volunteer", "audience": "all",
+      "title": "Volunteer in the library",
+      "summary": "Help children read, choose and check out books, and shelve. A training session ran Fri Oct 2 at 8:30 (no sign-up needed). Book-covering sessions happen the first Wednesday of each month after Meeting for Worship. Join the volunteer mailing list.",
+      "links": [{"label": "Library volunteer mailing list", "url": "https://docs.google.com/spreadsheets/d/1jQiSE9NQd6pXZCP7OsxIZVlvMmnmjOlq32OAhBm773M/edit?gid=0#gid=0"}],
+      "updates": [{"source": "d3-0922", "date": "2026-09-22", "note": "Announced in both grade digests."}]
+    },
+    {
+      "id": "ls-art-volunteers-2026", "kind": "volunteer", "audience": "lower",
+      "title": "Volunteer with Lower School art",
+      "summary": "Weekly Thursday shifts prepping materials and mounting student work with art teacher Yara. No art experience needed.",
+      "links": [{"label": "Thursday prep shifts", "url": "https://www.signupgenius.com/go/805084CA4AC28ABFB6-65963160-artclass#/"}],
+      "updates": [{"source": "d1-0922", "date": "2026-09-22", "note": "Announced in both grade digests."}]
+    },
+
+    {
+      "id": "g1-class-page", "kind": "notice", "audience": ["1"],
+      "title": "1st grade Class Page: all sign-ups in one place",
+      "summary": "The room parents moved every 1st grade sign-up and link to the Class Page: class wishlist, art volunteer, teacher appreciation (monthly lunch or weekly treat), Star of the Week, Mystery Reader (meet teachers in the lobby), library volunteer, and culture share.",
+      "links": [{"label": "1st Grade Class Page", "url": "https://sites.google.com/sffriendsschool.org/sffs-1st-class-page/home"}],
+      "updates": [{"source": "d1-1006", "date": "2026-10-07", "note": "Announced."}, {"source": "d1-1020", "date": "2026-10-21", "note": "Reminder: check the Class Page for volunteering."}]
+    },
+    {
+      "id": "g1-potluck-2026-11-15", "kind": "event", "audience": ["1"],
+      "title": "1st grade class potluck",
+      "summary": "Grade-wide potluck at the Upper Noe picnic area. Sign up to bring something.",
+      "when": {"date": "2026-11-15", "start_time": "10:30", "end_time": "12:30", "location": "Upper Noe picnic area"},
+      "action": "Sign up to bring a dish",
+      "links": [{"label": "Potluck sign-up", "url": "https://docs.google.com/document/d/16wDAowjUMYgWmCefd-nv3e7lCjJS_33FleKbLdRN4Kw/edit?tab=t.0"}],
+      "updates": [{"source": "d1-0922", "date": "2026-09-22", "note": "Save the date: Sun Nov 15."}, {"source": "d1-1006", "date": "2026-10-07", "note": "Time and place: 10:30–12:30, Upper Noe picnic area; sign-up open."}, {"source": "d1-1020", "date": "2026-10-21", "note": "Reminder to sign up."}]
+    },
+    {
+      "id": "g1-halloween-party-2026", "kind": "event", "audience": ["1"],
+      "title": "1st grade Halloween celebration",
+      "summary": "Class Halloween party. RSVP to the host by email; the address and host details are in the Oct 20 digest.",
+      "when": {"date": "2026-10-31", "start_time": "13:30", "end_time": "16:00", "location": "A family's home (see the digest)"},
+      "action": "RSVP to the host",
+      "updates": [{"source": "d1-1020", "date": "2026-10-21", "note": "Announced."}]
+    },
+    {
+      "id": "g1-happy-hour-2026-10-22", "kind": "event", "audience": ["1"],
+      "title": "1st grade parents' happy hour (standing)",
+      "summary": "Room parents are setting up a standing happy hour for adults. First date held: Thu Oct 22. Details and full schedule were promised in a later email.",
+      "when": {"date": "2026-10-22"},
+      "updates": [{"source": "d1-0922", "date": "2026-09-22", "note": "Save the date."}]
+    },
+    {
+      "id": "g1-teacher-appreciation", "kind": "volunteer", "audience": ["1"],
+      "title": "1st grade teacher appreciation",
+      "summary": "Volunteer for a monthly lunch for homeroom and specialty teachers, or sign up to bring something small or homemade to your homeroom teachers. Now organised from the Class Page.",
+      "links": [{"label": "Sign-up", "url": "https://www.signupgenius.com/go/10C094DAAA62DA5FCCF8-66077560-teacher?useFullSite=true#/"}],
+      "updates": [{"source": "d1-0922", "date": "2026-09-22", "note": "Announced."}, {"source": "d1-1006", "date": "2026-10-07", "note": "Moved to the Class Page; lunch options list coming."}]
+    },
+
+    {
+      "id": "g3-padlet-and-doc", "kind": "notice", "audience": ["3"],
+      "title": "3rd grade Padlet and digest Google Doc",
+      "summary": "Teachers post resources on the 3rd Grade Padlet. Each digest also has a Google Doc version if it displays badly in your email app.",
+      "links": [{"label": "3rd Grade Padlet", "url": "https://padlet.com/andrea3rdgrade/3rd-grade-sffs-2026-2027-9e7dqccaf7g61ezq"}],
+      "updates": [{"source": "d3-0922", "date": "2026-09-22", "note": "Introduced with the first digest."}]
+    },
+    {
+      "id": "g3-coyote-hills-field-trip", "kind": "event", "audience": ["3"],
+      "title": "3rd grade field trip: Coyote Hills",
+      "summary": "First field trip of the year. Pack a bag lunch (no ChoiceLunch). Three parent volunteers per class.",
+      "when": {"date": "2026-10-08", "location": "Coyote Hills"},
+      "links": [{"label": "Volunteer sign-up", "url": "https://www.signupgenius.com/go/805084CA4AC28ABFB6-66051655-field#/"}],
+      "updates": [{"source": "d3-0922", "date": "2026-09-22", "note": "Announced; volunteer sign-up live that evening."}, {"source": "d3-1006", "date": "2026-10-06", "note": "Reminder: this Thursday, bag lunch."}]
+    },
+    {
+      "id": "g3-parents-potluck-2026-10-27", "kind": "event", "audience": ["3"],
+      "title": "3rd grade parents' potluck",
+      "summary": "Adults' potluck at SFFS. Time changed from 5:30–7:30 to 5:45–7:45, Room 234. RSVP by signing up.",
+      "when": {"date": "2026-10-27", "start_time": "17:45", "end_time": "19:45", "location": "Room 234"},
+      "action": "RSVP",
+      "links": [{"label": "RSVP sheet", "url": "https://docs.google.com/spreadsheets/d/1yR-q6yKXyjixc1zwmgJY4sbd5VtNbW5kTVKJJVJtCpA/edit?usp=sharing"}],
+      "updates": [{"source": "d3-0922", "date": "2026-09-22", "note": "Save the date: 5:30–7:30 at SFFS."}, {"source": "d3-1006", "date": "2026-10-06", "note": "Changed to 5:45–7:45, Room 234; RSVP sheet."}, {"source": "d3-1020", "date": "2026-10-20", "note": "One week away."}]
+    },
+    {
+      "id": "g3-halloween-pre-party-2026", "kind": "event", "audience": ["3"],
+      "title": "3rd grade Halloween trick-or-treat pre-party",
+      "summary": "Costumes and non-candy food at Rochambeau Playground before trick-or-treating on Lake Street. Start moved from 3:00 to 3:30.",
+      "when": {"date": "2026-10-31", "start_time": "15:30", "end_time": "17:00", "location": "Rochambeau Playground"},
+      "links": [{"label": "Map", "url": "https://maps.app.goo.gl/2sh4hC9dPpMH2d9t9"}],
+      "updates": [{"source": "d3-0922", "date": "2026-09-22", "note": "Announced, 3–5 pm."}, {"source": "d3-1020", "date": "2026-10-20", "note": "Time changed to 3:30–5:00."}]
+    },
+    {
+      "id": "g3-teacher-lunches", "kind": "volunteer", "audience": ["3"],
+      "title": "3rd grade Friday teacher lunches",
+      "summary": "Feed the 3rd grade teachers lunch on Fridays.",
+      "links": [{"label": "Sign-up", "url": "https://www.signupgenius.com/go/teacher-lunch-3rd-grade?useFullSite=true#/"}],
+      "updates": [{"source": "d3-0922", "date": "2026-09-22", "note": "Announced."}]
+    },
+    {
+      "id": "g3-art-class-volunteers", "kind": "volunteer", "audience": ["3"],
+      "title": "Help in 3rd grade art class",
+      "summary": "Andrea and Sara's class: Wednesdays 9:55–11:25 (shift from 9:45). Luis and Chloe's class: Fridays 8:50–10:20 (shift from 8:40).",
+      "links": [{"label": "Wednesdays (Andrea & Sara)", "url": "https://www.signupgenius.com/go/805084CA4AC28ABFB6-66399984-3rdgrade#/"}, {"label": "Fridays (Luis & Chloe)", "url": "https://www.signupgenius.com/go/805084CA4AC28ABFB6-66399789-3rdgrade#/"}],
+      "updates": [{"source": "d3-1006", "date": "2026-10-06", "note": "Announced."}]
+    },
+    {
+      "id": "g3-library-shifts", "kind": "volunteer", "audience": ["3"],
+      "title": "3rd grade library volunteer shifts",
+      "summary": "Mondays 10:55–11:40 (Andrea G. & Sara) and Tuesdays 1:15–2:00 (Luis & Chloe).",
+      "links": [{"label": "Mondays", "url": "https://www.signupgenius.com/go/60B0C49ACA92CA6FA7-65797284-3rdgrade"}, {"label": "Tuesdays", "url": "https://www.signupgenius.com/go/805084CA4AC28ABFB6-65797555-3rdgrade"}],
+      "updates": [{"source": "d3-0922", "date": "2026-09-22", "note": "Announced."}]
+    },
+    {
+      "id": "g3-migration-shares", "kind": "volunteer", "audience": ["3"],
+      "title": "3rd grade Migration Shares",
+      "summary": "Families share their migration stories with the class. Spaces remain from March onward.",
+      "links": [{"label": "Sign-up", "url": "https://docs.google.com/document/d/1tT9eeDrdFR4gBW7tFNWiC0gpq4GcDFkN7pCxdcAlyRU/edit?usp=sharing"}],
+      "updates": [{"source": "d3-0922", "date": "2026-09-22", "note": "Announced; one space on Oct 7, more from March."}]
+    }
+  ]
+}

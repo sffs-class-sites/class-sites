@@ -76,7 +76,7 @@ Everything in Site Map sync and room parents is waiting on three things. None of
 
 Build in this order, each step useful on its own:
 
-**E1. Ingestion.** One forwarding address, plus-addressed by class (`…+2034@…`). Extraction of candidate events from forwarded school email into the agreed schema. Ahin is the only approver; no app yet. Pilot on 1st and 3rd.
+**E1. Ingestion.** Reframed 2026-10-31 (`docs/updates-pipeline.md`): the pipeline produces a **topic ledger** and a **full-text log**, and events are one output of it, not the only one. Forwarding is three subject filters from Ahin's inbox to the bot (plus-addressing is unnecessary: the subject names the grade). *Done:* the Updates embed and a hand-backfilled ledger for 2026–27 (E1 prototype). *Next:* Ahin's setup steps, then the fetch-and-log job (E1a) and the extraction step (E1b). Ahin is the only approver; no app yet. Pilot on 1st, then 3rd.
 
 **E2. Cross-queue dedupe and near-match** with ranked candidates and reasons; decisions stored as aliases in a ledger so a phrasing seen once is never surfaced again.
 

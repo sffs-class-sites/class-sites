@@ -23,6 +23,10 @@ embeds:
     type: url
     path: shared/room-parents/   # placed with ?class=YYYY; not on any site yet
     owner: platform
+  updates:
+    type: url
+    path: shared/updates/        # placed with ?class=YYYY; not on any site yet (docs/updates-pipeline.md)
+    owner: platform
   room-parents-glitter:
     type: code
     template: snippets/glitter-hover/   # placeholder-only version
