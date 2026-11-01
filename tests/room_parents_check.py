@@ -113,7 +113,7 @@ def embed_checks(p, tmp):
     harness = tmp / "harness"
     harness.mkdir()
     servers = [serve(sites[c], port) for c, port in [("ok", 8711), ("missing", 8712), ("broken", 8713)]] + [serve(harness, 8714)]
-    cases = [("loaded", 8711, "?class=2034", "Test Parent One"), ("empty class", 8711, "?class=2036", "No room parents are listed"),
+    cases = [("loaded", 8711, "?class=2034&today=2026-10-12", "Test Parent One"), ("empty class", 8711, "?class=2036&today=2026-10-12", "No room parents are listed"),
              ("not published", 8712, "?class=2034", "haven’t been published"), ("load error", 8713, "?class=2034", "Couldn’t load"),
              ("no class", 8711, "", "needs a class")]
     b = p.chromium.launch()
@@ -140,6 +140,8 @@ def embed_checks(p, tmp):
                 check(a.get_attribute("href") == "mailto:parent.one@example.org" and a.get_attribute("target") == "_blank",
                       f"{label}: email opens mail in a new window, never navigates the frame")
                 check(fr.locator("text=Updated").count() == 1, f"{label}: shows when the list was updated")
+                title = frame.evaluate("() => [document.getElementById('title').textContent, document.getElementById('sub').textContent]")
+                check(title[0] == "1st grade room parents" and title[1].startswith("1st grade · Class of 2034"), f"{label}: title names the grade for ?class=2034 ({title[0]!r})")
                 shot(page, ROOT / "_harness" / f"room-parents-{label}.png")
             if name == "load error":
                 check(fr.get_by_role("button", name="Try again").count() == 1, f"{label}: load error offers Try again")

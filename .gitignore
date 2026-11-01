@@ -2,3 +2,9 @@ _site/
 _harness/
 __pycache__/
 _live/
+
+# Claude Code personal settings (permission rules for this machine)
+.claude/settings.local.json
+
+# written by tests/test_classinfo.py, read by tests/render_check.py
+tests/classinfo_table.json
