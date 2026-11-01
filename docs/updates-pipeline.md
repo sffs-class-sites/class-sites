@@ -6,13 +6,20 @@ Decided with Ahin 2026-10-31. Status markers: **Built** / **Designed, not built*
 
 ## The problem
 
-Parents of a class receive three streams, all sent by Veracross (`m@mailN.veracross.com`):
+Parents of a class receive a lot of email, all of it sent through Veracross (`m@mailN.veracross.com`). About 70 messages reached a 1st-and-3rd-grade family between Aug 4 and Oct 29, 2026. They fall into eight streams:
 
-| Stream | Subject pattern | Cadence | Shape |
+| Stream | How to recognise it | Cadence | Shape |
 |---|---|---|---|
-| Circle Back | `SFFS Circle Back: <Month D, YYYY>` | Weekly, Thursday ~noon PT | HTML; fixed sections: The Week Ahead, Save the Date, School Announcements, Student Quote, Athletics, PGA, Community Announcements, Quick Links |
-| Room Parent Digest | `SFFS <Nth> Grade \| Room Parent Digest \| MM-DD-YY` | Every other Tuesday, per grade | Plain-text bullets, English then Spanish; sections *Grade news and reminders* and *Schoolwide highlights* |
-| From the Head's Desk | contains `From the Head's Desk` | About monthly | Essay, English then Spanish, one or two links |
+| Circle Back | subject `SFFS Circle Back: <Month D, YYYY>` | Weekly, Thursday ~noon PT | HTML; fixed sections: The Week Ahead, Save the Date, School Announcements, Student Quote, Athletics, PGA, Community Announcements, Quick Links |
+| Room Parent Digest | subject `SFFS <Nth> Grade \| Room Parent Digest \| MM-DD-YY` | Every other Tuesday, per grade | Plain-text bullets, English then Spanish; *Grade news and reminders* and *Schoolwide highlights* |
+| From the Head's Desk | subject contains `From the Head's Desk` | About monthly | Essay, English then Spanish |
+| Grade Newsletter (teachers) | subject `<Nth> Grade Newsletter: <Month D, YYYY>` | About monthly, per grade | HTML; curriculum by subject, homework, routines, **conversation starters** (1st grade), teacher contacts, Vidigami link |
+| Teacher one-offs | no pattern: "sharing in 3A", "school/home book plan", "Name Projects", "pre conference form" | As needed | Short plain text from the grade team |
+| Lower School Specialists Newsletter | subject `Lower School Specialists Newsletter: <date>` | About monthly | HTML; library, PE, music, art, with "ask at home" prompts |
+| School notices | subject usually starts `[SFFS]` (forms, enrichment, conferences, safety, brand, testimony) or comes from a division head | As needed | HTML or plain text, often bilingual |
+| PGA and room-parent notices | no pattern: room-parent recruiting, Circle of Friends, picture-day volunteers, forwarded flyers | As needed | Plain text |
+
+The first three were the original scope; the other five were added 2026-11-01 after reading every email of the year.
 
 What makes them hard to keep up with, measured on the 20 emails of 2026–27 so far (Aug 18 – Oct 29):
 
@@ -27,25 +34,21 @@ So the unit the pipeline tracks is a **topic**, not an email: one record per thi
 
 **Built (2026-10-31):**
 
-- `shared/updates/data.json` — the topic ledger for 2026–27, backfilled by hand from the 20 emails since Aug 18 (70 topics, 17 source emails; the duplicate 1st grade digest of 09-22 is one source). English only, no parent personal data.
-- `build/build_updates.py` — builds `_site/shared/updates/index.html`. One page serves every class site: `?class=YYYY` resolves to a grade (`grade = 8 − (gradYear − schoolYearEndYear)`, rolling over the day after `school_year.last_day`), `?grade=N` overrides it, and a "Change grades" picker lets a family tick other grades, remembered in the browser. Tabs: **Action needed** (open sign-ups and deadlines, soonest first), **This week**, **Coming up**, **What changed** (topics updated in the last seven days of email, with an "Updated"/"New" badge and a History disclosure), **Good to know** (standing notices and volunteer asks), **From the Head** (letters summarised). Dated items that are already on Important Dates are marked "On Important Dates". Non-official events get an "Add to Google Calendar" link (a one-time copy, no UID involved; see dates-pipeline.md for why that matters).
+- `shared/updates/data.json` — the topic ledger for 2026–27, backfilled by hand from every school email since Aug 4 (103 topics from 62 source emails across the eight streams; a resend or two emails on one subject count as one source). English only, no parent personal data.
+- `build/build_updates.py` — builds `_site/shared/updates/index.html`. One page serves every class site: `?class=YYYY` resolves to a grade (`grade = 8 − (gradYear − schoolYearEndYear)`, rolling over the day after `school_year.last_day`), `?grade=N` overrides it, and a "Change grades" picker lets a family tick other grades, remembered in the browser. Tabs: **Action needed** (open sign-ups and deadlines, soonest first), **This week**, **Coming up**, **What changed** (topics updated in the last seven days of email, with an "Updated"/"New" badge and a History disclosure), **Classroom** (from the teachers and specialists: questions to ask your child, what the class is learning, homework, routines, resources, grouped by section), **Good to know** (standing notices and volunteer asks), **From the Head** (letters summarised). The grade comes from the shared class model (`shared/class/class.js`, inlined at build time). Dated items that are already on Important Dates are marked "On Important Dates". Non-official events get an "Add to Google Calendar" link (a one-time copy, no UID involved; see dates-pipeline.md for why that matters).
 - `tests/validate_updates.py` — schema, dates, source references, no Veracross tracking links, and a personal-data sweep (fails on any email outside the school domain, phone numbers, street addresses other than the school's and known venues, or Spanish text).
 - `tests/updates_check.py` — Playwright, Sites-style sandbox, desktop/tablet/phone: fills the frame, no horizontal scroll, tabs work in place, grade picker filters and persists, `?class=` and rollover resolve correctly, links open new tabs, phone first view shows the first card's title, date, summary and action.
 - CI runs all three on every PR (`build.yml`), and the embed deploys with everything else. `registry.yaml` lists the embed; no site slot yet.
 
 **Needs Ahin (one-time setup; nothing else can run until these exist):**
 
-1. **Gmail forwarding, three filters** in Ahin's inbox, each forwarding to `sfquakerbot@gmail.com`. Gmail first emails a confirmation code to the bot inbox; confirm it once, then the filters can use the address. Filter texts (the *Subject* field; no sender restriction, so a change of mail host doesn't break them):
-   - `Circle Back`
-   - `Room Parent Digest`
-   - `Head's Desk`
-   Then forward the 2026–27 history once, so the log is complete from the first day of school: the 7 Circle Backs (Sep 17 – Oct 29), 6 digests (1st and 3rd grade, 09-22, 10-06, 10-20) and 4 Head's Desk letters (Aug 18, Sep 4, Sep 18 "Friends Community Commitments", Oct 23). Each forwarded copy is recognised by its original subject; "Fwd:" is stripped.
+1. **Gmail forwarding.** All school broadcast email comes from Veracross, and the five added streams have no reliable subject pattern, so the filter is by sender. In Ahin's Gmail: Settings → Filters and Blocked Addresses → Create a new filter → in the **From** field enter `veracross.com` → Create filter → tick **Forward it to** and choose `sfquakerbot@gmail.com` → Create filter. (Before that works, Settings → Forwarding and POP/IMAP → Add a forwarding address → `sfquakerbot@gmail.com`; Gmail emails a confirmation code to the bot inbox; confirm it once.) If a sender-based filter feels too broad, three subject filters cover the original streams only: **Subject** `Circle Back`, `Room Parent Digest`, `Head's Desk`, each forwarding to the same address; the other five streams then stay unforwarded. Recommended: the single sender filter. Then forward the 2026–27 history once (the ~70 Veracross emails since Aug 4; in Gmail, search `from:veracross.com after:2026/08/01`, open each, Forward to the bot) so the log starts at the start of the year. Forwarded copies are recognised by their original subject; "Fwd:" is stripped.
 2. **Bot mailbox access for Actions**: on `sfquakerbot@gmail.com`, turn on 2-Step Verification, create an **App Password** (Google Account → Security → App passwords, name it "class-sites actions"), make sure IMAP is enabled, and store the 16-character password as the `BOT_GMAIL_APP_PASSWORD` Actions secret. The fetcher reads over IMAP; nothing is deleted or marked. (Why not the Gmail API: a consumer Gmail account cannot delegate to the service account, and an OAuth app in testing mode expires its tokens weekly.)
 3. **A Drive folder for the log**: in the bot's Drive create `Class sites — email log`, share it as **Editor** with the service account's address (the `client_email` field in the key already stored as `GOOGLE_SERVICE_ACCOUNT_JSON`), and store the folder ID (the part of the URL after `/folders/`) as the `EMAIL_LOG_FOLDER_ID` Actions variable. Enable the **Google Docs API** in the bot's Cloud project if it isn't already (the first run says so if it isn't).
 
 **Designed, not built** (in order):
 
-- **E1a: fetch and log.** `build/fetch_school_email.py` (Actions, scheduled Thursday 13:30 PT and Wednesday 09:00 PT, and on demand): IMAP as the bot → for each unseen message matching the three subject patterns: strip the Spanish half (digests and letters put it after a rule or after "Para español"), resolve every Veracross tracking link to its destination, convert to plain paragraphs, and append to the stream's Google Doc for the school year as a dated H1 heading plus body, written through the service account. Record `{message_id, stream, date, subject, doc_url, heading_id}` in `shared/updates/sources.json`. Deep links are `https://docs.google.com/document/d/<id>/edit#heading=<heading_id>`; Google Docs heading IDs are stable. The docs are shared "anyone with the link can view" so a parent can follow a History link; they contain parent details, which is what Ahin decided (log and calendar invites may; the repo and the embed may not).
+- **E1a: fetch and log.** `build/fetch_school_email.py` (Actions, scheduled Thursday 13:30 PT and Wednesday 09:00 PT, and on demand): IMAP as the bot → for each unseen message from Veracross, classified into a stream by subject pattern (Circle Back, Room Parent Digest, Head's Desk, Grade Newsletter, Specialists Newsletter) or, failing that, by grade words in the subject or body (teacher one-offs and PGA notices to the grade's doc; anything else to School notices): strip the Spanish half (digests and letters put it after a rule or after "Para español"), resolve every Veracross tracking link to its destination, convert to plain paragraphs, and append to the stream's Google Doc for the school year as a dated H1 heading plus body, written through the service account. Record `{message_id, stream, date, subject, doc_url, heading_id}` in `shared/updates/sources.json`. Deep links are `https://docs.google.com/document/d/<id>/edit#heading=<heading_id>`; Google Docs heading IDs are stable. The docs are shared "anyone with the link can view" so a parent can follow a History link; they contain parent details, which is what Ahin decided (log and calendar invites may; the repo and the embed may not).
 - **E1b: extract.** The judgment step, run as a scheduled Claude task signed in as the bot (ROADMAP §G) or in a session until that exists. Input: the new emails' plain text and the current ledger. Output: a PR that updates `data.json` (new topics, new `updates` entries on existing ones, changed `when`/`deadline`/`summary`), keeps the ledger English-only and PII-free, and leaves the UID rules of `docs/dates-pipeline.md` untouched. The PR comment lists topics added/updated so Ahin can approve without reading JSON. Ahin is the only approver (decided 2026-10-30); a room-parent queue comes later with the approval app.
 - **E1c: calendar.** Email-derived dated topics become candidates for Important Dates with `audience` and `source`, behind filters, so one calendar embed serves official dates and email dates (ROADMAP D2/D3). Deadlines become events too. UIDs are assigned once, at approval.
 - **Second site:** the 3rd grade site, then K and 2nd (ROADMAP §E pilot order).
@@ -75,9 +78,13 @@ The **full-text log docs and calendar invites may contain parent details** (Ahin
 
 The ledger is **English only**. Spanish-speaking families use browser translation on the site (Ahin, 2026-10-31); the Spanish halves of digests and letters are dropped at ingestion.
 
-## Out of scope, noticed during the backfill
+## What was left out, deliberately
 
-Ahin's inbox holds about 68 Veracross emails since August; the three streams are 20 of them. The rest include teacher **Grade Newsletters** (`1st Grade Newsletter: <date>`, `3rd Grade Newsletter: <date>`, `Lower School Specialists Newsletter`), one-off school notices (`[SFFS] Fall Conference Signups Now Open!`, the emergency test, the 3rd grade overnight trip), teacher one-offs (Star of the Week, field trip reminders) and Circle of Friends messages. The grade newsletters look like a fourth stream worth adding once the first three are running; nothing else is proposed.
+- **Circle of Friends support drives** name the person being supported and a parent's payment handle; the ledger keeps only that the committee exists and what it does.
+- **The 1st grade Star of the Week schedule** lists children's first names by week; the ledger keeps the format and says the schedule was emailed, and the teachers email each family the Friday before.
+- **Room-parent recruiting emails** name volunteers and their children; the ledger keeps the role description.
+- **Spanish and Chinese translations** in every email are dropped (English only, Ahin 2026-10-31).
+- One short note, "Seeking volunteers for 3rd grade art class with Yara" (Oct 5), could not be read because of a connector rate limit; its content is the in-class art volunteering already in the ledger from the 3rd grade digest.
 
 ## How a session should work on this
 
@@ -85,3 +92,4 @@ Ahin's inbox holds about 68 Veracross emails since August; the three streams are
 2. Keep `built_through` at the date of the newest source and `sources` complete; a topic may only cite sources that exist.
 3. When something moves (date, time, place), change `when`/`deadline`, rewrite `summary` to the current truth, and add an `updates` entry saying what moved. Never delete history.
 4. A topic that recurs each year (Community MfW, Ages & Stages) gets a new id per occurrence; the ledger is per school year.
+5. Classroom topics (`kind: classroom`) carry a `section` (`ask`, `learning`, `homework`, `routines`, `specialists`, `resources`) and, for `ask`, an `items` list of questions. When a newsletter sends a new set of questions, replace `items` and record the old set in the update note; when a unit changes, rewrite the `learning` topic's summary and add an update.

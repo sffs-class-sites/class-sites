@@ -99,7 +99,7 @@ def main():
 
             # Tabs work in place and show different content
             counts = {}
-            for tid in ["week", "coming", "changed", "know", "head", "action"]:
+            for tid in ["week", "coming", "changed", "classroom", "know", "head", "action"]:
                 fr.locator(f'.chip.tab[data-tab="{tid}"]').click()
                 page.wait_for_timeout(120)
                 counts[tid] = fr.evaluate("() => document.querySelectorAll('.card').length")
@@ -107,6 +107,14 @@ def main():
             check(all(v > 0 for v in counts.values()), f"every tab has content on {TODAY}: {counts}")
             check(fr.evaluate("() => [...document.querySelectorAll('.card')].some(c => c.textContent.includes('1st grade'))"),
                   "1st grade items are shown for class 2034")
+            fr.locator('.chip.tab[data-tab="classroom"]').click()
+            page.wait_for_timeout(120)
+            check(fr.evaluate("() => document.querySelectorAll('h2.sec').length >= 3 && [...document.querySelectorAll('.card .items li')].length >= 5"),
+                  "Classroom tab shows grouped sections with questions to ask")
+            check(not fr.evaluate("() => [...document.querySelectorAll('.card .badge.aud')].some(b => b.textContent.trim() === '3rd grade')"),
+                  "Classroom tab hides 3rd-grade-only material for class 2034")
+            fr.locator('.chip.tab[data-tab="action"]').click()
+            page.wait_for_timeout(120)
             check(not fr.evaluate("() => [...document.querySelectorAll('.card')].some(c => c.textContent.includes('3rd grade'))"),
                   "3rd grade items are hidden for class 2034")
 

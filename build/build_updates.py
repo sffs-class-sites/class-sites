@@ -21,6 +21,10 @@ import html
 import json
 import pathlib
 import shutil
+import sys
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import classinfo  # the shared class and grade model (shared/class/class.js)
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SRC = ROOT / "shared" / "updates" / "data.json"
@@ -37,6 +41,7 @@ def build(data):
         "{{TITLE}}": html.escape(data["title"]),
         "{{SUBTITLE}}": html.escape(data["subtitle"]),
         "{{DATA_JSON}}": json.dumps(data, ensure_ascii=False).replace("</", "<\\/"),
+        "{{CLASS_JS}}": classinfo.class_js(),
     }.items():
         page = page.replace(k, v)
     return page, version
@@ -107,6 +112,10 @@ details[open] summary::before{content:"▾ "}
 .hist li{padding:2px 0;border-top:1px dashed var(--line)}
 .hist .d{font-weight:700;color:var(--ink);white-space:nowrap}
 .hist .s{color:var(--sub)}
+.badge.classroom{color:#1a7f5a;background:#e7f6ef}
+.items{margin:4px 0 6px;padding-left:20px;font-size:.9rem}
+.items li{margin:2px 0}
+h2.sec{font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--sub);margin:14px 0 2px}
 .empty{padding:18px;text-align:center;color:var(--sub)}
 footer{margin-top:14px;color:var(--sub);font-size:.78rem}
 footer p{margin:4px 0}
@@ -128,6 +137,7 @@ footer p{margin:4px 0}
   .t{font-size:.92rem;line-height:1.25}
   .when{font-size:.82rem;margin:2px 0}
   .sum{font-size:.82rem;margin:3px 0 4px;line-height:1.35}
+  .items{font-size:.82rem;padding-left:16px}
   .acts{gap:4px;margin-top:4px}
   .lnk,.btn{font-size:.76rem;padding:6px 9px}
   details{margin-top:3px;font-size:.78rem}
@@ -157,6 +167,9 @@ footer p{margin:4px 0}
 <div class="sffs-fade" hidden></div>
 <div class="sffs-hint" hidden>Scroll for more &#8595;</div>
 <script>
+{{CLASS_JS}}
+</script>
+<script>
 (function(){
   var DATA = {{DATA_JSON}};
   var GRADES = ['K','1','2','3','4','5','6','7','8'];
@@ -175,16 +188,9 @@ footer p{margin:4px 0}
   var mt = qs.match(/[?&]today=(\d{4}-\d{2}-\d{2})/); if (mt) today = ymd(mt[1]);  // for tests
   var TODAY = iso(today);
 
-  // Grade from the class in the URL (CLAUDE.md §1): grade = 8 - (gradYear - schoolYearEndYear),
-  // rolling over on the last day of school. ?grade=N previews another grade.
-  function gradeFromUrl(){
-    var g = qs.match(/[?&]grade=(K|k|[0-8])/); if (g) return g[1].toUpperCase() === '0' ? 'K' : g[1].toUpperCase();
-    var c = qs.match(/[?&]class=(\d{4})/); if (!c) return null;
-    var endYear = DATA.school_year.end_year; if (TODAY > DATA.school_year.last_day) endYear += 1;
-    var n = 8 - (+c[1] - endYear);
-    return n === 0 ? 'K' : (n >= 1 && n <= 8 ? String(n) : null);
-  }
-  var siteGrade = gradeFromUrl();
+  // Grade from ?class= (CLAUDE.md §1) via the shared model: rollover on the last day of school, ?grade=N preview.
+  var ci = SFFS.classInfo(qs, today);
+  var siteGrade = ci.status === 'ok' ? (ci.grade === 0 ? 'K' : String(ci.grade)) : null;
   var selected = (function(){
     var saved = safeGet(KEY); var s = saved ? saved.split(',').filter(function(g){ return GRADES.indexOf(g) >= 0; }) : [];
     if (siteGrade && s.indexOf(siteGrade) < 0) s.push(siteGrade);
@@ -238,6 +244,8 @@ footer p{margin:4px 0}
     return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + q(t.title) + '&dates=' + a + '/' + b + '&details=' + q(t.summary) + '&location=' + q(w.location || 'SFFS') + (w.start_time ? '&ctz=America/Los_Angeles' : '');
   }
 
+  var SECTION_LABEL = {ask: 'Ask your child', learning: 'What we\'re learning', homework: 'Homework', routines: 'Routines', resources: 'Resources', specialists: 'Specialists'};
+  var SECTION_ORDER = ['ask', 'learning', 'homework', 'routines', 'specialists', 'resources'];
   var TABS = [
     {id:'action', label:'Action needed', pick:function(t){ return hasOpenAction(t); }, sort:function(a,b){ return (a.deadline ? a.deadline.date : end(a) || '9') < (b.deadline ? b.deadline.date : end(b) || '9') ? -1 : 1; },
      intro:'Sign-ups, RSVPs and deadlines that are still open, soonest first.'},
@@ -247,7 +255,9 @@ footer p{margin:4px 0}
      intro:'Further out. Items marked "On Important Dates" are also on the calendar above.'},
     {id:'changed', label:'What changed', pick:function(t){ return isNew(t); }, sort:function(a,b){ return latest(a).date > latest(b).date ? -1 : 1; },
      intro:'Topics that were new or updated in the last seven days of email, newest first. Open "History" to see how each one evolved.'},
-    {id:'know', label:'Good to know', pick:function(t){ return ((t.kind === 'notice' || t.kind === 'volunteer') || (t.when && !shortSpan(t))) && t.kind !== 'letter' && !isPast(t); }, sort:function(a,b){ return latest(a).date > latest(b).date ? -1 : 1; },
+    {id:'classroom', label:'Classroom', pick:function(t){ return t.kind === 'classroom'; }, sort:function(a,b){ var d = SECTION_ORDER.indexOf(a.section) - SECTION_ORDER.indexOf(b.section); return d !== 0 ? d : (latest(a).date > latest(b).date ? -1 : 1); },
+     intro:"From the teachers' newsletters: questions to ask your child, what the class is learning, homework and routines. Newest first within each group."},
+    {id:'know', label:'Good to know', pick:function(t){ return ((t.kind === 'notice' || t.kind === 'volunteer') || (t.when && !shortSpan(t) && t.kind !== 'classroom')) && t.kind !== 'letter' && !isPast(t); }, sort:function(a,b){ return latest(a).date > latest(b).date ? -1 : 1; },
      intro:'Standing notices and ways to help. Not tied to one date.'},
     {id:'head', label:'From the Head', pick:function(t){ return t.kind === 'letter'; }, sort:function(a,b){ return latest(a).date > latest(b).date ? -1 : 1; },
      intro:"Brenda Leaks' letters, newest first, in a few lines each. The full text is in the log."}
@@ -263,6 +273,7 @@ footer p{margin:4px 0}
     var badges = '';
     if (t.deadline) badges += '<span class="badge due">' + esc(dueLabel(t.deadline.date)) + (t.deadline.what ? ': ' + esc(t.deadline.what) : '') + '</span>';
     else if (t.kind === 'event' && t.when) badges += '<span class="badge event">Event</span>';
+    else if (t.kind === 'classroom') badges += '<span class="badge classroom">' + esc(SECTION_LABEL[t.section] || 'Classroom') + (t.subject ? ' · ' + esc(t.subject) : '') + '</span>';
     else badges += '<span class="badge ' + esc(t.kind) + '">' + esc({notice:'Notice', volunteer:'Volunteer', letter:'Letter', deadline:'Deadline', event:'Event'}[t.kind] || t.kind) + '</span>';
     if (t.audience !== 'all') badges += '<span class="badge aud">' + esc(audienceLabel(t.audience)) + '</span>';
     if (t.official) badges += '<span class="badge official">On Important Dates</span>';
@@ -270,6 +281,7 @@ footer p{margin:4px 0}
     var h = '<div class="top">' + badges + '</div><p class="t">' + esc(t.title) + '</p>';
     var when = fmtWhen(t); if (when) h += '<p class="when">' + esc(when) + '</p>';
     h += '<p class="sum">' + esc(t.summary) + '</p>';
+    if (t.items && t.items.length) h += '<ul class="items">' + t.items.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>';
     var acts = '';
     (t.links || []).forEach(function(l, i){ acts += '<a class="lnk' + (i === 0 && hasOpenAction(t) ? ' primary' : '') + '" href="' + esc(l.url) + '" target="_blank" rel="noopener noreferrer">' + esc(l.label) + ' ↗</a>'; });
     if (t.when && t.when.date && shortSpan(t) && !t.official && !isPast(t)) acts += '<a class="lnk" href="' + esc(gcal(t)) + '" target="_blank" rel="noopener noreferrer">Add to Google Calendar</a>';
@@ -286,7 +298,11 @@ footer p{margin:4px 0}
     var def = TABS.filter(function(x){ return x.id === tab; })[0];
     var items = DATA.topics.filter(forMe).filter(def.pick).sort(def.sort);
     list.textContent = '';
-    items.forEach(function(t){ list.appendChild(card(t)); });
+    var lastSection = null;
+    items.forEach(function(t){
+      if (tab === 'classroom' && t.section !== lastSection) { var h = document.createElement('h2'); h.className = 'sec'; h.textContent = SECTION_LABEL[t.section] || t.section; list.appendChild(h); lastSection = t.section; }
+      list.appendChild(card(t));
+    });
     empty.hidden = items.length > 0;
     intro.textContent = def.intro;
     [].slice.call(tabsEl.children).forEach(function(b){

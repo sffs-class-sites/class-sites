@@ -14,7 +14,8 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SRC = ROOT / "shared" / "updates" / "data.json"
 
-KINDS = {"event", "deadline", "notice", "volunteer", "letter"}
+KINDS = {"event", "deadline", "notice", "volunteer", "letter", "classroom"}
+SECTIONS = {"learning", "ask", "homework", "routines", "resources", "specialists"}
 GRADES = {"K", "1", "2", "3", "4", "5", "6", "7", "8"}
 ALLOWED_EMAIL_DOMAINS = {"sffriendsschool.org", "sfquakers.org"}
 # Organisational mailboxes named in the emails that are fine to show (not a person's own address).
@@ -87,6 +88,15 @@ def main():
         a = t["audience"]
         if not (a in ("all", "lower", "middle") or (isinstance(a, list) and a and set(a) <= GRADES)):
             errors.append(f"{w}: audience must be all|lower|middle or a list of grades, got {a!r}")
+        if t["kind"] == "classroom":
+            if t.get("section") not in SECTIONS:
+                errors.append(f"{w}: classroom topics need a section in {sorted(SECTIONS)}")
+            if t.get("section") == "ask" and not t.get("items"):
+                errors.append(f"{w}: an 'ask' topic needs items (the questions)")
+        elif "section" in t:
+            errors.append(f"{w}: only classroom topics carry a section")
+        if "items" in t and not (isinstance(t["items"], list) and all(isinstance(x, str) and x for x in t["items"])):
+            errors.append(f"{w}: items must be a list of non-empty strings")
         if "when" in t:
             wd = t["when"]
             if "date" in wd:
