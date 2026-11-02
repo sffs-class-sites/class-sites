@@ -34,6 +34,7 @@ OUT = ROOT / "_site" / "shared" / "updates"
 
 def norm_subject(s):
     import re
+    s = re.sub(r"^(?:(?:fwd?|fw|re)\s*:\s*)+", "", s.strip(), flags=re.I)  # ledger subjects may keep a prefix
     return re.sub(r"[^a-z0-9]+", " ", s.lower()).strip()
 
 
@@ -46,7 +47,7 @@ def apply_sources(data, sources):
     from fetch_school_email import school_year_label
     import datetime as dt
     msgs = [m for m in sources.get("messages", []) if m.get("anchor")]
-    linked = 0
+    linked, used = 0, set()
     for s in data["sources"]:
         want = [norm_subject(p) for p in s["subject"].split(" / ")]
         d0 = dt.date.fromisoformat(s["date"])
@@ -57,6 +58,19 @@ def apply_sources(data, sources):
         if hits:
             s["doc_url"] = hits[0]["doc_url"]
             s["doc_anchor"] = hits[0]["anchor"]
+            used.add(hits[0]["anchor"])
+            linked += 1
+    # A ledger subject rewritten by hand (a redacted title) still links when it is the only
+    # email of its day left unmatched on both sides.
+    for s in data["sources"]:
+        if s.get("doc_anchor"):
+            continue
+        same_day = [m for m in msgs if m["date"] == s["date"] and m["anchor"] not in used]
+        others = [t for t in data["sources"] if t["date"] == s["date"] and not t.get("doc_anchor")]
+        if len(same_day) == 1 and len(others) == 1:
+            s["doc_url"] = same_day[0]["doc_url"]
+            s["doc_anchor"] = same_day[0]["anchor"]
+            used.add(same_day[0]["anchor"])
             linked += 1
     year = school_year_label(dt.date.fromisoformat(data["school_year"]["first_day"]))
     for stream in data.get("log", {}).get("docs", {}):
