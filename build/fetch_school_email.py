@@ -576,7 +576,7 @@ def entry_heading(m):
 def run(messages, docs, sources, streams, dry_run, resolver, log=print):
     seen_ids = {m["message_id"] for m in sources["messages"] if m.get("message_id")}
     seen_fp = {m["fingerprint"] for m in sources["messages"]}
-    cache, added, skipped, missing = {}, [], 0, set()
+    cache, added, skipped, missing, headings = {}, [], 0, set(), {}
     fullest = {}
     for m in messages:  # a resend within one run: keep the fuller copy
         fp = fingerprint(m["date"], m["subject"])
@@ -613,15 +613,23 @@ def run(messages, docs, sources, streams, dry_run, resolver, log=print):
                                     "url": f"https://docs.google.com/document/d/{doc_id}/edit"}
             log(f"  found doc {title}")
         d = sources["docs"][key]
-        hid = docs.append(d["id"], entry_heading(m), text)
+        heading = entry_heading(m)
+        if key not in headings:
+            headings[key] = docs.heading_ids(docs.get(d["id"]))
+        if heading in headings[key]:  # already in the doc (an earlier run whose index was lost): index it, don't re-append
+            hid = headings[key][heading]
+            log(f"  already in doc, indexed → {title}: {m['date']} {m['subject']}")
+        else:
+            hid = docs.append(d["id"], heading, text)
+            headings[key][heading] = hid
+            log(f"  logged → {title}: {m['date']} {m['subject']}")
+            time.sleep(0.5)  # Docs API write quota is per minute; be gentle
         rec.update({"doc_id": d["id"], "doc_url": d["url"],
                     "anchor": f"{d['url']}#heading={hid}" if hid else d["url"],
                     "logged_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")})
         sources["messages"].append(rec)
         seen_ids.add(m["message_id"]); seen_fp.add(fp)
         added.append(rec)
-        log(f"  logged → {title}: {m['date']} {m['subject']}")
-        time.sleep(0.5)  # Docs API write quota is per minute; be gentle
     if missing:
         log("\nThese docs do not exist yet. Create each one, as the bot account, inside the log folder "
             "(New → Google Docs, then rename), and rerun:\n  " + "\n  ".join(sorted(missing)))
