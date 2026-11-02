@@ -45,6 +45,7 @@ jobs:
           pip install pyyaml
           python3 tests/test_site_map.py
           python3 tests/test_classinfo.py
+          python3 tests/test_fetch_school_email.py
 
       - name: Build embeds
         run: |

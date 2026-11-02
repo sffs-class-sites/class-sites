@@ -142,6 +142,28 @@ def main():
         if "Spanish" not in s and re.search(r"\b(el|la|los|las) \w+ (de|del) \w+\b", s) and re.search(r"[áéíóñ¡¿]", s):
             errors.append(f"looks like Spanish text; the ledger is English only: {s[:60]!r}")
 
+    # The email-log index (written by build/fetch_school_email.py) carries only dates, subjects,
+    # the Veracross sender and Docs links; the same sweep applies to it.
+    idx_path = SRC.parent / "sources.json"
+    if idx_path.exists():
+        idx = json.loads(idx_path.read_text())
+        fps = set()
+        for m in idx.get("messages", []):
+            for k in ("message_id", "fingerprint", "stream", "year", "date", "subject", "anchor"):
+                if not m.get(k):
+                    errors.append(f"sources.json entry missing {k}: {m.get('subject')!r}")
+            date(m.get("date", ""), f"sources.json {m.get('subject')!r}", errors)
+            if m.get("fingerprint") in fps:
+                errors.append(f"sources.json: duplicate fingerprint for {m.get('subject')!r}")
+            fps.add(m.get("fingerprint"))
+            if m.get("sender") and not m["sender"].endswith("veracross.com"):
+                errors.append(f"sources.json: sender is not Veracross: {m['sender']}")
+            for s in (m.get("subject", ""),):
+                if PHONE.search(s):
+                    errors.append(f"sources.json: phone number in subject {s!r}")
+            if not str(m.get("anchor", "")).startswith("https://docs.google.com/document/d/"):
+                errors.append(f"sources.json: anchor is not a Docs link for {m.get('subject')!r}")
+
     if errors:
         print("validate_updates: FAIL")
         for e in errors:

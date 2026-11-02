@@ -1,0 +1,90 @@
+name: Email log
+
+# Fetches the school emails forwarded to the bot's Gmail and appends their full text to the
+# per-stream Google Docs in the bot's Drive (docs/updates-pipeline.md, E1a). Then opens or
+# updates one PR carrying shared/updates/sources.json, the index of deep links the Updates
+# embed's History links use. Needs:
+#   secret   BOT_GMAIL_APP_PASSWORD       App Password for sfquakerbot@gmail.com (IMAP, read-only)
+#   secret   GOOGLE_SERVICE_ACCOUNT_JSON  the Drive bot's key; Editor on the log folder
+#   secret   SYNC_BOT_TOKEN               a token that may open PRs (github.token's PRs skip CI)
+#   variable EMAIL_LOG_FOLDER_ID          the "Class sites - email log" Drive folder
+# Runs Wednesday 09:00 and Thursday 13:30 Pacific (cron is UTC; an hour later in winter) and on
+# demand. On a PR that touches the fetcher it runs a dry run: reads the mailbox, classifies and
+# cleans, writes nothing, and puts what it would log in the job summary.
+on:
+  schedule:
+    - cron: "0 16 * * 3"
+    - cron: "30 20 * * 4"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Read and classify only; write nothing"
+        type: boolean
+        default: false
+  pull_request:
+    paths:
+      - build/fetch_school_email.py
+      - .github/workflows/email-log.yml
+
+permissions:
+  contents: read
+
+jobs:
+  log:
+    runs-on: ubuntu-latest
+    env:
+      BOT_GMAIL_APP_PASSWORD: ${{ secrets.BOT_GMAIL_APP_PASSWORD }}
+      GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+      EMAIL_LOG_FOLDER_ID: ${{ vars.EMAIL_LOG_FOLDER_ID }}
+      GH_TOKEN: ${{ secrets.SYNC_BOT_TOKEN }}
+      DRY: ${{ github.event_name == 'pull_request' || inputs.dry_run == true }}
+    steps:
+      - name: Check configuration
+        id: cfg
+        run: |
+          if [ -z "$BOT_GMAIL_APP_PASSWORD" ] || [ -z "$GOOGLE_SERVICE_ACCOUNT_JSON" ] || [ -z "$EMAIL_LOG_FOLDER_ID" ]; then
+            echo "Not configured yet: needs BOT_GMAIL_APP_PASSWORD and GOOGLE_SERVICE_ACCOUNT_JSON secrets and the EMAIL_LOG_FOLDER_ID variable. Nothing logged." >> "$GITHUB_STEP_SUMMARY"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.cfg.outputs.ready == 'true'
+        with:
+          token: ${{ secrets.SYNC_BOT_TOKEN || github.token }}
+
+      - uses: actions/setup-python@v5
+        if: steps.cfg.outputs.ready == 'true'
+        with:
+          python-version: "3.12"
+
+      - name: Fetch and log
+        if: steps.cfg.outputs.ready == 'true'
+        run: |
+          pip install google-auth requests
+          # An index PR from an earlier run may still be open: start from its index so those
+          # emails are not logged into the Docs a second time.
+          if git fetch origin email-log-auto 2>/dev/null; then
+            git checkout origin/email-log-auto -- shared/updates/sources.json 2>/dev/null || true
+          fi
+          if [ "$DRY" = "true" ]; then
+            python3 build/fetch_school_email.py --dry-run --summary summary.md
+          else
+            python3 build/fetch_school_email.py --summary summary.md
+          fi
+          cat summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open or update the PR
+        if: steps.cfg.outputs.ready == 'true' && env.DRY != 'true'
+        run: |
+          if git diff --quiet -- shared/updates/sources.json; then echo "No new emails." >> "$GITHUB_STEP_SUMMARY"; exit 0; fi
+          git config user.name "SFQuakerBot"
+          git config user.email "sfquakerbot@gmail.com"
+          git switch -c email-log-auto
+          git add shared/updates/sources.json
+          git commit -m "Email log: index of newly logged school emails"
+          git push -f origin email-log-auto
+          gh pr view email-log-auto --json state -q .state 2>/dev/null | grep -q OPEN \
+            || gh pr create --head email-log-auto --base main --title "Email log: new school emails logged" \
+                 --body-file summary.md

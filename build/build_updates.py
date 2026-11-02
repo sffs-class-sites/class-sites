@@ -28,7 +28,42 @@ import classinfo  # the shared class and grade model (shared/class/class.js)
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SRC = ROOT / "shared" / "updates" / "data.json"
+SOURCES = ROOT / "shared" / "updates" / "sources.json"  # written by build/fetch_school_email.py
 OUT = ROOT / "_site" / "shared" / "updates"
+
+
+def norm_subject(s):
+    import re
+    return re.sub(r"[^a-z0-9]+", " ", s.lower()).strip()
+
+
+def apply_sources(data, sources):
+    """Fill each ledger source's doc_url/doc_anchor from the email-log index, and log.docs.
+
+    A ledger source matches an index entry on the same date whose subject is the same, or is
+    one of the parts of a combined ledger subject ("A / B"), or is a prefix of it (the ledger
+    adds notes like "(3rd grade)"). Returns the number of ledger sources now linked."""
+    from fetch_school_email import school_year_label
+    import datetime as dt
+    by_date = {}
+    for m in sources.get("messages", []):
+        if m.get("anchor"):
+            by_date.setdefault(m["date"], []).append(m)
+    linked = 0
+    for s in data["sources"]:
+        want = [norm_subject(p) for p in s["subject"].split(" / ")]
+        hits = [m for m in by_date.get(s["date"], [])
+                if any(w == norm_subject(m["subject"]) or w.startswith(norm_subject(m["subject"]) + " ") for w in want)]
+        if hits:
+            s["doc_url"] = hits[0]["doc_url"]
+            s["doc_anchor"] = hits[0]["anchor"]
+            linked += 1
+    year = school_year_label(dt.date.fromisoformat(data["school_year"]["first_day"]))
+    for stream in data.get("log", {}).get("docs", {}):
+        d = sources.get("docs", {}).get(f"{stream}@{year}")
+        if d:
+            data["log"]["docs"][stream] = d["url"]
+    return linked
 
 
 def build(data):
@@ -357,11 +392,15 @@ footer p{margin:4px 0}
 
 def main():
     data = json.loads(SRC.read_text())
+    linked = 0
+    if SOURCES.exists():
+        linked = apply_sources(data, json.loads(SOURCES.read_text()))
     page, version = build(data)
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "index.html").write_text(page)
-    shutil.copy(SRC, OUT / "data.json")
-    print(f"built {OUT.relative_to(ROOT)}/index.html  {len(data['topics'])} topics  version {version}")
+    (OUT / "data.json").write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n")
+    print(f"built {OUT.relative_to(ROOT)}/index.html  {len(data['topics'])} topics  "
+          f"{linked}/{len(data['sources'])} sources linked to the email log  version {version}")
 
 
 if __name__ == "__main__":
