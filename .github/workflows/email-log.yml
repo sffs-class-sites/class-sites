@@ -88,7 +88,13 @@ jobs:
           if [ -z "$(git status --porcelain -- shared/updates/sources.json)" ]; then echo "No new emails." >> "$GITHUB_STEP_SUMMARY"; exit 0; fi
           git config user.name "SFQuakerBot"
           git config user.email "sfquakerbot@gmail.com"
-          git switch -c email-log-auto
+          # Base the commit on main as it is now, not as it was when the job started: a PR merged
+          # during the run would otherwise leave this PR conflicting, and GitHub never runs the
+          # required build check on a conflicting PR (2026-11-02).
+          cp shared/updates/sources.json "$RUNNER_TEMP/sources.json"
+          git fetch origin main
+          git checkout -f -B email-log-auto origin/main
+          cp "$RUNNER_TEMP/sources.json" shared/updates/sources.json
           git add shared/updates/sources.json
           git commit -m "Email log: index of newly logged school emails"
           git push -f origin email-log-auto
