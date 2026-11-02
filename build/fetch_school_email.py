@@ -496,20 +496,31 @@ class Docs:
             sys.exit(f"{what}: HTTP {r.status_code}\n{body}")
         return r.json() if r.text else {}
 
-    def find_or_create(self, title):
-        q = (f"name = '{title}' and '{self.folder}' in parents and trashed = false "
+    def inventory(self):
+        """title → [doc ids, oldest first] for the Google Docs in the log folder."""
+        q = (f"'{self.folder}' in parents and trashed = false "
              f"and mimeType = 'application/vnd.google-apps.document'")
-        r = self._check(self.s.get(self.DRIVE, params={"q": q, "fields": "files(id,name)",
+        r = self._check(self.s.get(self.DRIVE, params={"q": q, "fields": "files(id,name,createdTime)",
+                                                        "orderBy": "createdTime", "pageSize": "200",
                                                         "supportsAllDrives": "true"}), "Drive list")
-        if r.get("files"):
-            return r["files"][0]["id"], False
-        r = self._check(self.s.post(self.DRIVE, params={"supportsAllDrives": "true"}, json={
-            "name": title, "mimeType": "application/vnd.google-apps.document",
-            "parents": [self.folder]}), "Drive create")
-        doc_id = r["id"]
-        self._check(self.s.post(f"{self.DRIVE}/{doc_id}/permissions", json={"role": "reader", "type": "anyone"}),
-                    "Drive share")
-        return doc_id, True
+        out = {}
+        for f in r.get("files", []):
+            out.setdefault(f["name"], []).append(f["id"])
+        return out
+
+    def find(self, title):
+        """The doc's id (the oldest if the title is duplicated), or None. A service account has
+        no Drive storage quota, so it cannot create files (Google, 2025); the bot account creates
+        each stream's doc in the folder once, by hand, and the job only appends to it."""
+        ids = self.inventory().get(title, [])
+        if len(ids) > 1:
+            print(f"  note: {len(ids)} docs titled {title!r}; using the oldest. Trash the others.")
+        return ids[0] if ids else None
+
+    def share_anyone(self, doc_id):
+        """Best effort: 'anyone with the link can view'. Fails harmlessly if the folder already grants it."""
+        r = self.s.post(f"{self.DRIVE}/{doc_id}/permissions", json={"role": "reader", "type": "anyone"})
+        return r.status_code < 400
 
     def get(self, doc_id):
         return self._check(self.s.get(f"{self.DOCS}/{doc_id}"), "Docs get")
@@ -565,7 +576,7 @@ def entry_heading(m):
 def run(messages, docs, sources, streams, dry_run, resolver, log=print):
     seen_ids = {m["message_id"] for m in sources["messages"] if m.get("message_id")}
     seen_fp = {m["fingerprint"] for m in sources["messages"]}
-    cache, added, skipped = {}, [], 0
+    cache, added, skipped, missing = {}, [], 0, set()
     fullest = {}
     for m in messages:  # a resend within one run: keep the fuller copy
         fp = fingerprint(m["date"], m["subject"])
@@ -592,10 +603,15 @@ def run(messages, docs, sources, streams, dry_run, resolver, log=print):
             added.append(rec)
             continue
         if key not in sources["docs"]:
-            doc_id, created = docs.find_or_create(title)
+            doc_id = docs.find(title)
+            if not doc_id:
+                missing.add(title)
+                log(f"  no doc yet for {title}; skipping {m['date']} {m['subject']}")
+                continue
+            docs.share_anyone(doc_id)
             sources["docs"][key] = {"title": title, "id": doc_id,
                                     "url": f"https://docs.google.com/document/d/{doc_id}/edit"}
-            log(f"  {'created' if created else 'found'} doc {title}")
+            log(f"  found doc {title}")
         d = sources["docs"][key]
         hid = docs.append(d["id"], entry_heading(m), text)
         rec.update({"doc_id": d["id"], "doc_url": d["url"],
@@ -606,6 +622,9 @@ def run(messages, docs, sources, streams, dry_run, resolver, log=print):
         added.append(rec)
         log(f"  logged → {title}: {m['date']} {m['subject']}")
         time.sleep(0.5)  # Docs API write quota is per minute; be gentle
+    if missing:
+        log("\nThese docs do not exist yet. Create each one, as the bot account, inside the log folder "
+            "(New → Google Docs, then rename), and rerun:\n  " + "\n  ".join(sorted(missing)))
     return added, skipped
 
 
@@ -647,11 +666,19 @@ def main():
         messages = messages[:a.limit]
 
     docs = None
-    if not a.dry_run:
-        key, folder = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON"), os.environ.get("EMAIL_LOG_FOLDER_ID")
-        if not key or not folder:
-            sys.exit("GOOGLE_SERVICE_ACCOUNT_JSON and EMAIL_LOG_FOLDER_ID are needed to write the log.")
+    key, folder = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON"), os.environ.get("EMAIL_LOG_FOLDER_ID")
+    if key and folder:
         docs = Docs(key, folder)
+        inv = docs.inventory()
+        print(f"{sum(len(v) for v in inv.values())} doc(s) in the log folder:")
+        for t, ids in sorted(inv.items()):
+            print(f"  {t}  ({len(ids)} copy)" if len(ids) > 1 else f"  {t}")
+        need = {f"{stream_label(classify(m['subject'], m['text'])[0], streams)} {school_year_label(m['date'])} (email log)"
+                for m in messages}
+        for t in sorted(need - set(inv)):
+            print(f"  MISSING: {t}")
+    elif not a.dry_run:
+        sys.exit("GOOGLE_SERVICE_ACCOUNT_JSON and EMAIL_LOG_FOLDER_ID are needed to write the log.")
 
     sources = load_sources()
     resolver = http_resolve if not a.eml or not a.dry_run else (lambda u: u)
