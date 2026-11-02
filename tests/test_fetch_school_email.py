@@ -181,7 +181,11 @@ idx = {"docs": {"circle-back@2026-27": {"url": "https://docs.google.com/document
            {"date": "2026-10-30", "subject": "SFFS Circle Back: October 29, 2026", "doc_url": "https://docs.google.com/document/d/D1/edit", "anchor": "https://docs.google.com/document/d/D1/edit#heading=h.1"},
            {"date": "2026-08-25", "subject": "Join Our First Grade Room Parent Team", "doc_url": "u", "anchor": "u#heading=h.2"},
            {"date": "2026-09-04", "subject": "Hello from your room parents!", "doc_url": "u", "anchor": "u#heading=h.3"},
-           {"date": "2026-09-04", "subject": "Something else entirely", "doc_url": "u", "anchor": "u#heading=h.9"}]}
+           {"date": "2026-09-04", "subject": "Something else entirely", "doc_url": "u", "anchor": "u#heading=h.9"},
+           {"date": "2026-09-28", "subject": "SPEAK announcement", "doc_url": "u", "anchor": "u#heading=h.4"},
+           {"date": "2026-09-11", "subject": "Circle of Friends // Supporting Someone", "doc_url": "u", "anchor": "u#heading=h.5"},
+           {"date": "2026-09-11", "subject": "[SFFS] Campus Safety Incident", "doc_url": "u", "anchor": "u#heading=h.6"},
+           {"date": "2026-09-11", "subject": "sharing in 3A", "doc_url": "u", "anchor": "u#heading=h.7"}]}
 data = json.loads(json.dumps(ledger))
 n = b.apply_sources(data, idx)
 by = {s["id"]: s for s in data["sources"]}
@@ -191,8 +195,14 @@ combo = [s for s in data["sources"] if s["subject"].startswith("Join Our First G
 check(combo["doc_anchor"].endswith("h.2"), "one part of a combined 'A / B' subject links")
 hello = [s for s in data["sources"] if s["subject"].startswith("Hello from your room parents")][0]
 check(hello["doc_anchor"].endswith("h.3"), "a ledger subject with a trailing note links by prefix")
-check(n == 3 and data["log"]["docs"]["circle-back"].endswith("/D1/edit") and data["log"]["docs"]["head"] is None,
-      "three linked; log.docs filled per stream for the current year only")
+speak = [s for s in data["sources"] if s["subject"] == "Fwd: SPEAK announcement"][0]
+check(speak["doc_anchor"].endswith("h.4"), "a 'Fwd:' prefix in the ledger subject is ignored")
+re3a = [s for s in data["sources"] if s["subject"] == "Re: sharing in 3A"][0]
+check(re3a["doc_anchor"].endswith("h.7"), "a 'Re:' prefix in the ledger subject is ignored")
+cof = [s for s in data["sources"] if s["subject"].startswith("Circle of Friends // Supporting a staff")][0]
+check(cof["doc_anchor"].endswith("h.5"), "a redacted title links as the only unmatched email of its day")
+check(n == 7 and data["log"]["docs"]["circle-back"].endswith("/D1/edit") and data["log"]["docs"]["head"] is None,
+      "seven linked; log.docs filled per stream for the current year only")
 
 print(f"test_fetch_school_email: {'ok' if not failures else str(len(failures)) + ' failure(s)'}")
 sys.exit(1 if failures else 0)
