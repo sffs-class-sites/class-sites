@@ -44,7 +44,7 @@ BOT = "sfquakerbot@gmail.com"
 ORDINAL = {0: "Kindergarten", 1: "1st Grade", 2: "2nd Grade", 3: "3rd Grade", 4: "4th Grade",
            5: "5th Grade", 6: "6th Grade", 7: "7th Grade", 8: "8th Grade"}
 GRADE_WORDS = {
-    0: r"kindergarten|\bkinders?\b|\bk\s*[-/]|\bk\b(?= (?:families|students|class|team))",
+    0: r"kindergarten|\bkinders?\b|\bk\s+(?:families|students|class|team|teachers)\b",
     1: r"\b1st[- ]grade|\bfirst[- ]grade|\b1st graders|\b1[ab]\b",
     2: r"\b2nd[- ]grade|\bsecond[- ]grade|\b2nd graders|\b2[ab]\b",
     3: r"\b3rd[- ]grade|\bthird[- ]grade|\b3rd graders|\b3[ab]\b",
@@ -258,7 +258,7 @@ def classify(subject, body=""):
         g = gs.pop()
         return f"teachers-{g}", g
     if not gs:
-        gs = grades_mentioned(body[:1500])
+        gs = grades_mentioned(body[:300])  # the greeting: "Hello 1st grade families"
         if len(gs) == 1:
             g = gs.pop()
             return f"teachers-{g}", g
@@ -337,12 +337,15 @@ def parse_message(raw):
     except Exception:
         pass
     plain, htm = body_parts(msg)
-    text = tidy(plain) if plain.strip() else html_to_text(htm)
-    if not text.strip() and htm:
-        text = html_to_text(htm)
+    tp = tidy(plain) if plain.strip() else ""
+    th = html_to_text(htm) if htm.strip() else ""
+    # Newsletters often carry a stub plain part ("view in browser"); take the richer one.
+    text = tp if len(tp) >= 0.5 * len(th) else th
+    shape, block_date = "filter", None
 
     fb = FORWARD_BLOCK.search(text)
     if fb:
+        shape = "fwd"
         hdr = {}
         for line in fb.group("hdr").split("\n"):
             k, _, v = line.partition(":")
@@ -353,18 +356,28 @@ def parse_message(raw):
         if "subject" in hdr:
             subject = clean_subject(hdr["subject"])
         if "date" in hdr:
+            block_date = hdr["date"]
             date = parse_forward_date(hdr["date"]) or date
         text = text[fb.end():]
         # drop the "To:" leftovers and anything Gmail put above the block
         text = tidy(text)
 
+    info = {"shape": shape, "header_date": str(msg.get("Date") or ""), "block_date": block_date,
+            "plain_len": len(tp), "html_len": len(th), "subject": subject, "sender": sender}
     if not sender.endswith("veracross.com") and "veracross.com" not in (msg.get("X-Forwarded-For") or ""):
         if not re.search(r"m@mail\d*\.veracross\.com", raw.decode("utf-8", "replace")[:6000]):
+            info["rejected"] = "not from Veracross"
+            REJECTED.append(info)
             return None
     if not date:
+        info["rejected"] = "no date"
+        REJECTED.append(info)
         return None
     text = strip_spanish(text)
-    return {"message_id": message_id, "sender": sender, "subject": subject, "date": date, "text": text}
+    return {"message_id": message_id, "sender": sender, "subject": subject, "date": date, "text": text, "info": info}
+
+
+REJECTED = []  # parse_message() notes here why a message was not taken (for --debug)
 
 
 def fingerprint(date, subject):
@@ -486,7 +499,13 @@ def run(messages, docs, sources, streams, dry_run, resolver, log=print):
     seen_ids = {m["message_id"] for m in sources["messages"] if m.get("message_id")}
     seen_fp = {m["fingerprint"] for m in sources["messages"]}
     cache, added, skipped = {}, [], 0
-    for m in sorted(messages, key=lambda x: (x["date"], x["subject"])):
+    fullest = {}
+    for m in messages:  # a resend within one run: keep the fuller copy
+        fp = fingerprint(m["date"], m["subject"])
+        if fp not in fullest or len(m["text"]) > len(fullest[fp]["text"]):
+            fullest[fp] = m
+    skipped += len(messages) - len(fullest)
+    for m in sorted(fullest.values(), key=lambda x: (x["date"], x["subject"])):
         if m["message_id"] in seen_ids:
             continue
         fp = fingerprint(m["date"], m["subject"])
@@ -530,6 +549,7 @@ def main():
     ap.add_argument("--limit", type=int)
     ap.add_argument("--since", help="YYYY-MM-DD; default 60 days before the school year's first day")
     ap.add_argument("--summary", help="write a markdown summary here (GitHub step summary)")
+    ap.add_argument("--debug", action="store_true", help="print shape, dates and part sizes per message, and why others were rejected")
     a = ap.parse_args()
 
     ledger = json.loads(LEDGER.read_text())
@@ -547,6 +567,13 @@ def main():
     print(f"{len(raws)} messages in the mailbox since {since}")
     messages = [m for m in (parse_message(r) for r in raws) if m and m["date"] >= since]
     print(f"{len(messages)} are school emails")
+    if a.debug:
+        for m in messages:
+            i = m["info"]
+            print(f"  [{i['shape']}] {m['date']} hdr={i['header_date']!r} block={i['block_date']!r} "
+                  f"plain={i['plain_len']} html={i['html_len']} {m['subject'][:60]}")
+        for i in REJECTED:
+            print(f"  rejected ({i['rejected']}): from={i['sender']} {i['subject'][:60]}")
     if a.limit:
         messages = messages[:a.limit]
 

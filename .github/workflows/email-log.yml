@@ -69,7 +69,7 @@ jobs:
             git checkout origin/email-log-auto -- shared/updates/sources.json 2>/dev/null || true
           fi
           if [ "$DRY" = "true" ]; then
-            python3 build/fetch_school_email.py --dry-run --summary summary.md
+            python3 build/fetch_school_email.py --dry-run --debug --summary summary.md
           else
             python3 build/fetch_school_email.py --summary summary.md
           fi

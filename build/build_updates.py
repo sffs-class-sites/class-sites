@@ -40,20 +40,20 @@ def norm_subject(s):
 def apply_sources(data, sources):
     """Fill each ledger source's doc_url/doc_anchor from the email-log index, and log.docs.
 
-    A ledger source matches an index entry on the same date whose subject is the same, or is
+    A ledger source matches an index entry dated within two days whose subject is the same, or is
     one of the parts of a combined ledger subject ("A / B"), or is a prefix of it (the ledger
     adds notes like "(3rd grade)"). Returns the number of ledger sources now linked."""
     from fetch_school_email import school_year_label
     import datetime as dt
-    by_date = {}
-    for m in sources.get("messages", []):
-        if m.get("anchor"):
-            by_date.setdefault(m["date"], []).append(m)
+    msgs = [m for m in sources.get("messages", []) if m.get("anchor")]
     linked = 0
     for s in data["sources"]:
         want = [norm_subject(p) for p in s["subject"].split(" / ")]
-        hits = [m for m in by_date.get(s["date"], [])
-                if any(w == norm_subject(m["subject"]) or w.startswith(norm_subject(m["subject"]) + " ") for w in want)]
+        d0 = dt.date.fromisoformat(s["date"])
+        hits = [m for m in msgs
+                if abs((dt.date.fromisoformat(m["date"]) - d0).days) <= 2
+                and any(w == norm_subject(m["subject"]) or w.startswith(norm_subject(m["subject"]) + " ") for w in want)]
+        hits.sort(key=lambda m: abs((dt.date.fromisoformat(m["date"]) - d0).days))
         if hits:
             s["doc_url"] = hits[0]["doc_url"]
             s["doc_anchor"] = hits[0]["anchor"]

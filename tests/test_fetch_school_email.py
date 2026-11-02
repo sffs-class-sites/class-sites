@@ -94,6 +94,9 @@ check(f.classify("sharing in 3A") == ("teachers-3", 3), "a section name picks th
 check(f.classify("Picture Day Volunteers Needed!", "Hello 1st grade families, we need two parents.") == ("teachers-1", 1),
       "no grade in the subject → one grade in the body")
 check(f.classify("Welcome to First Grade!") == ("teachers-1", 1), "grade words in a one-off")
+check(f.classify("Come Support Horizons!", "Dear families, Horizons serves K-8 students across the city.") == ("school", None),
+      "K-8 in the body is not a Kindergarten email")
+check(f.classify("Kindergarten Buddies", "") == ("teachers-0", 0), "Kindergarten in the subject")
 check(f.school_year_label(dt.date(2026, 8, 4)) == "2026-27" and f.school_year_label(dt.date(2027, 5, 3)) == "2026-27",
       "school year label spans August to June")
 
@@ -113,7 +116,7 @@ added, skipped = f.run(msgs, fd, src, ledger["streams"], False, lambda u: u, log
 check(len(added) == 2 and skipped == 1, "a resend with the same subject and date is logged once")
 check(all(r["anchor"].endswith("#heading=h.abc") for r in added) and set(src["docs"]) == {"circle-back@2026-27", "school@2026-27"},
       "entries carry the doc anchor; one doc per stream per year")
-check(fd.appended[0][1] == "2026-10-05 [SFFS] Forms" and fd.appended[1][2] == "A", "heading is the date and subject; body is the text")
+check(fd.appended[0][1] == "2026-10-05 [SFFS] Forms" and fd.appended[1][2] == "A fixed typo", "heading is the date and subject; a same-day resend keeps the fuller copy")
 added2, _ = f.run(msgs, fd, src, ledger["streams"], False, lambda u: u, log=lambda *a: None)
 check(added2 == [] and len(fd.appended) == 2, "a second run logs nothing new")
 check(all("sender" in r and "@" in r["sender"] and r["sender"].endswith("veracross.com") for r in added),
@@ -123,7 +126,7 @@ check(all("sender" in r and "@" in r["sender"] and r["sender"].endswith("veracro
 import build_updates as b
 idx = {"docs": {"circle-back@2026-27": {"url": "https://docs.google.com/document/d/D1/edit"}},
        "messages": [
-           {"date": "2026-10-29", "subject": "SFFS Circle Back: October 29, 2026", "doc_url": "https://docs.google.com/document/d/D1/edit", "anchor": "https://docs.google.com/document/d/D1/edit#heading=h.1"},
+           {"date": "2026-10-30", "subject": "SFFS Circle Back: October 29, 2026", "doc_url": "https://docs.google.com/document/d/D1/edit", "anchor": "https://docs.google.com/document/d/D1/edit#heading=h.1"},
            {"date": "2026-08-25", "subject": "Join Our First Grade Room Parent Team", "doc_url": "u", "anchor": "u#heading=h.2"},
            {"date": "2026-09-04", "subject": "Hello from your room parents!", "doc_url": "u", "anchor": "u#heading=h.3"},
            {"date": "2026-09-04", "subject": "Something else entirely", "doc_url": "u", "anchor": "u#heading=h.9"}]}
@@ -131,7 +134,7 @@ data = json.loads(json.dumps(ledger))
 n = b.apply_sources(data, idx)
 by = {s["id"]: s for s in data["sources"]}
 cb = [s for s in data["sources"] if s["date"] == "2026-10-29" and s["stream"] == "circle-back"][0]
-check(cb["doc_anchor"].endswith("#heading=h.1"), "exact subject on the same date links the ledger source")
+check(cb["doc_anchor"].endswith("#heading=h.1"), "exact subject within two days links the ledger source")
 combo = [s for s in data["sources"] if s["subject"].startswith("Join Our First Grade")][0]
 check(combo["doc_anchor"].endswith("h.2"), "one part of a combined 'A / B' subject links")
 hello = [s for s in data["sources"] if s["subject"].startswith("Hello from your room parents")][0]
