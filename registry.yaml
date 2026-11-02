@@ -25,7 +25,7 @@ embeds:
     owner: platform
   updates:
     type: url
-    path: shared/updates/        # placed with ?class=YYYY; not on any site yet (docs/updates-pipeline.md)
+    path: shared/updates/        # placed with ?class=YYYY; on the 1st-grade site since 2026-11-02 (docs/updates-pipeline.md)
     owner: platform
   room-parents-glitter:
     type: code
@@ -53,6 +53,10 @@ sites:
         embed: important-dates
         box: {w: 935, h: 625}   # editor (h/w 0.668); publishes 1154 x 770, iPhone 13 352 x 235, 4 dates visible (resized and measured 2026-10-31)
         status: url           # swapped 2026-10-30
+      - page: email-digest
+        embed: updates
+        box: {w: 935, h: 875}   # editor (h/w 0.94); publishes 1154 x 1080, iPhone 13 352 x 329, first card's title/date/summary/action visible (placed by Ahin, measured 2026-11-02)
+        status: url
       - page: home
         embed: room-parents-glitter   # Class-2034 only; room-parent list under the welcome text
         box: {w: 296, h: 252}
