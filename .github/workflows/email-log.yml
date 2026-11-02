@@ -78,7 +78,8 @@ jobs:
       - name: Open or update the PR
         if: steps.cfg.outputs.ready == 'true' && env.DRY != 'true'
         run: |
-          if git diff --quiet -- shared/updates/sources.json; then echo "No new emails." >> "$GITHUB_STEP_SUMMARY"; exit 0; fi
+          # git diff ignores an untracked file, which the index is on its first run
+          if [ -z "$(git status --porcelain -- shared/updates/sources.json)" ]; then echo "No new emails." >> "$GITHUB_STEP_SUMMARY"; exit 0; fi
           git config user.name "SFQuakerBot"
           git config user.email "sfquakerbot@gmail.com"
           git switch -c email-log-auto

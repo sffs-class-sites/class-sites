@@ -135,7 +135,9 @@ check(f.school_year_label(dt.date(2026, 8, 4)) == "2026-27" and f.school_year_la
 
 # --- run(): dedupe by message id and by resend fingerprint; anchors from a fake Docs
 class FakeDocs:
-    def __init__(self, have=None): self.appended = []; self.have = have
+    def __init__(self, have=None, existing=None): self.appended = []; self.have = have; self.existing = existing or {}
+    def get(self, doc_id): return doc_id
+    def heading_ids(self, doc): return dict(self.existing.get(doc, {}))
     def find(self, title): return None if self.have is not None and title not in self.have else "DOC" + str(len(title))
     def share_anyone(self, doc_id): return True
     def append(self, doc_id, heading, body): self.appended.append((doc_id, heading, body)); return "h.abc"
@@ -157,6 +159,12 @@ fd2, src2, notes = FakeDocs(have={"Circle Back 2026-27 (email log)"}), {"schema"
 added3, _ = f.run(msgs, fd2, src2, ledger["streams"], False, lambda u: u, log=notes.append)
 check(len(added3) == 1 and len(fd2.appended) == 1 and any("School notices 2026-27 (email log)" in n for n in notes),
       "a stream whose doc is missing is skipped and named, the others are logged")
+fd3 = FakeDocs(existing={"DOC31": {"2026-10-29 SFFS Circle Back: October 29, 2026": "h.old"}})
+src3 = {"schema": 1, "docs": {}, "messages": []}
+added4, _ = f.run(msgs, fd3, src3, ledger["streams"], False, lambda u: u, log=lambda *a: None)
+check(len(added4) == 2 and len(fd3.appended) == 1 and fd3.appended[0][1] == "2026-10-05 [SFFS] Forms"
+      and [r for r in added4 if r["stream"] == "circle-back"][0]["anchor"].endswith("#heading=h.old"),
+      "an email already in the doc is indexed from its existing heading, not appended again")
 check(all("sender" in r and "@" in r["sender"] and r["sender"].endswith("veracross.com") for r in added),
       "the index stores only the Veracross sender")
 
