@@ -1,8 +1,8 @@
 {
  "schema": 1,
  "id": "updates",
- "title": "SFFS Updates",
- "subtitle": "What the school emails said, organised: things to do, this week, what changed, and what your child is learning.",
+ "title": "SFFS Email Index",
+ "subtitle": "NOT SANCTIONED. Data may be missing or inaccurate. This is a parent-led index of school emails (Class Digests, Teacher/Specialist, Head of School) and the Academic Calendar.",
  "school_year": {
   "label": "2026–27",
   "first_day": "2026-08-26",
@@ -1219,7 +1219,8 @@
      "date": "2026-10-29",
      "note": "Over 20% of families; $350,000."
     }
-   ]
+   ],
+   "pin": true
   },
   {
    "id": "play-structure-2026",

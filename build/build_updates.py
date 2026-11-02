@@ -4,7 +4,7 @@
 Output: _site/shared/updates/index.html (+ data.json)
 
 The Updates embed shows what the school's emails said, organised by what a parent needs:
-Action needed, This week, Coming up, What changed, Good to know, From the Head.
+Deadlines, This week, Coming up, What changed, Classroom, Good to know, Important Dates, From the Head.
 Everything is rendered client-side from the topic ledger so the same page serves every
 class site: ?class=YYYY picks the grade (CLAUDE.md §1), ?grade=N overrides it, and a
 family with children in several grades can tick extra grades (remembered in the browser).
@@ -19,6 +19,7 @@ emails (tests/validate_updates.py enforces this). Those stay in the full-text lo
 import hashlib
 import html
 import json
+import re
 import pathlib
 import shutil
 import sys
@@ -89,6 +90,7 @@ def build(data):
         "{{VERSION}}": version,
         "{{TITLE}}": html.escape(data["title"]),
         "{{SUBTITLE}}": html.escape(data["subtitle"]),
+        "{{SUBTITLE_REST}}": html.escape(re.sub(r"^NOT SANCTIONED\.\s*", "", data["subtitle"])),
         "{{DATA_JSON}}": json.dumps(data, ensure_ascii=False).replace("</", "<\\/"),
         "{{CLASS_JS}}": classinfo.class_js(),
     }.items():
@@ -124,6 +126,20 @@ h1{font-size:1.35rem;margin:0 0 2px}
 .grades{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.8rem;color:var(--sub);margin-top:6px}
 .grades[hidden]{display:none}
 .grades .lbl{margin-right:2px}
+.prefs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.8rem;color:var(--sub);margin-top:6px}
+.prefs .lbl{margin-right:2px}
+.chip.pref{padding:6px 9px;font-size:.76rem}
+.opt{display:inline-flex;align-items:center;gap:5px;font-size:.8rem;color:var(--sub);margin-left:6px;cursor:pointer}
+.opt input{margin:0}
+.card{position:relative}
+.hide{position:absolute;top:8px;right:8px;font-family:inherit;font-size:.72rem;font-weight:600;color:var(--sub);background:transparent;border:1px solid transparent;border-radius:999px;padding:4px 7px;cursor:pointer}
+.hide:hover{background:var(--panel);border-color:var(--line);color:var(--ink)}
+.card.stub{padding:6px 12px;margin:4px 0;background:var(--panel);color:var(--sub);font-size:.8rem;display:flex;gap:8px;align-items:center;justify-content:space-between}
+.card.stub .st{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card.stub .lnk{flex:0 0 auto;padding:4px 9px;font-size:.74rem}
+.hiddenbar{margin:8px 0;font-size:.8rem;color:var(--sub);display:flex;gap:8px;align-items:center}
+.top{padding-right:44px}
+.badge.dates{color:var(--accent);background:var(--accent-light)}
 .chip{flex:0 0 auto;font-family:inherit;font-weight:600;font-size:.8rem;line-height:1;padding:7px 11px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .chip:hover{background:var(--accent-light)}
 .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -171,12 +187,16 @@ footer p{margin:4px 0}
 .sffs-fade{position:fixed;left:2px;right:2px;bottom:2px;height:58px;z-index:8;pointer-events:none;background:linear-gradient(to bottom,rgba(255,255,255,0),#fff 72%);border-radius:0 0 10px 10px}
 .sffs-hint{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:9;pointer-events:none;white-space:nowrap;font:600 12px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#3457a6;background:#eaeffb;border:1px solid #d6dff5;padding:7px 13px;border-radius:999px;box-shadow:0 1px 5px rgba(0,0,0,.13)}
 .sffs-fade[hidden],.sffs-hint[hidden]{display:none}
+.showing .short{display:none}
 @media (max-width:560px){
   .wrap{padding:12px}
   .toolbar{top:-12px;margin:0 -12px;padding:6px 12px}
   h1{font-size:1.05rem;margin:0}
   .subtitle{display:none}
   .showing{font-size:.76rem}
+  .showing .short{display:inline}
+  .prefs{display:none}  /* on a phone the calendar choice lives inside the Grade Filters panel */
+  .grades:not([hidden]) ~ .prefs{display:flex}
   header{margin-bottom:3px}
   .intro{display:none}  /* the tab name says it; the phone needs the room */
   .chip{padding:6px 10px;font-size:.78rem}
@@ -201,9 +221,15 @@ footer p{margin:4px 0}
 <div class="wrap" id="wrap">
   <header>
     <h1>{{TITLE}}</h1>
-    <p class="subtitle" id="subtitle">{{SUBTITLE}}</p>
-    <div class="showing"><span id="showing"></span> <button type="button" class="chip tiny" id="gradesToggle" aria-expanded="false" aria-controls="grades">Change grades</button></div>
-    <div class="grades" id="grades" role="group" aria-label="Which grades to show" hidden><span class="lbl">Show, as well as schoolwide:</span></div>
+    <p class="subtitle" id="subtitle"><strong>NOT SANCTIONED.</strong> {{SUBTITLE_REST}} <span id="supported"></span></p>
+    <div class="showing"><span id="showing"></span><span class="short">&nbsp;· Not sanctioned</span> <button type="button" class="chip tiny" id="gradesToggle" aria-expanded="false" aria-controls="grades">Grade Filters</button></div>
+    <div class="grades" id="grades" role="group" aria-label="Grade Filters" hidden><span class="lbl">Grade Filters:</span></div>
+    <div class="prefs" id="prefs" role="group" aria-label="Your calendar"><span class="lbl">Your calendar:</span>
+      <button type="button" class="chip pref" data-pref="google" aria-pressed="false">Google</button>
+      <button type="button" class="chip pref" data-pref="outlook" aria-pressed="false">Outlook</button>
+      <button type="button" class="chip pref" data-pref="apple" aria-pressed="false">Apple</button>
+      <label class="opt" id="mixOpt" hidden><input type="checkbox" id="mixDates"> Include Important Dates in This week and Coming up</label>
+    </div>
   </header>
   <nav class="toolbar" id="toolbar" aria-label="Sections">
     <div class="row" id="tabs" role="tablist"></div>
@@ -211,6 +237,7 @@ footer p{margin:4px 0}
   <p class="intro" id="intro"></p>
   <div id="list" aria-live="polite"></div>
   <p class="empty" id="empty" hidden>Nothing here right now.</p>
+  <div class="hiddenbar" id="hiddenbar" hidden><span id="hiddenCount"></span> <button type="button" class="lnk" id="showAll">Show all</button></div>
   <footer id="foot"></footer>
 </div>
 <div class="sffs-fade" hidden></div>
@@ -225,7 +252,8 @@ footer p{margin:4px 0}
   var LOWER = ['K','1','2','3','4'], MIDDLE = ['5','6','7','8'];
   var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  var KEY = 'sffsUpdatesGrades';
+  var KEY = 'sffsUpdatesGrades', HKEY = 'sffsUpdatesHidden', PKEY = 'sffsCalendarPref', MKEY = 'sffsUpdatesMixDates';
+  var CAL_LABEL = {google: 'Google Calendar', outlook: 'Outlook', apple: 'Apple Calendar'};
   function safeGet(k){ try { return localStorage.getItem(k); } catch(e) { return null; } }
   function safeSet(k, v){ try { localStorage.setItem(k, v); } catch(e) {} }
   function ymd(s){ var p = s.split('-'); return new Date(+p[0], +p[1]-1, +p[2]); }
@@ -247,6 +275,13 @@ footer p{margin:4px 0}
   })();
 
   function gradeLabel(g){ return g === 'K' ? 'Kindergarten' : g + ({1:'st',2:'nd',3:'rd'}[g] || 'th') + ' grade'; }
+  function gradeShort(g){ return g === 'K' ? 'K' : g + ({1:'st',2:'nd',3:'rd'}[g] || 'th'); }
+  var hidden = (function(){ var h = safeGet(HKEY); return h ? h.split(',').filter(Boolean) : []; })();
+  function isHidden(t){ return hidden.indexOf(t.id) >= 0; }
+  function setHidden(id, on){ var i = hidden.indexOf(id); if (on && i < 0) hidden.push(id); if (!on && i >= 0) hidden.splice(i, 1); safeSet(HKEY, hidden.join(',')); }
+  var pref = (function(){ var p = safeGet(PKEY); return CAL_LABEL[p] ? p : 'google'; })();
+  var mixDates = safeGet(MKEY) === '1';
+  var OFFICIAL = [], officialState = 'loading';  // Important Dates, fetched at view time from the calendar embed's data
   function audienceLabel(a){
     if (a === 'all') return 'Schoolwide'; if (a === 'lower') return 'Lower School (K–4)'; if (a === 'middle') return 'Middle School (5–8)';
     return a.map(gradeLabel).join(', ');
@@ -286,28 +321,62 @@ footer p{margin:4px 0}
   function sourceHref(id){ var s = DATA.sources.filter(function(x){ return x.id === id; })[0]; return s && s.doc_anchor ? s.doc_anchor : null; }
 
   function q(v){ return encodeURIComponent(v); }
-  function gcal(t){
-    var w = t.when, a = w.date.replace(/-/g,''), b;
-    if (w.start_time) { var e = w.end_time || w.start_time; a = a + 'T' + w.start_time.replace(':','') + '00'; b = (w.end || w.date).replace(/-/g,'') + 'T' + e.replace(':','') + '00'; }
+  function calSpan(t){  // [start, end) as compact strings; all-day unless the topic has a start time
+    var w = t.when, a = w.date.replace(/-/g,''), b, timed = !!w.start_time;
+    if (timed) { var e = w.end_time || w.start_time; a = a + 'T' + w.start_time.replace(':','') + '00'; b = (w.end || w.date).replace(/-/g,'') + 'T' + e.replace(':','') + '00'; }
     else { b = iso(addDays(ymd(w.end || w.date), 1)).replace(/-/g,''); }
-    return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + q(t.title) + '&dates=' + a + '/' + b + '&details=' + q(t.summary) + '&location=' + q(w.location || 'SFFS') + (w.start_time ? '&ctz=America/Los_Angeles' : '');
+    return {a: a, b: b, timed: timed};
   }
+  function gcal(t){
+    var s = calSpan(t), w = t.when;
+    return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + q(t.title) + '&dates=' + s.a + '/' + s.b + '&details=' + q(t.summary) + '&location=' + q(w.location || 'SFFS') + (s.timed ? '&ctz=America/Los_Angeles' : '');
+  }
+  function outlook(t){
+    var w = t.when, s = calSpan(t);
+    function fmt(x){ return s.timed ? x.replace(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})\d{2}$/, '$1-$2-$3T$4:$5:00') : x.replace(/^(\d{4})(\d{2})(\d{2})$/, '$1-$2-$3T00:00:00'); }
+    return 'https://outlook.live.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&startdt=' + q(fmt(s.a)) + '&enddt=' + q(fmt(s.b)) + '&subject=' + q(t.title) + '&body=' + q(t.summary) + '&location=' + q(w.location || 'SFFS') + (s.timed ? '' : '&allday=true');
+  }
+  function icsText(t){
+    var s = calSpan(t), uid = t.uid || ('updates-' + t.id + '@sffs-class-sites');
+    function e(v){ return String(v).replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/,/g, '\\,').replace(/;/g, '\\;'); }
+    var dt = s.timed ? 'DTSTART;TZID=America/Los_Angeles:' + s.a + '\r\nDTEND;TZID=America/Los_Angeles:' + s.b : 'DTSTART;VALUE=DATE:' + s.a + '\r\nDTEND;VALUE=DATE:' + s.b;
+    return 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//SFFS Class Page//Email Index//EN\r\nCALSCALE:GREGORIAN\r\nBEGIN:VEVENT\r\nUID:' + uid + '\r\nDTSTAMP:' + TODAY.replace(/-/g,'') + 'T000000Z\r\n' + dt + '\r\nSUMMARY:' + e(t.title) + '\r\nDESCRIPTION:' + e(t.summary) + '\r\nLOCATION:' + e((t.when && t.when.location) || 'SFFS') + '\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n';
+  }
+  function download(name, text){
+    var blob = new Blob([text], {type: 'text/calendar;charset=utf-8'});
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  }
+  function calButton(t){
+    var el;
+    if (pref === 'apple') { el = document.createElement('button'); el.type = 'button'; el.addEventListener('click', function(){ download(t.id + '.ics', icsText(t)); }); }
+    else { el = document.createElement('a'); el.href = pref === 'outlook' ? outlook(t) : gcal(t); el.target = '_blank'; el.rel = 'noopener noreferrer'; }
+    el.className = 'lnk cal'; el.textContent = 'Add to ' + CAL_LABEL[pref];
+    return el;
+  }
+  function wantsCal(t){ return t.when && t.when.date && !isPast(t) && (t.officialEvent || (shortSpan(t) && !t.official)); }
 
   var SECTION_LABEL = {ask: 'Ask your child', learning: 'What we\'re learning', homework: 'Homework', routines: 'Routines', resources: 'Resources', specialists: 'Specialists'};
   var SECTION_ORDER = ['ask', 'learning', 'homework', 'routines', 'specialists', 'resources'];
+  var KNOW_ORDER = ['volunteer', 'event', 'notice'], KNOW_LABEL = {volunteer: 'Volunteer Opportunities', event: 'Events', notice: 'Notices'};
+  function knowGroup(t){ return t.kind === 'volunteer' ? 'volunteer' : (t.kind === 'event' || (t.when && t.when.date)) ? 'event' : 'notice'; }
   var TABS = [
-    {id:'action', label:'Action needed', pick:function(t){ return hasOpenAction(t); }, sort:function(a,b){ return (a.deadline ? a.deadline.date : end(a) || '9') < (b.deadline ? b.deadline.date : end(b) || '9') ? -1 : 1; },
+    {id:'action', label:'Deadlines', pick:function(t){ return hasOpenAction(t); }, sort:function(a,b){ return (a.deadline ? a.deadline.date : end(a) || '9') < (b.deadline ? b.deadline.date : end(b) || '9') ? -1 : 1; },
      intro:'Sign-ups, RSVPs and deadlines that are still open, soonest first.'},
     {id:'week', label:'This week', pick:function(t){ var s = start(t), e = end(t); return s && shortSpan(t) && e >= TODAY && s < iso(addDays(today, 7)); }, sort:function(a,b){ return start(a) < start(b) ? -1 : 1; },
      intro:'Happening in the next seven days.'},
     {id:'coming', label:'Coming up', pick:function(t){ var s = start(t); return s && shortSpan(t) && s >= iso(addDays(today, 7)); }, sort:function(a,b){ return start(a) < start(b) ? -1 : 1; },
-     intro:'Further out. Items marked "On Important Dates" are also on the calendar above.'},
+     intro:'Further out. Items marked "On Important Dates" are also on the Important Dates tab.'},
     {id:'changed', label:'What changed', pick:function(t){ return isNew(t); }, sort:function(a,b){ return latest(a).date > latest(b).date ? -1 : 1; },
      intro:'Topics that were new or updated in the last seven days of email, newest first. Open "History" to see how each one evolved.'},
     {id:'classroom', label:'Classroom', pick:function(t){ return t.kind === 'classroom'; }, sort:function(a,b){ var d = SECTION_ORDER.indexOf(a.section) - SECTION_ORDER.indexOf(b.section); return d !== 0 ? d : (latest(a).date > latest(b).date ? -1 : 1); },
      intro:"From the teachers' newsletters: questions to ask your child, what the class is learning, homework and routines. Newest first within each group."},
-    {id:'know', label:'Good to know', pick:function(t){ return ((t.kind === 'notice' || t.kind === 'volunteer') || (t.when && !shortSpan(t) && t.kind !== 'classroom')) && t.kind !== 'letter' && !isPast(t); }, sort:function(a,b){ return latest(a).date > latest(b).date ? -1 : 1; },
-     intro:'Standing notices and ways to help. Not tied to one date.'},
+    {id:'know', label:'Good to know', pick:function(t){ return ((t.kind === 'notice' || t.kind === 'volunteer') || (t.when && !shortSpan(t) && t.kind !== 'classroom')) && t.kind !== 'letter' && !isPast(t); },
+     sort:function(a,b){ var d = KNOW_ORDER.indexOf(knowGroup(a)) - KNOW_ORDER.indexOf(knowGroup(b)); if (d !== 0) return d; if (!!a.pin !== !!b.pin) return a.pin ? -1 : 1; return latest(a).date > latest(b).date ? -1 : 1; },
+     intro:'Standing notices, longer-running events and ways to help. Pinned items stay first in their group.'},
+    {id:'dates', label:'Important Dates', pick:function(t){ return t.officialEvent && !isPast(t); }, sort:function(a,b){ return start(a) < start(b) ? -1 : 1; },
+     intro:"The school's official calendar for the year, from the Important Dates embed, upcoming first."},
     {id:'head', label:'From the Head', pick:function(t){ return t.kind === 'letter'; }, sort:function(a,b){ return latest(a).date > latest(b).date ? -1 : 1; },
      intro:"Brenda Leaks' letters, newest first, in a few lines each. The full text is in the log."}
   ];
@@ -326,6 +395,7 @@ footer p{margin:4px 0}
     else badges += '<span class="badge ' + esc(t.kind) + '">' + esc({notice:'Notice', volunteer:'Volunteer', letter:'Letter', deadline:'Deadline', event:'Event'}[t.kind] || t.kind) + '</span>';
     if (t.audience !== 'all') badges += '<span class="badge aud">' + esc(audienceLabel(t.audience)) + '</span>';
     if (t.official) badges += '<span class="badge official">On Important Dates</span>';
+    if (t.officialEvent) badges += '<span class="badge dates">Important Dates' + (t.badge ? ' · ' + esc(t.badge) : '') + '</span>';
     if (isNew(t)) badges += '<span class="badge newb">' + (t.updates.length > 1 ? 'Updated' : 'New') + '</span>';
     var h = '<div class="top">' + badges + '</div><p class="t">' + esc(t.title) + '</p>';
     var when = fmtWhen(t); if (when) h += '<p class="when">' + esc(when) + '</p>';
@@ -333,34 +403,59 @@ footer p{margin:4px 0}
     if (t.items && t.items.length) h += '<ul class="items">' + t.items.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>';
     var acts = '';
     (t.links || []).forEach(function(l, i){ acts += '<a class="lnk' + (i === 0 && hasOpenAction(t) ? ' primary' : '') + '" href="' + esc(l.url) + '" target="_blank" rel="noopener noreferrer">' + esc(l.label) + ' ↗</a>'; });
-    if (t.when && t.when.date && shortSpan(t) && !t.official && !isPast(t)) acts += '<a class="lnk" href="' + esc(gcal(t)) + '" target="_blank" rel="noopener noreferrer">Add to Google Calendar</a>';
-    if (acts) h += '<div class="acts">' + acts + '</div>';
-    h += '<details><summary>History (' + t.updates.length + ')</summary><ul class="hist">' + t.updates.map(function(u){
+    if (acts || wantsCal(t)) h += '<div class="acts">' + acts + '</div>';
+    if (!t.officialEvent) h += '<details><summary>History (' + t.updates.length + ')</summary><ul class="hist">' + t.updates.map(function(u){
       var href = sourceHref(u.source), lab = esc(sourceLabel(u.source));
       return '<li><span class="d">' + esc(fmtDate(u.date)) + '</span> · ' + esc(u.note) + ' <span class="s">(' + (href ? '<a href="' + esc(href) + '" target="_blank" rel="noopener noreferrer">' + lab + '</a>' : lab) + ')</span></li>';
     }).join('') + '</ul></details>';
     div.innerHTML = h;
+    if (wantsCal(t)) div.querySelector('.acts').appendChild(calButton(t));
+    var hb = document.createElement('button'); hb.type = 'button'; hb.className = 'hide'; hb.textContent = 'Hide'; hb.setAttribute('aria-label', 'Hide ' + t.title);
+    hb.addEventListener('click', function(){ setHidden(t.id, true); render(); });
+    div.appendChild(hb);
     return div;
+  }
+  function stub(t){
+    var div = document.createElement('div'); div.className = 'card stub';
+    var sp = document.createElement('span'); sp.className = 'st'; sp.textContent = 'Hidden: ' + t.title; div.appendChild(sp);
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'lnk'; b.textContent = 'Show'; b.setAttribute('aria-label', 'Show ' + t.title);
+    b.addEventListener('click', function(){ setHidden(t.id, false); render(); });
+    div.appendChild(b);
+    return div;
+  }
+  function pool(id){  // the ledger, plus the official calendar where it belongs
+    var ledger = DATA.topics; id = id || tab;
+    if (id === 'dates') return ledger.concat(OFFICIAL);
+    if (mixDates && (id === 'week' || id === 'coming')) {
+      var onDays = {}; ledger.forEach(function(t){ if (t.official && t.when && t.when.date) onDays[t.when.date] = true; });
+      return ledger.concat(OFFICIAL.filter(function(o){ return !onDays[o.when.date]; }));
+    }
+    return ledger;
   }
 
   function render(){
     var def = TABS.filter(function(x){ return x.id === tab; })[0];
-    var items = DATA.topics.filter(forMe).filter(def.pick).sort(def.sort);
+    var items = pool().filter(forMe).filter(def.pick).sort(def.sort);
     list.textContent = '';
-    var lastSection = null;
+    var lastSection = null, nHidden = 0;
     items.forEach(function(t){
-      if (tab === 'classroom' && t.section !== lastSection) { var h = document.createElement('h2'); h.className = 'sec'; h.textContent = SECTION_LABEL[t.section] || t.section; list.appendChild(h); lastSection = t.section; }
-      list.appendChild(card(t));
+      var sec = tab === 'classroom' ? t.section : tab === 'know' ? knowGroup(t) : null;
+      if (sec !== null && sec !== lastSection) { var h = document.createElement('h2'); h.className = 'sec'; h.textContent = tab === 'classroom' ? (SECTION_LABEL[sec] || sec) : KNOW_LABEL[sec]; list.appendChild(h); lastSection = sec; }
+      if (isHidden(t)) { nHidden++; list.appendChild(stub(t)); } else list.appendChild(card(t));
     });
-    empty.hidden = items.length > 0;
+    if (tab === 'dates' && officialState !== 'ok') { var m = document.createElement('p'); m.className = 'empty'; m.textContent = officialState === 'loading' ? 'Loading the calendar…' : 'The Important Dates calendar could not be loaded right now.'; list.appendChild(m); }
+    empty.hidden = items.length > 0 || tab === 'dates';
     intro.textContent = def.intro;
+    var hb = document.getElementById('hiddenbar'); hb.hidden = nHidden === 0;
+    document.getElementById('hiddenCount').textContent = nHidden + ' hidden on this tab.';
     [].slice.call(tabsEl.children).forEach(function(b){
       var on = b.getAttribute('data-tab') === tab; b.classList.toggle('on', on); b.setAttribute('aria-selected', on);
       var d = TABS.filter(function(x){ return x.id === b.getAttribute('data-tab'); })[0];
-      b.querySelector('.n').textContent = DATA.topics.filter(forMe).filter(d.pick).length;
+      b.querySelector('.n').textContent = pool(d.id).filter(forMe).filter(d.pick).filter(function(t){ return !isHidden(t); }).length;
     });
     [].slice.call(gradesEl.querySelectorAll('.chip')).forEach(function(c){ var on = selected.indexOf(c.getAttribute('data-g')) >= 0; c.classList.toggle('on', on); c.setAttribute('aria-pressed', on); });
-    document.getElementById('showing').textContent = 'Showing schoolwide' + (selected.length ? ' + ' + selected.slice().sort(function(a,b){ return GRADES.indexOf(a) - GRADES.indexOf(b); }).map(gradeLabel).join(', ') : ' and every grade') + '.';
+    [].slice.call(document.querySelectorAll('.chip.pref')).forEach(function(c){ var on = c.getAttribute('data-pref') === pref; c.classList.toggle('on', on); c.setAttribute('aria-pressed', on); });
+    document.getElementById('showing').textContent = 'Displaying: Schoolwide' + (selected.length ? '; ' + selected.slice().sort(function(a,b){ return GRADES.indexOf(a) - GRADES.indexOf(b); }).map(gradeShort).join('; ') : '; every grade');
     hint();
   }
 
@@ -381,7 +476,7 @@ footer p{margin:4px 0}
   });
 
   var toggle = document.getElementById('gradesToggle');
-  function setGrades(open){ gradesEl.hidden = !open; toggle.setAttribute('aria-expanded', open); toggle.textContent = open ? 'Done' : 'Change grades'; }
+  function setGrades(open){ gradesEl.hidden = !open; toggle.setAttribute('aria-expanded', open); toggle.textContent = open ? 'Done' : 'Grade Filters'; }
   toggle.addEventListener('click', function(){ setGrades(gradesEl.hidden); hint(); });
   var wide = window.innerWidth > 560;
   setGrades(wide); toggle.hidden = wide;  // wide frames: picker always open, no toggle; phones: behind the button
@@ -389,7 +484,31 @@ footer p{margin:4px 0}
   var foot = document.getElementById('foot');
   var streams = Object.keys(DATA.streams).map(function(k){ return DATA.streams[k].label; });
   foot.innerHTML = '<p>Built from ' + DATA.sources.length + ' school emails (' + esc(streams.join(', ')) + ') through ' + esc(fmtDate(DATA.built_through)) + '. Summaries are ours; the school\'s wording is in the full-text log. Always check the original email for anything time-critical.</p>';
-  if (siteGrade) document.getElementById('subtitle').textContent = 'What the school emails said, organised for ' + gradeLabel(siteGrade) + ' families. Tick other grades if you have children in them.';
+  // "We currently support the Classes of 2034 (1st) and 2032 (3rd)": the grades with a digest stream, as class years.
+  (function(){
+    var gs = Object.keys(DATA.streams).map(function(k){ var m = k.match(/^digest-(\d)$/); return m ? +m[1] : null; }).filter(function(g){ return g !== null; }).sort();
+    var endYear = DATA.school_year.end_year + (today > ymd(DATA.school_year.last_day) ? 1 : 0);
+    var parts = gs.map(function(g){ return 'Class of ' + (endYear + (8 - g)) + ' (' + gradeShort(String(g)) + ')'; });
+    document.getElementById('supported').textContent = parts.length ? 'We currently support the ' + parts.join(' and ').replace(/^Class of/, 'Classes of').replace(' and Class of ', ' and ') + '.' : '';
+  })();
+  [].slice.call(document.querySelectorAll('.chip.pref')).forEach(function(c){ c.addEventListener('click', function(){ pref = c.getAttribute('data-pref'); safeSet(PKEY, pref); render(); }); });
+  var mix = document.getElementById('mixDates'); mix.checked = mixDates;
+  mix.addEventListener('change', function(){ mixDates = mix.checked; safeSet(MKEY, mixDates ? '1' : '0'); render(); });
+  document.getElementById('showAll').addEventListener('click', function(){
+    var def = TABS.filter(function(x){ return x.id === tab; })[0];
+    pool().filter(forMe).filter(def.pick).forEach(function(t){ setHidden(t.id, false); }); render();
+  });
+  // Important Dates: same origin as this embed, so a plain fetch; the tab says so if it fails.
+  (function(){
+    var url = location.pathname.replace(/[^\/]*$/, '') + '../important-dates/data.json';
+    fetch(url, {cache: 'no-cache'}).then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); }).then(function(d){
+      OFFICIAL = (d.events || []).map(function(e){
+        return {id: 'official-' + e.uid.replace(/[^a-z0-9]+/gi, '-'), uid: e.uid, officialEvent: true, kind: 'event', audience: 'all', title: e.title, badge: e.badge || '',
+                summary: e.details || '', when: {date: e.date, end: e.end || e.date}, updates: [{date: e.date, note: ''}]};
+      });
+      officialState = 'ok'; document.getElementById('mixOpt').hidden = false; render();
+    }).catch(function(){ officialState = 'error'; render(); });
+  })();
 
   var w = document.getElementById('wrap');
   var fade = document.querySelector('.sffs-fade'), hintEl = document.querySelector('.sffs-hint');
