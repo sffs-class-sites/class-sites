@@ -12,6 +12,7 @@ import functools
 import http.server
 import pathlib
 import sys
+sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent))
 import threading
 
 from playwright.sync_api import sync_playwright
@@ -222,6 +223,9 @@ def main():
         check(page.evaluate("() => [...document.querySelectorAll('.chip.g.on')].map(c => c.dataset.g)") == ["5"],
               "?grade=5 overrides the class")
         ctx.close()
+        print("[translation notice]")
+        from lang_check import check_lang
+        check_lang(browser, "http://127.0.0.1:8711/shared/updates/?class=2034&today=2026-10-31", check)
         browser.close()
 
     print()

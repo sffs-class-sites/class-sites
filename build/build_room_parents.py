@@ -63,6 +63,9 @@ footer{margin-top:14px;color:var(--sub);font-size:.78rem}
 {{CLASS_JS}}
 </script>
 <script>
+{{LANG_JS}}
+</script>
+<script>
 (function(){
   var DATA_URL = '../../data/room-parents.json';
 
@@ -141,7 +144,7 @@ footer{margin-top:14px;color:var(--sub);font-size:.78rem}
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    page = PAGE.replace("{{CLASS_JS}}", classinfo.class_js())
+    page = PAGE.replace("{{CLASS_JS}}", classinfo.class_js()).replace("{{LANG_JS}}", classinfo.lang_js())
     (OUT / "index.html").write_text(page)
     print(f"room-parents -> {OUT / 'index.html'} ({len(page)} bytes)")
 

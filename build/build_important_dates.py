@@ -170,6 +170,7 @@ def build(data):
         "{{META_JSON}}": json.dumps(metas, ensure_ascii=False).replace("</", "<\\/"),
         "{{YEAR}}": data["title"].split()[1],
         "{{CLASS_JS}}": classinfo.class_js(),
+        "{{LANG_JS}}": classinfo.lang_js(),
     }.items():
         page = page.replace(k, v)
     return page, ics_calendar(vevents), version
@@ -347,6 +348,9 @@ footer p{margin:4px 0}
 <div class="sffs-hint" hidden>Scroll for more &#8595;</div>
 <script>
 {{CLASS_JS}}
+</script>
+<script>
+{{LANG_JS}}
 </script>
 <script>
 (function(){

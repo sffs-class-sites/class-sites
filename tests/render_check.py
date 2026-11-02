@@ -14,6 +14,7 @@ import json
 import http.server
 import pathlib
 import sys
+sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent))
 import threading
 
 from playwright.sync_api import sync_playwright
@@ -278,6 +279,9 @@ def main():
             page.close()
         ctx.close()
         check(not short, f"3 upcoming dates fully visible on load ({len(upcoming_days())} days checked; short: {short[:5]})")
+        print("[translation notice]")
+        from lang_check import check_lang
+        check_lang(browser, "http://127.0.0.1:8701/shared/important-dates/?class=2034&today=2026-10-31", check)
         browser.close()
     s1.shutdown(); s2.shutdown()
     print("\nRESULT:", "PASS" if not failures else f"FAIL ({len(failures)})")

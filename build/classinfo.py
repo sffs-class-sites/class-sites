@@ -14,6 +14,7 @@ import re
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 YEARS_FILE = ROOT / "shared" / "school-years.json"
 JS_FILE = ROOT / "shared" / "class" / "class.js"
+LANG_JS_FILE = ROOT / "shared" / "lang" / "translate.js"
 ORD = ["Kindergarten", "1st grade", "2nd grade", "3rd grade", "4th grade", "5th grade", "6th grade", "7th grade", "8th grade"]
 
 
@@ -35,6 +36,11 @@ def class_js(years=None):
     """The browser module with the school years inlined."""
     rows = years if years is not None else load_years()
     return JS_FILE.read_text().replace("__SCHOOL_YEARS__", json.dumps(rows, ensure_ascii=False))
+
+
+def lang_js():
+    """The translation notice every embed inlines (shared/lang/translate.js)."""
+    return LANG_JS_FILE.read_text()
 
 
 def school_year(today, years=None):
