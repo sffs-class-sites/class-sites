@@ -95,6 +95,8 @@ def main():
                 errors.append(f"{w}: an 'ask' topic needs items (the questions)")
         elif "section" in t:
             errors.append(f"{w}: only classroom topics carry a section")
+        if "pin" in t and not isinstance(t["pin"], bool):
+            errors.append(f"{w}: pin must be true or false")
         if "items" in t and not (isinstance(t["items"], list) and all(isinstance(x, str) and x for x in t["items"])):
             errors.append(f"{w}: items must be a list of non-empty strings")
         if "when" in t:

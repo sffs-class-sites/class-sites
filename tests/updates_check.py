@@ -77,6 +77,8 @@ def main():
                       firstKeyVisible: cards.length ? ['.t', '.when', '.acts a', '.sum'].every(sel => { const e = cards[0].querySelector(sel); if (!e) return true; const b = e.getBoundingClientRect(); return b.top >= top - 1 && b.bottom <= lim + 1; }) : false,
                       gradeOn: [...document.querySelectorAll('.chip.g.on')].map(c => c.dataset.g),
                       subtitle: document.getElementById('subtitle').textContent,
+                      showing: document.getElementById('showing').textContent,
+                      tabLabels: [...document.querySelectorAll('.chip.tab')].map(b => b.firstChild.textContent.trim()),
                       overflow: [...document.querySelectorAll('.card, .chip, .lnk')].filter(e => e.getBoundingClientRect().right > innerWidth + 1 && !e.closest('.row')).length }
             }""")
             check(not errors, f"no JS errors {errors[:1]}")
@@ -88,8 +90,10 @@ def main():
             check(m["overflow"] == 0, "no card or button pokes past the right edge")
             check(m["docSH"] <= m["docCH"], "page itself never scrolls (one scroll region)")
             check(m["gradeOn"] == ["1"], f"?class=2034 selects 1st grade in 2026–27 ({m['gradeOn']})")
-            check("1st grade" in m["subtitle"], "subtitle names the grade")
-            check(m["cards"] > 0, f"Action needed has cards ({m['cards']})")
+            check(m["showing"] == "Displaying: Schoolwide; 1st", f"Displaying line names the grade ({m['showing']!r})")
+            check(m["subtitle"].startswith("NOT SANCTIONED.") and "Classes of 2034 (1st) and 2032 (3rd)" in m["subtitle"], f"subtitle carries the disclaimer and the supported classes ({m['subtitle'][-60:]!r})")
+            check(m["tabLabels"][0] == "Deadlines" and "Important Dates" in m["tabLabels"], f"tabs renamed ({m['tabLabels']})")
+            check(m["cards"] > 0, f"Deadlines has cards ({m['cards']})")
             if label == "phone":
                 # The square live box gives a phone ~210px of card space: the first card's title, date line, summary
                 # and action button must all be readable without scrolling, even if its History line is below the fold.
@@ -99,7 +103,7 @@ def main():
 
             # Tabs work in place and show different content
             counts = {}
-            for tid in ["week", "coming", "changed", "classroom", "know", "head", "action"]:
+            for tid in ["week", "coming", "changed", "classroom", "know", "dates", "head", "action"]:
                 fr.locator(f'.chip.tab[data-tab="{tid}"]').click()
                 page.wait_for_timeout(120)
                 counts[tid] = fr.evaluate("() => document.querySelectorAll('.card').length")
@@ -118,6 +122,63 @@ def main():
             check(not fr.evaluate("() => [...document.querySelectorAll('.card')].some(c => c.textContent.includes('3rd grade'))"),
                   "3rd grade items are hidden for class 2034")
 
+            # Good to know: three groups in order, pinned Annual Fund first among the notices
+            fr.locator('.chip.tab[data-tab="know"]').click()
+            page.wait_for_timeout(120)
+            g = fr.evaluate("""() => { const secs = [...document.querySelectorAll('h2.sec')].map(h => h.textContent);
+                const notices = [...document.querySelectorAll('h2.sec')].find(h => h.textContent === 'Notices');
+                let first = notices && notices.nextElementSibling; return {secs, first: first ? first.querySelector('.t').textContent : null}; }""")
+            check(g["secs"] == ["Volunteer Opportunities", "Events", "Notices"], f"Good to know is grouped ({g['secs']})")
+            check(g["first"] == "Annual Fund", f"pinned Annual Fund leads the Notices ({g['first']!r})")
+
+            # Important Dates tab: official calendar with a calendar button each; the toggle mixes them into Coming up
+            fr.locator('.chip.tab[data-tab="dates"]').click()
+            page.wait_for_timeout(300)
+            dm = fr.evaluate("""() => ({n: document.querySelectorAll('.card').length, badges: document.querySelectorAll('.card .badge.dates').length,
+                                      cal: [...document.querySelectorAll('.card .lnk.cal')].map(a => a.textContent), hist: document.querySelectorAll('.card details').length})""")
+            check(dm["n"] >= 10 and dm["badges"] == dm["n"] and dm["hist"] == 0, f"Important Dates tab lists the official calendar ({dm['n']} dates)")
+            check(dm["cal"] and all(c == "Add to Google Calendar" for c in dm["cal"]), "each official date has a calendar button for the default calendar")
+            before = counts["coming"]
+            if label == "desktop":
+                fr.locator('#mixDates').check()
+                page.wait_for_timeout(120)
+                fr.locator('.chip.tab[data-tab="coming"]').click()
+                page.wait_for_timeout(120)
+                after = fr.evaluate("() => document.querySelectorAll('.card').length")
+                check(after > before, f"'Include Important Dates' adds official dates to Coming up ({before} -> {after})")
+                fr.locator('#mixDates').uncheck()
+
+                # Calendar preference: one button per card, matching the chosen calendar; shared with Important Dates
+                fr.locator('.chip.pref[data-pref="outlook"]').click()
+                page.wait_for_timeout(120)
+                o = fr.evaluate("() => { const a = document.querySelector('.card .lnk.cal'); return a ? [a.textContent, a.href] : null; }")
+                check(o and o[0] == "Add to Outlook" and "outlook.live.com" in o[1], f"Outlook preference gives Outlook buttons ({o})")
+                fr.locator('.chip.pref[data-pref="apple"]').click()
+                page.wait_for_timeout(120)
+                with page.expect_download() as dl:
+                    fr.locator('.card .lnk.cal').first.click()
+                check(dl.value.suggested_filename.endswith(".ics"), f"Apple preference downloads a .ics ({dl.value.suggested_filename})")
+                check(fr.evaluate("() => localStorage.getItem('sffsCalendarPref')") == "apple", "calendar preference is stored under the key Important Dates uses")
+                fr.locator('.chip.pref[data-pref="google"]').click()
+
+            # Hide with undo: a hidden card collapses to a stub, survives a reload, and comes back on Show
+            fr.locator('.chip.tab[data-tab="action"]').click()
+            page.wait_for_timeout(120)
+            first_title = fr.evaluate("() => document.querySelector('.card .t').textContent")
+            fr.locator('.card .hide').first.click()
+            page.wait_for_timeout(120)
+            st = fr.evaluate("() => { const s = document.querySelector('.card.stub'); return {stub: s ? s.textContent : null, bar: !document.getElementById('hiddenbar').hidden}; }")
+            check(st["stub"] and first_title in st["stub"] and st["bar"], "Hide collapses the card to a one-line stub with a Show link")
+            page.reload()
+            fr = next(f for f in page.frames if "shared/updates" in f.url)
+            fr.wait_for_load_state("load")
+            page.wait_for_timeout(400)
+            check(fr.evaluate("() => !!document.querySelector('.card.stub')"), "a hidden card stays hidden after a reload")
+            fr.locator('.card.stub .lnk').first.click()
+            page.wait_for_timeout(120)
+            check(fr.evaluate("() => !document.querySelector('.card.stub') && document.getElementById('hiddenbar').hidden") and
+                  fr.evaluate("() => document.querySelector('.card .t').textContent") == first_title, "Show restores the card in place")
+
             # Grade picker: add 3rd grade, 3rd grade items appear (on Good to know, which has 3rd grade volunteer items); remembered across reload
             fr.locator('.chip.tab[data-tab="know"]').click()
             if fr.evaluate("() => document.getElementById('grades').hidden"):
@@ -126,12 +187,14 @@ def main():
             page.wait_for_timeout(120)
             check(fr.evaluate("() => [...document.querySelectorAll('.card')].some(c => c.textContent.includes('3rd grade'))"),
                   "ticking 3rd grade shows 3rd grade items too")
+            check(fr.evaluate("() => getComputedStyle(document.getElementById('prefs')).display !== 'none'"), "calendar choice is reachable with the Grade Filters open")
             page.reload()
             fr = next(f for f in page.frames if "shared/updates" in f.url)
             fr.wait_for_load_state("load")
             page.wait_for_timeout(400)
             check(fr.evaluate("() => [...document.querySelectorAll('.chip.g.on')].map(c => c.dataset.g).sort().join()") == "1,3",
                   "grade choice survives a reload")
+            check(fr.evaluate("() => document.getElementById('showing').textContent") == "Displaying: Schoolwide; 1st; 3rd", "Displaying line lists the ticked grades")
             if fr.evaluate("() => document.getElementById('grades').hidden"):
                 fr.locator('#gradesToggle').click()
             fr.locator('.chip.g[data-g="3"]').click()
