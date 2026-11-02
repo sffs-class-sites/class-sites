@@ -166,8 +166,11 @@ added4, _ = f.run(msgs, fd3, src3, ledger["streams"], False, lambda u: u, log=la
 check(len(added4) == 2 and len(fd3.appended) == 1 and fd3.appended[0][1] == "2026-10-05 [SFFS] Forms"
       and [r for r in added4 if r["stream"] == "circle-back"][0]["anchor"].endswith("#heading=h.old"),
       "an email already in the doc is indexed from its existing heading, not appended again")
-check(all("sender" in r and "@" in r["sender"] and r["sender"].endswith("veracross.com") for r in added),
-      "the index stores only the Veracross sender")
+check(all(r["sender"].endswith("veracross.com") for r in added), "the index stores only the Veracross sender")
+m = f.parse_message(eml("Fwd: hello", "---------- Forwarded message ---------\nFrom: A Parent <parent@example.test>\n"
+                        "Date: Tue, Sep 22, 2026 at 4:10 PM\nSubject: hello\nTo: x\n\nHi all.", sender="Ahin <ahin@example.test>",
+                        mid="<p@x>"))
+check(m is not None and m["sender"] == "", "a forwarded email from a person keeps no sender address")
 
 check(f.u16len("Info 🍎") == 7 and f.u16len("plain") == 5, "Docs offsets count an emoji as two units")
 
