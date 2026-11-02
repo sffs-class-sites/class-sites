@@ -496,20 +496,20 @@ class Docs:
             sys.exit(f"{what}: HTTP {r.status_code}\n{body}")
         return r.json() if r.text else {}
 
-    def find_or_create(self, title):
+    def find(self, title):
+        """The doc's id, or None. A service account has no Drive storage quota, so it cannot
+        create files (Google, 2025); the bot account creates each stream's doc in the folder
+        once, by hand, and the job only appends to it."""
         q = (f"name = '{title}' and '{self.folder}' in parents and trashed = false "
              f"and mimeType = 'application/vnd.google-apps.document'")
         r = self._check(self.s.get(self.DRIVE, params={"q": q, "fields": "files(id,name)",
                                                         "supportsAllDrives": "true"}), "Drive list")
-        if r.get("files"):
-            return r["files"][0]["id"], False
-        r = self._check(self.s.post(self.DRIVE, params={"supportsAllDrives": "true"}, json={
-            "name": title, "mimeType": "application/vnd.google-apps.document",
-            "parents": [self.folder]}), "Drive create")
-        doc_id = r["id"]
-        self._check(self.s.post(f"{self.DRIVE}/{doc_id}/permissions", json={"role": "reader", "type": "anyone"}),
-                    "Drive share")
-        return doc_id, True
+        return r["files"][0]["id"] if r.get("files") else None
+
+    def share_anyone(self, doc_id):
+        """Best effort: 'anyone with the link can view'. Fails harmlessly if the folder already grants it."""
+        r = self.s.post(f"{self.DRIVE}/{doc_id}/permissions", json={"role": "reader", "type": "anyone"})
+        return r.status_code < 400
 
     def get(self, doc_id):
         return self._check(self.s.get(f"{self.DOCS}/{doc_id}"), "Docs get")
@@ -565,7 +565,7 @@ def entry_heading(m):
 def run(messages, docs, sources, streams, dry_run, resolver, log=print):
     seen_ids = {m["message_id"] for m in sources["messages"] if m.get("message_id")}
     seen_fp = {m["fingerprint"] for m in sources["messages"]}
-    cache, added, skipped = {}, [], 0
+    cache, added, skipped, missing = {}, [], 0, set()
     fullest = {}
     for m in messages:  # a resend within one run: keep the fuller copy
         fp = fingerprint(m["date"], m["subject"])
@@ -592,10 +592,15 @@ def run(messages, docs, sources, streams, dry_run, resolver, log=print):
             added.append(rec)
             continue
         if key not in sources["docs"]:
-            doc_id, created = docs.find_or_create(title)
+            doc_id = docs.find(title)
+            if not doc_id:
+                missing.add(title)
+                log(f"  no doc yet for {title}; skipping {m['date']} {m['subject']}")
+                continue
+            docs.share_anyone(doc_id)
             sources["docs"][key] = {"title": title, "id": doc_id,
                                     "url": f"https://docs.google.com/document/d/{doc_id}/edit"}
-            log(f"  {'created' if created else 'found'} doc {title}")
+            log(f"  found doc {title}")
         d = sources["docs"][key]
         hid = docs.append(d["id"], entry_heading(m), text)
         rec.update({"doc_id": d["id"], "doc_url": d["url"],
@@ -606,6 +611,9 @@ def run(messages, docs, sources, streams, dry_run, resolver, log=print):
         added.append(rec)
         log(f"  logged → {title}: {m['date']} {m['subject']}")
         time.sleep(0.5)  # Docs API write quota is per minute; be gentle
+    if missing:
+        log("\nThese docs do not exist yet. Create each one, as the bot account, inside the log folder "
+            "(New → Google Docs, then rename), and rerun:\n  " + "\n  ".join(sorted(missing)))
     return added, skipped
 
 
