@@ -64,8 +64,33 @@ SPANISH_STOP = {"el", "la", "los", "las", "de", "del", "que", "para", "por", "co
                 "esta", "estudiantes", "familias", "escuela", "gracias", "favor", "nuestra", "nuestro",
                 "también", "sobre", "hasta", "más", "será", "están", "como", "pero", "todos"}
 RULE_LINE = re.compile(r"^\s*([-_=*~]\s*){4,}$")
-FORWARD_BLOCK = re.compile(
-    r"-{3,}\s*Forwarded message\s*-{3,}\s*\n(?P<hdr>(?:\s*(?:From|Date|Subject|To|Cc)\s*:.*\n)+)", re.I)
+FORWARD_MARK = re.compile(r"-{3,}\s*Forwarded message\s*-{3,}", re.I)
+HDR_LINE = re.compile(r"^\s*(From|Date|Subject|To|Cc)\s*:\s*(.*)$", re.I)
+
+
+def split_forward(text):
+    """(headers dict, body) for a 'Fwd:' body, or (None, text). The header lines follow the
+    marker in any order; a long display name may wrap onto the next line."""
+    m = FORWARD_MARK.search(text)
+    if not m:
+        return None, text
+    lines = text[m.end():].lstrip("\n").split("\n")
+    hdr, last, blanks = {}, -1, 0
+    for i, l in enumerate(lines[:14]):
+        h = HDR_LINE.match(l)
+        if h:
+            hdr[h.group(1).lower()] = h.group(2).strip()
+            last = i
+        elif not l.strip():
+            blanks += 1
+            if hdr and blanks >= 1 and last >= 0 and i > last:
+                break
+        elif hdr and i == last + 1 and not l.startswith("-"):
+            hdr[list(hdr)[-1]] += " " + l.strip()  # wrapped continuation
+            last = i
+    if not hdr:
+        return None, text
+    return hdr, "\n".join(lines[last + 1:])
 SCHOOL_SENDERS = ("veracross.com", "sffriendsschool.org", "sfquakers.org")
 PACIFIC = "America/Los_Angeles"
 URL_RE = re.compile(r"https?://[^\s<>()\"']+")
@@ -132,7 +157,8 @@ def html_to_text(src):
 
 def tidy(text):
     """Collapse whitespace: one paragraph per line, blank lines between groups, no trailing space."""
-    lines = [re.sub(r"[ \t]+", " ", l).strip() for l in text.replace("\r", "").split("\n")]
+    text = text.replace("\r", "").replace("\u202f", " ").replace("\u2009", " ").replace("\xa0", " ")
+    lines = [re.sub(r"[ \t]+", " ", l).strip() for l in text.split("\n")]
     out, blank = [], True
     for l in lines:
         if not l:
@@ -165,11 +191,12 @@ def strip_spanish(text):
             return tidy("\n".join(lines[:i]))
         if RULE_LINE.match(l) and looks_spanish(lines[i + 1:i + 25]):
             return tidy("\n".join(lines[:i]))
-    # No marker: a long Spanish tail after the last English paragraph
-    for i in range(len(lines)):
-        if looks_spanish(lines[i:]) and lines[i].strip() and not looks_spanish(lines[max(0, i - 6):i]):
-            if i > 3 and not looks_spanish(lines[:i]):
-                return tidy("\n".join(lines[:i]))
+    # No marker: the first line where the next dozen lines read as Spanish and the previous
+    # ones do not, provided everything after it reads as Spanish too (a translation tail).
+    for i in range(4, len(lines)):
+        if (lines[i].strip() and looks_spanish(lines[i:i + 12]) and not looks_spanish(lines[max(0, i - 8):i])
+                and looks_spanish(lines[i:]) and not looks_spanish(lines[:i])):
+            return tidy("\n".join(lines[:i]))
     return tidy(text)
 
 
@@ -300,7 +327,7 @@ def parse_forward_date(s):
     A person's own Gmail forward writes local time, which only shifts the date before 8am;
     build/build_updates.py matches ledger sources within two days anyway."""
     from zoneinfo import ZoneInfo
-    s = re.sub(r"\s+", " ", s.strip())
+    s = re.sub(r"\s+", " ", s.replace("\u202f", " ").replace("\xa0", " ").strip())
     for fmt in ("%a, %b %d, %Y at %I:%M %p", "%a, %b %d, %Y, %I:%M %p", "%a, %d %b %Y at %H:%M",
                 "%b %d, %Y at %I:%M %p"):
         try:
@@ -355,14 +382,9 @@ def parse_message(raw):
     text = tp if len(tp) >= 0.5 * len(th) else th
     shape, block_date = "filter", None
 
-    fb = FORWARD_BLOCK.search(text)
-    if fb:
+    hdr, rest = split_forward(text)
+    if hdr is not None:
         shape = "fwd"
-        hdr = {}
-        for line in fb.group("hdr").split("\n"):
-            k, _, v = line.partition(":")
-            if k.strip().lower() in ("from", "date", "subject", "to"):
-                hdr[k.strip().lower()] = v.strip()
         if "from" in hdr:
             sender = email.utils.parseaddr(hdr["from"])[1].lower() or sender
         if "subject" in hdr:
@@ -370,9 +392,7 @@ def parse_message(raw):
         if "date" in hdr:
             block_date = hdr["date"]
             date = parse_forward_date(hdr["date"]) or date
-        text = text[fb.end():]
-        # drop the "To:" leftovers and anything Gmail put above the block
-        text = tidy(text)
+        text = tidy(rest)
 
     info = {"shape": shape, "header_date": str(msg.get("Date") or ""), "block_date": block_date,
             "plain_len": len(tp), "html_len": len(th), "subject": subject, "sender": sender}
@@ -387,7 +407,9 @@ def parse_message(raw):
         info["rejected"] = "no date"
         REJECTED.append(info)
         return None
+    before = len(text)
     text = strip_spanish(text)
+    info["stripped"] = before - len(text)
     return {"message_id": message_id, "sender": sender, "subject": subject, "date": date, "text": text, "info": info}
 
 
@@ -585,7 +607,9 @@ def main():
         for m in messages:
             i = m["info"]
             print(f"  [{i['shape']}] {m['date']} hdr={i['header_date']!r} block={i['block_date']!r} "
-                  f"plain={i['plain_len']} html={i['html_len']} {m['subject'][:60]}")
+                  f"plain={i['plain_len']} html={i['html_len']} text={len(m['text'])} stripped={i['stripped']} {m['subject'][:60]}")
+            if len(m["text"]) < 400 and i["stripped"] > 200:
+                print("      kept: " + repr(m["text"][-80:]))
         for i in REJECTED:
             print(f"  rejected ({i['rejected']}) [{i['shape']}]: from={i['sender']} {i['subject'][:60]}")
     if a.limit:

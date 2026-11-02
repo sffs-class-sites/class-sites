@@ -57,6 +57,23 @@ check(m and m["date"] == dt.date(2026, 8, 25) and m["text"] == "Dear families, w
       "a forwarded block without a trailing blank line parses; 4:48 AM UTC is the evening before in Pacific")
 check(f.parse_forward_date("Thu, Oct 29, 2026 at 7:00 PM") == dt.date(2026, 10, 29), "7:00 PM UTC is noon the same day")
 
+# --- forwarded block whose From wraps, headers in a different order, narrow no-break space in the time
+fwd3 = ("---------- Forwarded message ---------\nFrom: San Francisco Friends School Communications Office\n"
+        " <communications@sffriendsschool.org>\nDate: Thu, Aug 13, 2026 at 7:00\u202fPM\nSubject: [SFFS] Enrichment\n"
+        "To: Ahin <ahin@example.test>\n\n\nDear families,\n\nEnrichment opens Thursday.\n")
+m = f.parse_message(eml("Fwd: [SFFS] Enrichment", fwd3, sender="Ahin <ahin@example.test>",
+                        date="Sun, 1 Nov 2026 10:00:00 -0800", mid="<fwd3@mail.gmail.com>"))
+check(m and m["date"] == dt.date(2026, 8, 13) and m["sender"] == "communications@sffriendsschool.org"
+      and m["text"] == "Dear families,\n\nEnrichment opens Thursday.", "a wrapped From line and a narrow no-break space parse")
+
+# --- a bilingual letter without a marker keeps the whole English half
+letter = "\n".join(["Dear families,", "", "This week our students practised community. We talked about listening and about care."] +
+                    [f"Paragraph {n} of the English letter about the school year, the students and the teachers." for n in range(8)] +
+                    ["", "Queridas familias,", ""] +
+                    [f"Párrafo {n} de la carta en español para las familias de la escuela y los estudiantes de este año." for n in range(8)])
+out = f.strip_spanish(letter)
+check(out.endswith("Paragraph 7 of the English letter about the school year, the students and the teachers."), "English half kept to its last line, Spanish tail dropped")
+
 # --- not a school email
 check(f.parse_message(eml("Security alert", "New sign-in.", sender="Google <no-reply@accounts.google.com>")) is None,
       "a non-Veracross email is ignored")
