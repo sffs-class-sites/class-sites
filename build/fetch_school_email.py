@@ -474,6 +474,11 @@ def imap_messages(password, since, user=BOT, folder='"[Gmail]/All Mail"'):
 
 # ---------------------------------------------------------------- Google Docs
 
+def u16len(s):
+    """Docs API indexes count UTF-16 code units: an emoji is 2, not 1."""
+    return len(s.encode("utf-16-le")) // 2
+
+
 class Docs:
     DOCS = "https://docs.googleapis.com/v1/documents"
     DRIVE = "https://www.googleapis.com/drive/v3/files"
@@ -525,17 +530,37 @@ class Docs:
     def get(self, doc_id):
         return self._check(self.s.get(f"{self.DOCS}/{doc_id}"), "Docs get")
 
-    def heading_ids(self, doc):
-        out = {}
+    def paragraphs(self, doc):
+        """[(text, headingId or None, startIndex, endIndex)] for every paragraph."""
+        out = []
         for el in doc.get("body", {}).get("content", []):
             p = el.get("paragraph")
             if not p:
                 continue
             st = p.get("paragraphStyle", {})
-            if st.get("namedStyleType", "").startswith("HEADING") and st.get("headingId"):
-                text = "".join(r.get("textRun", {}).get("content", "") for r in p.get("elements", [])).strip()
-                out.setdefault(text, st["headingId"])
+            text = "".join(r.get("textRun", {}).get("content", "") for r in p.get("elements", [])).strip()
+            hid = st.get("headingId") if st.get("namedStyleType", "").startswith("HEADING") else None
+            out.append((text, hid, el["startIndex"], el["endIndex"]))
         return out
+
+    def heading_ids(self, doc):
+        out = {}
+        for text, hid, _, _ in self.paragraphs(doc):
+            if hid:
+                out.setdefault(text, hid)
+        return out
+
+    def repair_heading(self, doc_id, heading):
+        """A title paragraph left unstyled by an earlier run (UTF-16 offsets, see u16len) becomes
+        a Heading 1. Returns its headingId, or None if the text is not in the doc."""
+        for text, hid, a, b in self.paragraphs(self.get(doc_id)):
+            if text == heading and not hid:
+                self._check(self.s.post(f"{self.DOCS}/{doc_id}:batchUpdate", json={"requests": [
+                    {"updateParagraphStyle": {"range": {"startIndex": a, "endIndex": b},
+                                              "paragraphStyle": {"namedStyleType": "HEADING_1"}, "fields": "namedStyleType"}}]}),
+                    "Docs repair")
+                return self.heading_ids(self.get(doc_id)).get(heading)
+        return None
 
     def append(self, doc_id, heading, body):
         doc = self.get(doc_id)
@@ -544,9 +569,9 @@ class Docs:
         lead = "" if empty else "\n"
         text = f"{lead}{heading}\n{body}\n"
         h0 = end + len(lead)
-        h1 = h0 + len(heading)
+        h1 = h0 + u16len(heading)
         b0 = h1 + 1
-        b1 = b0 + len(body) + 1
+        b1 = b0 + u16len(body) + 1
         reqs = [
             {"insertText": {"location": {"index": end}, "text": text}},
             {"updateParagraphStyle": {"range": {"startIndex": h0, "endIndex": h1 + 1},
@@ -619,6 +644,9 @@ def run(messages, docs, sources, streams, dry_run, resolver, log=print):
         if heading in headings[key]:  # already in the doc (an earlier run whose index was lost): index it, don't re-append
             hid = headings[key][heading]
             log(f"  already in doc, indexed → {title}: {m['date']} {m['subject']}")
+        elif (hid := docs.repair_heading(d["id"], heading)):
+            headings[key][heading] = hid
+            log(f"  already in doc (title restyled as a heading), indexed → {title}: {m['date']} {m['subject']}")
         else:
             hid = docs.append(d["id"], heading, text)
             headings[key][heading] = hid

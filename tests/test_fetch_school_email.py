@@ -138,6 +138,7 @@ class FakeDocs:
     def __init__(self, have=None, existing=None): self.appended = []; self.have = have; self.existing = existing or {}
     def get(self, doc_id): return doc_id
     def heading_ids(self, doc): return dict(self.existing.get(doc, {}))
+    def repair_heading(self, doc_id, heading): return None
     def find(self, title): return None if self.have is not None and title not in self.have else "DOC" + str(len(title))
     def share_anyone(self, doc_id): return True
     def append(self, doc_id, heading, body): self.appended.append((doc_id, heading, body)); return "h.abc"
@@ -167,6 +168,8 @@ check(len(added4) == 2 and len(fd3.appended) == 1 and fd3.appended[0][1] == "202
       "an email already in the doc is indexed from its existing heading, not appended again")
 check(all("sender" in r and "@" in r["sender"] and r["sender"].endswith("veracross.com") for r in added),
       "the index stores only the Veracross sender")
+
+check(f.u16len("Info 🍎") == 7 and f.u16len("plain") == 5, "Docs offsets count an emoji as two units")
 
 # --- build-time merge of the index into the ledger
 import build_updates as b
