@@ -21,6 +21,10 @@ on:
         description: "Read and classify only; write nothing"
         type: boolean
         default: false
+      rebuild:
+        description: "Empty every log doc and write all emails again (after a formatting change)"
+        type: boolean
+        default: false
   pull_request:
     paths:
       - build/fetch_school_email.py
@@ -70,6 +74,8 @@ jobs:
           fi
           if [ "$DRY" = "true" ]; then
             python3 build/fetch_school_email.py --dry-run --debug --summary summary.md
+          elif [ "${{ inputs.rebuild }}" = "true" ]; then
+            python3 build/fetch_school_email.py --rebuild --summary summary.md
           else
             python3 build/fetch_school_email.py --summary summary.md
           fi
