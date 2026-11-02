@@ -91,6 +91,9 @@ check("The Week Ahead\n\nPicture day is Friday." in t and "- Bring a smile\n- Se
 sp = ("Please sign up by Monday.\n\nThank you,\nThe office\n\nPara español:\n\nPor favor regístrese antes del lunes. "
       "Gracias a todas las familias de la escuela por su apoyo este año y para los estudiantes.\n\nLa oficina")
 check(f.strip_spanish(sp) == "Please sign up by Monday.\n\nThank you,\nThe office", "Spanish after 'Para español' is dropped")
+mixed = ("Dear families,\n\nThe play structure is closed this week for repairs.\n\nQueridas familias,\n\n"
+         "La estructura de juegos está cerrada esta semana por reparaciones.\n\nGracias,\nLa oficina")
+check(f.strip_spanish(mixed) == "Dear families,\n\nThe play structure is closed this week for repairs.", "a short bilingual notice cuts at the Spanish greeting")
 rule = ("Hello families, the field trip is Tuesday.\n\n----------\n\nHola familias, la excursión es el martes. "
         "Gracias por su apoyo a los estudiantes de la escuela y para las familias que ayudan con este viaje.")
 check(f.strip_spanish(rule) == "Hello families, the field trip is Tuesday.", "Spanish after a rule line is dropped")
@@ -100,6 +103,8 @@ check(f.strip_spanish(eng) == eng, "English after a rule line is kept")
 # --- link resolution
 txt = "Sign up: https://www.veracross.com/c/abc123?x=1. Portal: https://portals.veracross.com/sffs/parent."
 out = f.resolve_links(txt, lambda u: "https://forms.gle/xyz")
+g = f.resolve_links("See https://www.google.com/url?q=https://www.sfquakers.org/x%3Fa%3D1&source=gmail&ust=123 now", lambda u: u)
+check(g == "See https://www.sfquakers.org/x?a=1 now", "Gmail's google.com/url wrapper is unwrapped")
 check(out == "Sign up: https://forms.gle/xyz. Portal: https://portals.veracross.com/sffs/parent.",
       "tracking links resolve, trailing punctuation and portal links untouched")
 

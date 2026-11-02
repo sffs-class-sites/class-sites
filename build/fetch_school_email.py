@@ -62,7 +62,10 @@ SPANISH_MARKERS = re.compile(r"^\s*(para español|versi[oó]n en español|en esp
                              r"\(español\)|spanish( version)?( below)?:?|traducci[oó]n)", re.I)
 SPANISH_STOP = {"el", "la", "los", "las", "de", "del", "que", "para", "por", "con", "una", "este",
                 "esta", "estudiantes", "familias", "escuela", "gracias", "favor", "nuestra", "nuestro",
-                "también", "sobre", "hasta", "más", "será", "están", "como", "pero", "todos"}
+                "también", "sobre", "hasta", "más", "será", "están", "como", "pero", "todos", "es", "en",
+                "un", "se", "su", "sus", "al", "les", "nos", "año", "día", "hola", "queridas", "queridos"}
+ENGLISH_STOP = {"the", "and", "of", "to", "for", "our", "your", "we", "is", "are", "with", "on", "at",
+                "this", "that", "will", "be", "in", "you", "please", "have", "from", "it", "as", "or"}
 RULE_LINE = re.compile(r"^\s*([-_=*~]\s*){4,}$")
 FORWARD_MARK = re.compile(r"-{3,}\s*Forwarded message\s*-{3,}", re.I)
 HDR_LINE = re.compile(r"^\s*(From|Date|Subject|To|Cc)\s*:\s*(.*)$", re.I)
@@ -85,8 +88,8 @@ def split_forward(text):
             blanks += 1
             if hdr and blanks >= 1 and last >= 0 and i > last:
                 break
-        elif hdr and i == last + 1 and not l.startswith("-"):
-            hdr[list(hdr)[-1]] += " " + l.strip()  # wrapped continuation
+        elif hdr and i == last + 1 and ("@" in l or "<" in l) and "@" not in hdr[list(hdr)[-1]]:
+            hdr[list(hdr)[-1]] += " " + l.strip()  # a wrapped display name: "From: Long Name\n <addr>"
             last = i
     if not hdr:
         return None, text
@@ -175,27 +178,43 @@ def tidy(text):
 
 # ---------------------------------------------------------------- language
 
+def line_lang(l):
+    """'es', 'en' or None (too short or undecided) for one line."""
+    words = re.findall(r"[a-záéíóúñü]+", l.lower())
+    if len(words) < 2:
+        return None
+    es = sum(1 for w in words if w in SPANISH_STOP) + sum(1 for w in words if re.search(r"[áéíóúñ]", w))
+    en = sum(1 for w in words if w in ENGLISH_STOP)
+    if es > en and (es >= 2 or len(words) <= 4):
+        return "es"
+    if en > es:
+        return "en"
+    return None
+
+
+def mostly(lines, lang, n=6):
+    tagged = [line_lang(l) for l in lines if l.strip()]
+    tagged = [t for t in tagged if t][:n]
+    return bool(tagged) and sum(1 for t in tagged if t == lang) * 10 >= len(tagged) * 7
+
+
 def looks_spanish(lines):
-    words = re.findall(r"[a-záéíóúñü]+", " ".join(lines).lower())
-    if len(words) < 12:
-        return False
-    hits = sum(1 for w in words if w in SPANISH_STOP)
-    return hits / len(words) > 0.12
+    return mostly(lines, "es")
 
 
 def strip_spanish(text):
-    """Drop everything from the first Spanish marker, or from a rule line that a Spanish block follows."""
+    """Drop the Spanish translation that digests, letters and notices append after the English.
+
+    Cut at a marker line ("Para español", "Versión en español") or a rule line when Spanish
+    follows, else at the first Spanish line that starts a run of Spanish lines after a run of
+    English ones, provided what follows is Spanish to the end."""
     lines = text.split("\n")
     for i, l in enumerate(lines):
-        if SPANISH_MARKERS.match(l) and looks_spanish(lines[i + 1:i + 25]):
+        if (SPANISH_MARKERS.match(l) or RULE_LINE.match(l)) and looks_spanish(lines[i + 1:i + 20]):
             return tidy("\n".join(lines[:i]))
-        if RULE_LINE.match(l) and looks_spanish(lines[i + 1:i + 25]):
-            return tidy("\n".join(lines[:i]))
-    # No marker: the first line where the next dozen lines read as Spanish and the previous
-    # ones do not, provided everything after it reads as Spanish too (a translation tail).
-    for i in range(4, len(lines)):
-        if (lines[i].strip() and looks_spanish(lines[i:i + 12]) and not looks_spanish(lines[max(0, i - 8):i])
-                and looks_spanish(lines[i:]) and not looks_spanish(lines[:i])):
+    for i in range(2, len(lines)):
+        if (line_lang(lines[i]) == "es" and mostly(lines[i:], "es", n=6) and mostly(lines[:i][::-1], "en", n=6)
+                and mostly(lines[i:], "es", n=10 ** 6)):
             return tidy("\n".join(lines[:i]))
     return tidy(text)
 
@@ -232,17 +251,29 @@ def http_resolve(url, session=None):
     return cur if not is_tracking(cur) else url
 
 
+def unwrap_google(u):
+    """https://www.google.com/url?q=<dest>&source=gmail... → <dest>."""
+    from urllib.parse import parse_qs, unquote
+    p = urlparse(u)
+    if p.netloc.endswith("google.com") and p.path == "/url":
+        q = parse_qs(p.query).get("q")
+        if q:
+            return unquote(q[0])
+    return u
+
+
 def resolve_links(text, resolver, cache=None):
     cache = {} if cache is None else cache
 
     def sub(m):
         u = m.group(0).rstrip(".,;:!?)")
         tail = m.group(0)[len(u):]
+        u = unwrap_google(u)
         if is_tracking(u):
             if u not in cache:
                 cache[u] = resolver(u)
             return cache[u] + tail
-        return m.group(0)
+        return u + tail
     return URL_RE.sub(sub, text)
 
 
