@@ -118,7 +118,8 @@ def embed_checks(p, tmp):
              ("not published", 8712, "?class=2034", "haven’t been published"), ("load error", 8713, "?class=2034", "Couldn’t load"),
              ("no class", 8711, "", "needs a class")]
     b = p.chromium.launch()
-    for label, fw, fh in [("desktop", 1154, 500), ("phone", 315, 300)]:
+    # phone = the standard `card` box on an iPhone 13; phone-narrow = the narrowest phones (registry.yaml `boxes`)
+    for label, fw, fh in [("desktop", 1154, 770), ("phone", 352, 235), ("phone-narrow", 315, 210)]:
         for name, port, query, expect in cases:
             (harness / "index.html").write_text(
                 f'<!doctype html><body style="margin:0"><iframe id="f" sandbox="{SANDBOX}" '

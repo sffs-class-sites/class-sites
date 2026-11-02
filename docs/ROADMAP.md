@@ -88,7 +88,7 @@ Build in this order, each step useful on its own:
 
 ## F. Scaling to other parents (what "hand-off" actually requires)
 
-**F1. Site template.** One template Site with standard pages and pre-sized embed slots at known ratios, so a new grade is: copy, set `?class=`, add a registry entry, publish. Nobody measures boxes again.
+**F1. Site template.** One template Site with standard pages and pre-sized embed slots at known ratios, so a new grade is: copy, set `?class=`, add a registry entry, publish. Nobody measures boxes again. *Step one done 2026-11-02:* the standard boxes are in `registry.yaml` (`card` for every slot, `page` for a whole-page embed) and every embed's CI check renders at the `card` phone size, so the template's slots are all the same box. Left: build the template Site itself (Ahin in the editor once, with a checklist), and the room-parent area rules in F2.
 
 **F2. Room-parent guide**, one page: what you may edit, which boxes are shared and must not be touched, how to request a change, how to undo (Sites version history).
 

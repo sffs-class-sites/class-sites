@@ -109,6 +109,11 @@ class Checker:
             self.failures.append(msg)
         return cond
 
+    def box(self, slot):
+        """A slot's editor box: {w, h}, or the name of one of the registry's standard `boxes`."""
+        b = slot.get("box")
+        return self.reg.get("boxes", {}).get(b) if isinstance(b, str) else b
+
     def note(self, msg):
         print("  note " + msg)
         self.attention.append(msg)
@@ -177,12 +182,13 @@ class Checker:
                         fills: Math.abs(document.body.getBoundingClientRect().height - innerHeight) < 2} }""")
             self.check(not m["hscroll"], f"{stag}: no horizontal scroll inside the embed")
             self.check(m["fills"], f"{stag}: embed fills its frame")
-            if slot.get("box") and shape:
-                want = round(slot["box"]["h"] / slot["box"]["w"], 3)
+            box = self.box(slot)
+            if box and shape:
+                want = round(box["h"] / box["w"], 3)
                 row["box_h_over_w"] = want
                 row["drift"] = abs(shape - want) > SHAPE_TOL
                 if row["drift"] and record:
-                    self.note(f"{stag}: box shape drifted: h ÷ w {shape} on the Site, {want} in registry.yaml ({slot['box']['w']} × {slot['box']['h']})")
+                    self.note(f"{stag}: box shape drifted: h ÷ w {shape} on the Site, {want} in registry.yaml ({slot['box']} = {box['w']} × {box['h']})")
             elif shape and record:
                 self.note(f"{stag}: no box recorded in registry.yaml; measured h ÷ w {shape}")
             if interact and eid == "important-dates":
@@ -310,9 +316,9 @@ def mock(chromium):
     pages = "http://127.0.0.1:8701/"
     site = "http://127.0.0.1:8702/"
     real = yaml.safe_load((ROOT / "registry.yaml").read_text())
-    reg = {"embeds": real["embeds"], "sites": {
+    reg = {"embeds": real["embeds"], "boxes": real["boxes"], "sites": {
         "class-2034": {"name": "mock 1st", "live": site + "class-2034", "slots": [
-            {"page": "home", "embed": "important-dates", "box": {"w": 935, "h": 625}, "status": "url"},
+            {"page": "home", "embed": "important-dates", "box": "card", "status": "url"},
             {"page": "home", "embed": "room-parents", "query": {"class": 2034}, "box": {"w": 935, "h": 549}, "status": "url"},
             {"page": "email-digest", "embed": "updates", "query": {"class": 2034}, "box": {"w": 935, "h": 875}, "status": "url"}]},
         "class-2032": {"name": "mock 3rd", "live": site + "class-2032", "slots": [

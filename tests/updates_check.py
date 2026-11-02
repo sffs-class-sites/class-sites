@@ -21,7 +21,11 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 SITE = ROOT / "_site"
 SANDBOX = ("allow-scripts allow-popups allow-forms allow-same-origin allow-popups-to-escape-sandbox "
            "allow-downloads allow-storage-access-by-user-activation")
-FRAMES = [("desktop", 1154, 820), ("tablet", 700, 672), ("phone", 352, 352), ("phone-tall", 315, 560)]
+# phone = the standard box (935 × 625 in the editor, h ÷ w 0.67) on an iPhone 13; phone-narrow = the same box on the
+# narrowest phones (CLAUDE.md §5). Every shared embed must be usable at that one shape, so no box is ever tuned.
+# phone-page = the `page` box (935 × 875, used on the Email Digest page) on an iPhone 13.
+FRAMES = [("desktop", 1154, 770), ("tablet", 700, 672), ("phone", 352, 235), ("phone-narrow", 315, 210),
+          ("phone-page", 352, 329), ("phone-tall", 315, 560)]
 TODAY = "2026-10-31"
 
 
@@ -76,6 +80,9 @@ def main():
                       fullyVisible: cards.filter(c => { const b = c.getBoundingClientRect(); return b.top >= top - 1 && b.bottom <= lim + 1; }).length,
                       barBottom: Math.round(bar.getBoundingClientRect().bottom), lim: Math.round(lim), firstCardH: cards.length ? Math.round(cards[0].getBoundingClientRect().height) : 0,
                       firstKeyVisible: cards.length ? ['.t', '.when', '.acts a', '.sum'].every(sel => { const e = cards[0].querySelector(sel); if (!e) return true; const b = e.getBoundingClientRect(); return b.top >= top - 1 && b.bottom <= lim + 1; }) : false,
+                      firstCoreVisible: cards.length ? ['.t', '.when', '.sum'].every(sel => { const e = cards[0].querySelector(sel); if (!e) return true; const b = e.getBoundingClientRect(); return b.top >= top - 1 && b.bottom <= lim + 1; }) : false,
+                      firstTitleDateVisible: cards.length ? ['.t', '.when'].every(sel => { const e = cards[0].querySelector(sel); if (!e) return true; const b = e.getBoundingClientRect(); return b.top >= top - 1 && b.bottom <= lim + 1; }) : false,
+                      headerLines: new Set(['h1', '.showing .short', '#gradesToggle'].map(s => Math.round(document.querySelector(s).getBoundingClientRect().top / 4))).size,
                       gradeOn: [...document.querySelectorAll('.chip.g.on')].map(c => c.dataset.g),
                       subtitle: document.getElementById('subtitle').textContent,
                       showing: document.getElementById('showing').textContent,
@@ -96,9 +103,17 @@ def main():
             check(m["tabLabels"][0] == "Deadlines" and "Important Dates" in m["tabLabels"], f"tabs renamed ({m['tabLabels']})")
             check(m["cards"] > 0, f"Deadlines has cards ({m['cards']})")
             if label == "phone":
-                # The square live box gives a phone ~210px of card space: the first card's title, date line, summary
-                # and action button must all be readable without scrolling, even if its History line is below the fold.
-                check(m["firstKeyVisible"], f"phone: first card's title, date, summary and action visible without scrolling (bar bottom {m['barBottom']}, limit {m['lim']}, first card {m['firstCardH']}px)")
+                # The standard `card` box gives an iPhone 352 × 235: one header line, the tabs, then the first card's
+                # title, date line and summary readable without scrolling (its action may sit just below the pill).
+                check(m["firstCoreVisible"], f"phone: first card's title, date and summary visible without scrolling (bar bottom {m['barBottom']}, limit {m['lim']}, first card {m['firstCardH']}px)")
+                check(m["headerLines"] == 1, f"phone: title, disclaimer and Grade Filters share one line ({m['headerLines']})")
+            if label == "phone-page":
+                # The `page` box (what the Email Digest page uses): the first card's action button fits too.
+                check(m["firstKeyVisible"], f"phone-page: first card's title, date, summary and action visible without scrolling (bar bottom {m['barBottom']}, limit {m['lim']}, first card {m['firstCardH']}px)")
+            if label == "phone-narrow":
+                # 315 × 210: the title and date line of the first card still show; the summary may be below the fold.
+                check(m["firstTitleDateVisible"], f"phone-narrow: first card's title and date visible without scrolling (bar bottom {m['barBottom']}, limit {m['lim']})")
+                check(m["headerLines"] == 1, f"phone-narrow: title, disclaimer and Grade Filters share one line ({m['headerLines']})")
             if label == "phone-tall":
                 check(m["fullyVisible"] >= 1, f"phone-tall: at least one whole card visible under the tab bar ({m['fullyVisible']}; first card {m['firstCardH']}px)")
 

@@ -215,6 +215,27 @@ footer p{margin:4px 0}
   .sffs-fade{height:30px}
   .sffs-hint{bottom:6px;padding:5px 11px;font-size:11px}
 }
+/* Sites gives a phone 352px and the standard box (h ÷ w 0.67) 235px of height: one header line, then the tabs.
+   The Displaying line is hidden (the ticked chips in Grade Filters say the same); "Not sanctioned" stays beside the title. */
+@media (max-width:400px){
+  header{display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;margin-bottom:2px}
+  h1{font-size:.98rem;line-height:1.2}
+  .showing{display:contents}
+  .showing #showing{display:none}
+  .showing .short{display:inline;font-size:.72rem;color:var(--sub)}
+  .showing #gradesToggle{margin-left:auto;padding:4px 8px;font-size:.7rem}
+  .grades,.grades:not([hidden]) ~ .prefs{flex-basis:100%;margin-top:4px}
+  .toolbar{padding:4px 12px}
+  .chip.tab{padding:5px 9px;font-size:.76rem}
+  .card{padding:7px 9px;margin:4px 0}
+  .sum{-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
+}
+@media (max-width:340px){  /* the narrowest phones: keep the title, the disclaimer and the toggle on one line */
+  header{gap:2px 4px}
+  h1{font-size:.85rem}
+  .showing .short{font-size:.66rem}
+  .showing #gradesToggle{padding:4px 6px;font-size:.66rem}
+}
 @media print{html,body{height:auto}body{overflow:visible}.wrap{height:auto;overflow:visible;border:0}.toolbar,.sffs-fade,.sffs-hint{display:none}}
 </style>
 </head>
