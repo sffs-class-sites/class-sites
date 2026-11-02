@@ -159,42 +159,10 @@ class Checker:
             if not self.check(frame is not None, f"{stag}: embed frame found on the published page"):
                 continue
             used.add(frame)
-            got = url_query(frame.url)
-            self.check(got == q, f"{stag}: placed with the registered query ({urllib.parse.urlencode(got) or 'none'}"
-                                 f"{'' if got == q else ', registry says ' + (urllib.parse.urlencode(q) or 'none')})")
-            frame.wait_for_load_state("load")
-            el = frame.frame_element()
-            el.scroll_into_view_if_needed()
-            page.wait_for_timeout(2500)
-            box = el.bounding_box()
-            fw, fh = round(box["width"]), round(box["height"])
-            shape = round(fh / fw, 3) if fw else None
-            row.update(frame_w=fw, frame_h=fh, aspect_h_over_w=shape)
-            version = frame.evaluate("() => document.querySelector('meta[name=sffs-embed]')?.content")
-            row["version"] = version
-            print(f"  frame {fw}x{fh} (h/w {shape}), version {version}")
-            sandbox = set((el.get_attribute("sandbox") or "").split())
-            self.check(sandbox == SANDBOX, f"{stag}: sandbox is exactly Sites' known set ({' '.join(sorted(sandbox - SANDBOX)) or 'no extras'}"
-                                           f"{'; missing ' + ' '.join(sorted(SANDBOX - sandbox)) if SANDBOX - sandbox else ''})")
-            self.check(version == self.versions.get(eid), f"{stag}: Site shows the deployed version ({version} vs {self.versions.get(eid)})")
-            m = frame.evaluate("""() => { const w = document.getElementById('wrap') || document.body;
-                return {hscroll: document.documentElement.scrollWidth > innerWidth + 1 || w.scrollWidth > w.clientWidth + 1,
-                        fills: Math.abs(document.body.getBoundingClientRect().height - innerHeight) < 2} }""")
-            self.check(not m["hscroll"], f"{stag}: no horizontal scroll inside the embed")
-            self.check(m["fills"], f"{stag}: embed fills its frame")
-            box = self.box(slot)
-            if box and shape:
-                want = round(box["h"] / box["w"], 3)
-                row["box_h_over_w"] = want
-                row["drift"] = abs(shape - want) > SHAPE_TOL
-                if row["drift"] and record:
-                    self.note(f"{stag}: box shape drifted: h ÷ w {shape} on the Site, {want} in registry.yaml ({slot['box']} = {box['w']} × {box['h']})")
-            elif shape and record:
-                self.note(f"{stag}: no box recorded in registry.yaml; measured h ÷ w {shape}")
-            if interact and eid == "important-dates":
-                self.important_dates_clicks(page, frame, stag)
-            if shot:
-                el.screenshot(path=str(OUT / f"{sid}-{page_name}-{eid}-{label}.png"))
+            try:
+                self.measure_slot(page, frame, slot, row, stag, interact, shot, record, sid, page_name, label)
+            except Exception as e:  # a slot that can't be measured fails; the rest of the page is still checked
+                self.check(False, f"{stag}: measurement failed ({e.__class__.__name__}: {str(e).splitlines()[0][:140]})")
         # Our embeds on this page that the registry doesn't list here.
         for e, f in ours:
             if f not in used and record:
@@ -212,17 +180,59 @@ class Checker:
             page.screenshot(path=str(OUT / f"{sid}-{page_name}-{label}.png"), full_page=True)
         ctx.close()
 
+    def measure_slot(self, page, frame, slot, row, stag, interact, shot, record, sid, page_name, label):
+        eid, q = slot["embed"], slot_query(slot)
+        got = url_query(frame.url)
+        self.check(got == q, f"{stag}: placed with the registered query ({urllib.parse.urlencode(got) or 'none'}"
+                             f"{'' if got == q else ', registry says ' + (urllib.parse.urlencode(q) or 'none')})")
+        frame.wait_for_load_state("load")
+        el = frame.frame_element()
+        el.evaluate("e => e.scrollIntoView({block: 'center'})")
+        page.wait_for_timeout(2500)
+        box = el.bounding_box()
+        fw, fh = round(box["width"]), round(box["height"])
+        shape = round(fh / fw, 3) if fw else None
+        row.update(frame_w=fw, frame_h=fh, aspect_h_over_w=shape)
+        version = frame.evaluate("() => document.querySelector('meta[name=sffs-embed]')?.content")
+        row["version"] = version
+        print(f"  frame {fw}x{fh} (h/w {shape}), version {version}")
+        sandbox = set((el.get_attribute("sandbox") or "").split())
+        self.check(sandbox == SANDBOX, f"{stag}: sandbox is exactly Sites' known set ({' '.join(sorted(sandbox - SANDBOX)) or 'no extras'}"
+                                       f"{'; missing ' + ' '.join(sorted(SANDBOX - sandbox)) if SANDBOX - sandbox else ''})")
+        self.check(version == self.versions.get(eid), f"{stag}: Site shows the deployed version ({version} vs {self.versions.get(eid)})")
+        m = frame.evaluate("""() => { const w = document.getElementById('wrap') || document.body;
+            return {hscroll: document.documentElement.scrollWidth > innerWidth + 1 || w.scrollWidth > w.clientWidth + 1,
+                    fills: Math.abs(document.body.getBoundingClientRect().height - innerHeight) < 2} }""")
+        self.check(not m["hscroll"], f"{stag}: no horizontal scroll inside the embed")
+        self.check(m["fills"], f"{stag}: embed fills its frame")
+        box = self.box(slot)
+        if box and shape:
+            want = round(box["h"] / box["w"], 3)
+            row["box_h_over_w"] = want
+            row["drift"] = abs(shape - want) > SHAPE_TOL
+            if row["drift"] and record:
+                self.note(f"{stag}: box shape drifted: h ÷ w {shape} on the Site, {want} in registry.yaml ({slot['box']} = {box['w']} × {box['h']})")
+        elif shape and record:
+            self.note(f"{stag}: no box recorded in registry.yaml; measured h ÷ w {shape}")
+        if interact and eid == "important-dates":
+            self.important_dates_clicks(page, frame, stag)
+        if shot:
+            try:  # waits for the element to hold still; a page with moving content above the embed never does
+                el.screenshot(path=str(OUT / f"{sid}-{page_name}-{eid}-{label}.png"), timeout=10000)
+            except Exception:
+                pass
+
     def important_dates_clicks(self, page, frame, stag):
         # Filter: a category chip hides every row of other categories.
-        frame.locator('.chip.cat[data-cat="noschool"]').click()
+        frame.locator('.chip.cat[data-cat="noschool"]').click(force=True, timeout=10000)
         cats = frame.evaluate("() => [...document.querySelectorAll('tr.ev:not([hidden])')].map(r => r.dataset.cat)")
         self.check(cats and set(cats) == {"noschool"}, f"{stag}: 'No school' filter shows only no-school rows ({len(cats)})")
-        frame.locator('.chip.cat[data-cat="all"]').click()
+        frame.locator('.chip.cat[data-cat="all"]').click(force=True, timeout=10000)
 
         # Month jump: the target month lands just under the sticky filter bar.
         target = frame.evaluate("() => { const j = [...document.querySelectorAll('.chip.jump:not([hidden])')]; return j[j.length >> 1]?.dataset.jump }")
         before = frame.evaluate("() => document.getElementById('wrap').scrollTop")
-        frame.locator(f'.chip.jump[data-jump="{target}"]').click()
+        frame.locator(f'.chip.jump[data-jump="{target}"]').click(force=True, timeout=10000)
         page.wait_for_timeout(1200)
         gap = frame.evaluate("""id => { const t = document.getElementById(id), bar = document.getElementById('toolbar');
             return Math.round(t.getBoundingClientRect().top - bar.getBoundingClientRect().bottom) }""", target)
@@ -231,20 +241,20 @@ class Checker:
                    f"{stag}: month jump to {target} lands under the filter bar (gap {gap}px{', scrolled to the end' if bottom else ''})")
 
         # Add buttons: Google opens a new tab to Google Calendar; Apple downloads a one-event .ics.
-        frame.locator('.chip.pref[data-pref="google"]').click()
+        frame.locator('.chip.pref[data-pref="google"]').click(force=True, timeout=10000)
         a = frame.locator("tr.ev:not([hidden]) .cal-btn").first
         href, tgt = a.get_attribute("href") or "", a.get_attribute("target")
         self.check(href.startswith("https://calendar.google.com/") and tgt == "_blank", f"{stag}: Google add button opens Google Calendar in a new tab")
-        frame.locator('.chip.pref[data-pref="apple"]').click()
+        frame.locator('.chip.pref[data-pref="apple"]').click(force=True, timeout=10000)
         try:
             with page.expect_download(timeout=15000) as dl:
-                frame.locator("tr.ev:not([hidden]) .cal-btn").first.click()
+                frame.locator("tr.ev:not([hidden]) .cal-btn").first.click(force=True, timeout=10000)
             ics = pathlib.Path(dl.value.path()).read_text()
             ok, name = ics.count("BEGIN:VEVENT") == 1 and re.search(r"^UID:.+@sffs-calendar\r?$", ics, re.M) is not None, dl.value.suggested_filename
         except Exception as e:
             ok, name = False, e.__class__.__name__
         self.check(ok, f"{stag}: Apple add button downloads a one-event .ics ({name})")
-        frame.locator('.chip.pref[data-pref="google"]').click()  # leave the default for the screenshot
+        frame.locator('.chip.pref[data-pref="google"]').click(force=True, timeout=10000)  # leave the default for the screenshot
 
     # --- the whole registry -------------------------------------------------------------------
     def run(self, only=None):
