@@ -1,7 +1,9 @@
-name: Live scratch-Site check
+name: Live Sites check
 
-# Opens the published scratch Google Site and clicks inside the Important Dates embed.
-# Runs in Actions (no Claude), daily and on demand. A failure opens one issue for Ahin.
+# Opens every published Google Site in registry.yaml, measures every registered embed slot
+# (size, shape, ?class=, version) and clicks inside Important Dates. Runs in Actions (no Claude),
+# daily and on demand. A missing or wrong-class embed opens one issue for Ahin; a drifted box or
+# a room parent's own blocks are listed in the report and never alert.
 on:
   schedule:
     - cron: "17 15 * * *"   # 08:17 Pacific (07:17 in winter)
@@ -30,9 +32,11 @@ jobs:
           pip install playwright
           python -m playwright install --with-deps chromium
 
-      - name: Check the embed on the published Site
+      - name: Measure every registered slot on the published Sites
         id: check
-        run: python3 tests/live_check.py
+        run: |
+          pip install pyyaml
+          python3 tests/live_check.py
 
       - name: Report
         if: always()
@@ -52,4 +56,4 @@ jobs:
         if: always() && github.event_name == 'schedule'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: .github/scripts/alert.sh "Live scratch-Site check failing" "${{ steps.check.outcome == 'success' && 'pass' || 'fail' }}" _live/report.md
+        run: .github/scripts/alert.sh "Live Sites check failing" "${{ steps.check.outcome == 'success' && 'pass' || 'fail' }}" _live/report.md

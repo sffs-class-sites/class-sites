@@ -6,6 +6,8 @@
 # live: the site's root URL; a slot's page is live + page.
 # status: url (placed by URL) | pasted-code (old copy; hash = sha256 of the pasted code, first 12 hex)
 #         | code (pasted by design, for type: code embeds; hash as for pasted-code).
+# query: the query string the embed is placed with (e.g. class: 2034 for ?class=2034); none = placed bare.
+#        tests/live_check.py fails if the Site's frame carries a different one (wrong class).
 # box: editor-canvas size, measured at a 1440px window. Only its shape (h / w) carries over:
 #      published width is Sites' content column (max 1154px), height = width × h / w (CLAUDE.md §0 #1).
 #
@@ -49,10 +51,12 @@ sites:
         status: url           # swapped 2026-10-30
       - page: email-digest
         embed: updates
+        query: {class: 2034}
         box: {w: 935, h: 875}   # editor (h/w 0.94); publishes 1154 x 1080, iPhone 13 352 x 329, first card's title/date/summary/action visible (placed by Ahin, measured 2026-11-02)
         status: url
       - page: home
-        embed: room-parents   # ?class=2034, under the welcome text; replaced the pasted glitter list 2026-10-31
+        embed: room-parents   # under the welcome text; replaced the pasted glitter list 2026-10-31
+        query: {class: 2034}
         box: {w: 935, h: 549}   # editor (h/w 0.587); desktop shows all cards, a phone scrolls after the first two
         status: url
   scratch:                 # test Site on Ahin's personal account; delete once the pattern is proven

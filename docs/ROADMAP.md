@@ -9,7 +9,7 @@ Written 2026-10-30 from the committed repo (`main`), the project files, and the 
 - UIDs are frozen in `data.json` (30 events), checked against both live pages first.
 - `main` is protected: PR only, `build` must pass, no bypass — verified by a rejected push from an org owner.
 - Every PR gets a comment: events added/changed/removed by UID, plus screenshot links.
-- Daily live check clicks inside the embed on the published scratch Site; daily monitor writes the Harvey-ball status page at `/status/`. Both open an issue on failure and close it on recovery.
+- Daily live check measures every registered slot on every published Site (size, shape, `?class=`, version) and clicks inside Important Dates; daily monitor writes the Harvey-ball status page at `/status/`. Both open an issue on failure and close it on recovery. Box drift and room parents' own blocks are reported, not alerted (sites may drift after rollout).
 - Site Map sync and the room-parents (pattern A) embed are built and tested with fake data, **stopped at the credential boundary** — nothing real has synced yet.
 
 **Open right now (2026-10-30, after section A)**
@@ -52,7 +52,7 @@ Everything in Site Map sync and room parents is waiting on three things. None of
 
 **C2. ~~Room parents go live~~ (done 2026-10-31 for 1st grade; see CLAUDE.md §7 for what is left: `Code.gs` install, 3rd grade).** Original note: School's OK on publishing names/emails (given 2026-10-31) → install `apps-script/room-parents/Code.gs` on the master sheet (in the bot's Drive) and fill `PUBLISHERS` → mark the Site Map row approved → place the embed by URL with `?class=2034` on the 1st-grade site. Then replace the pasted "glitter" room-parent list on that site, which is currently uncheckable by the monitor.
 
-**C3. Point the live check at a real site**, not the scratch one, then delete scratch (A5).
+**C3. ~~Point the live check at a real site~~ (done 2026-11-02: `tests/live_check.py` now reads `registry.yaml` and checks every site and slot, both class sites included; the scratch Site is just one more entry).** Left for Ahin: delete the scratch Site (A5) and remove its `scratch` entry from `registry.yaml` in the same PR, or the next daily run reports it missing.
 
 **C4. The remaining pasted embeds.** The 1st and 3rd homepages still carry pasted-code embeds the monitor can't check — school hours, the birthdays roster, the glitter list. Each becomes either a shared URL embed in the repo or an explicit registry entry marked `type: code` with a hash, so the status page stops being blind to them. The birthdays roster holds children's data and must follow §3 (pattern A extract, never committed).
 

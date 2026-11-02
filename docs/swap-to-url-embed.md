@@ -47,7 +47,7 @@ On an iPhone, in Safari and in Chrome:
 ## 4. Afterwards
 
 - The next status check (daily, or on the next deploy) shows *Needs attention: now a URL embed: set status: url in registry.yaml*. That's the cue to change the site's slot in `registry.yaml` from `pasted-code` to `url` and delete its `hash` line. Ask Claude, or edit it in a PR. The status then turns *OK*, and the Harvey ball fills.
-- The daily live check already covers the URL embed on the scratch Site. Once both class sites are swapped, the scratch Site can be deleted (CLAUDE.md §7).
+- The daily live check measures every slot in `registry.yaml` on the published Sites, so a new slot is checked from the next morning once its registry entry is in: record `box` (the editor size) and, if the URL carries `?class=`, `query: {class: YYYY}`. A wrong class or a missing embed opens an issue; a box shape that drifts from `box` is only listed in the report.
 
 ## Box shapes for new embeds
 
