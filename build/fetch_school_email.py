@@ -496,15 +496,26 @@ class Docs:
             sys.exit(f"{what}: HTTP {r.status_code}\n{body}")
         return r.json() if r.text else {}
 
-    def find(self, title):
-        """The doc's id, or None. A service account has no Drive storage quota, so it cannot
-        create files (Google, 2025); the bot account creates each stream's doc in the folder
-        once, by hand, and the job only appends to it."""
-        q = (f"name = '{title}' and '{self.folder}' in parents and trashed = false "
+    def inventory(self):
+        """title → [doc ids, oldest first] for the Google Docs in the log folder."""
+        q = (f"'{self.folder}' in parents and trashed = false "
              f"and mimeType = 'application/vnd.google-apps.document'")
-        r = self._check(self.s.get(self.DRIVE, params={"q": q, "fields": "files(id,name)",
+        r = self._check(self.s.get(self.DRIVE, params={"q": q, "fields": "files(id,name,createdTime)",
+                                                        "orderBy": "createdTime", "pageSize": "200",
                                                         "supportsAllDrives": "true"}), "Drive list")
-        return r["files"][0]["id"] if r.get("files") else None
+        out = {}
+        for f in r.get("files", []):
+            out.setdefault(f["name"], []).append(f["id"])
+        return out
+
+    def find(self, title):
+        """The doc's id (the oldest if the title is duplicated), or None. A service account has
+        no Drive storage quota, so it cannot create files (Google, 2025); the bot account creates
+        each stream's doc in the folder once, by hand, and the job only appends to it."""
+        ids = self.inventory().get(title, [])
+        if len(ids) > 1:
+            print(f"  note: {len(ids)} docs titled {title!r}; using the oldest. Trash the others.")
+        return ids[0] if ids else None
 
     def share_anyone(self, doc_id):
         """Best effort: 'anyone with the link can view'. Fails harmlessly if the folder already grants it."""
@@ -655,11 +666,19 @@ def main():
         messages = messages[:a.limit]
 
     docs = None
-    if not a.dry_run:
-        key, folder = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON"), os.environ.get("EMAIL_LOG_FOLDER_ID")
-        if not key or not folder:
-            sys.exit("GOOGLE_SERVICE_ACCOUNT_JSON and EMAIL_LOG_FOLDER_ID are needed to write the log.")
+    key, folder = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON"), os.environ.get("EMAIL_LOG_FOLDER_ID")
+    if key and folder:
         docs = Docs(key, folder)
+        inv = docs.inventory()
+        print(f"{sum(len(v) for v in inv.values())} doc(s) in the log folder:")
+        for t, ids in sorted(inv.items()):
+            print(f"  {t}  ({len(ids)} copy)" if len(ids) > 1 else f"  {t}")
+        need = {f"{stream_label(classify(m['subject'], m['text'])[0], streams)} {school_year_label(m['date'])} (email log)"
+                for m in messages}
+        for t in sorted(need - set(inv)):
+            print(f"  MISSING: {t}")
+    elif not a.dry_run:
+        sys.exit("GOOGLE_SERVICE_ACCOUNT_JSON and EMAIL_LOG_FOLDER_ID are needed to write the log.")
 
     sources = load_sources()
     resolver = http_resolve if not a.eml or not a.dry_run else (lambda u: u)
