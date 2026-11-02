@@ -84,8 +84,33 @@ h = ("<html><body><h2>The Week Ahead</h2><p>Picture day is <b>Friday</b>.</p><ul
      "<hr><p>Second part</p></body></html>")
 m = f.parse_message(eml("[SFFS] Picture Day", "", html=h))
 t = m["text"]
-check("The Week Ahead\n\nPicture day is Friday." in t and "- Bring a smile\n- See the" in t
+check("The Week Ahead\n\nPicture day is Friday." in f.plain(t) and "• Bring a smile\n• See the" in f.plain(t)
       and "calendar (https://www.sfquakers.org/calendar)" in t and "Second part" in t, "HTML becomes paragraphs, bullets and labelled links")
+check(t.startswith(f.H[2] + "The Week Ahead") and (f.B1 + "Friday" + f.B0) in t, "the email's heading and bold survive as structure markers")
+rich = f.html_to_text('<p><span style="font-weight: bold; text-decoration: underline">Both</span> and <em>em</em> and <b>outer <b>inner</b> still</b> done</p>')
+check(rich == f.B1 + f.U1 + "Both" + f.U0 + f.B0 + " and " + f.I1 + "em" + f.I0 + " and " + f.B1 + "outer inner still" + f.B0 + " done",
+      f"styled spans and nested bold become single runs ({rich!r})")
+check(f.star_bold("Please *sign up* by Friday; 2*3 is not bold.") == "Please " + f.B1 + "sign up" + f.B0 + " by Friday; 2*3 is not bold.", "plain-text *bold* becomes a bold run")
+check(f.drop_pointers("Dear families,\n\nPara español, mire más abajo.\n\nSee you Friday.\n(Spanish version below)\nThe end") == "Dear families,\n\nSee you Friday.\nThe end",
+      "translation pointer lines are removed")
+
+# --- Docs requests: UTF-16 offsets, heading, email headings and runs
+reqs = f.entry_requests(10, "Oct 29, 2026 · Info 🍎", f.H[2] + "The Week " + f.B1 + "Ahead" + f.B0 + "\nPlain " + f.I1 + "it" + f.I0 + " end", empty=False)
+ins = reqs[0]["insertText"]
+check(ins["location"]["index"] == 10 and ins["text"] == "\nOct 29, 2026 · Info 🍎\nThe Week Ahead\nPlain it end\n" and not f.MARKS.search(ins["text"]),
+      "inserted text carries no markers")
+h2 = [r for r in reqs if r.get("updateParagraphStyle", {}).get("paragraphStyle", {}).get("namedStyleType") == "HEADING_2"][0]["updateParagraphStyle"]["range"]
+check(h2 == {"startIndex": 11, "endIndex": 11 + f.u16len("Oct 29, 2026 · Info 🍎") + 1}, f"entry heading range counts the emoji as two units ({h2})")
+ts = [r["updateTextStyle"] for r in reqs if "updateTextStyle" in r][1:]
+hs = ts[0]
+line_start = 11 + f.u16len("Oct 29, 2026 · Info 🍎") + 1
+check(hs["range"] == {"startIndex": line_start, "endIndex": line_start + len("The Week Ahead")} and hs["textStyle"] == {"bold": True, "underline": True},
+      f"an h2 inside the email becomes bold+underline on its line ({hs})")
+bold = [t for t in ts if t["textStyle"] == {"bold": True}][0]["range"]
+check(bold == {"startIndex": line_start + 9, "endIndex": line_start + 14}, f"bold run covers 'Ahead' ({bold})")
+ital = [t for t in ts if t["textStyle"] == {"italic": True}][0]["range"]
+l2 = line_start + len("The Week Ahead") + 1
+check(ital == {"startIndex": l2 + 6, "endIndex": l2 + 8}, f"italic run covers 'it' on the next line ({ital})")
 
 # --- Spanish stripping
 sp = ("Please sign up by Monday.\n\nThank you,\nThe office\n\nPara español:\n\nPor favor regístrese antes del lunes. "
@@ -153,17 +178,17 @@ added, skipped = f.run(msgs, fd, src, ledger["streams"], False, lambda u: u, log
 check(len(added) == 2 and skipped == 1, "a resend with the same subject and date is logged once")
 check(all(r["anchor"].endswith("#heading=h.abc") for r in added) and set(src["docs"]) == {"circle-back@2026-27", "school@2026-27"},
       "entries carry the doc anchor; one doc per stream per year")
-check(fd.appended[0][1] == "2026-10-05 [SFFS] Forms" and fd.appended[1][2] == "A fixed typo", "heading is the date and subject; a same-day resend keeps the fuller copy")
+check(fd.appended[0][1] == "Oct 5, 2026 · [SFFS] Forms" and fd.appended[1][2] == "A fixed typo", "heading is the readable date and subject; a same-day resend keeps the fuller copy")
 added2, _ = f.run(msgs, fd, src, ledger["streams"], False, lambda u: u, log=lambda *a: None)
 check(added2 == [] and len(fd.appended) == 2, "a second run logs nothing new")
 fd2, src2, notes = FakeDocs(have={"Circle Back 2026-27 (email log)"}), {"schema": 1, "docs": {}, "messages": []}, []
 added3, _ = f.run(msgs, fd2, src2, ledger["streams"], False, lambda u: u, log=notes.append)
 check(len(added3) == 1 and len(fd2.appended) == 1 and any("School notices 2026-27 (email log)" in n for n in notes),
       "a stream whose doc is missing is skipped and named, the others are logged")
-fd3 = FakeDocs(existing={"DOC31": {"2026-10-29 SFFS Circle Back: October 29, 2026": "h.old"}})
+fd3 = FakeDocs(existing={"DOC31": {"Oct 29, 2026 · SFFS Circle Back: October 29, 2026": "h.old"}})
 src3 = {"schema": 1, "docs": {}, "messages": []}
 added4, _ = f.run(msgs, fd3, src3, ledger["streams"], False, lambda u: u, log=lambda *a: None)
-check(len(added4) == 2 and len(fd3.appended) == 1 and fd3.appended[0][1] == "2026-10-05 [SFFS] Forms"
+check(len(added4) == 2 and len(fd3.appended) == 1 and fd3.appended[0][1] == "Oct 5, 2026 · [SFFS] Forms"
       and [r for r in added4 if r["stream"] == "circle-back"][0]["anchor"].endswith("#heading=h.old"),
       "an email already in the doc is indexed from its existing heading, not appended again")
 check(all(r["sender"].endswith("veracross.com") for r in added), "the index stores only the Veracross sender")

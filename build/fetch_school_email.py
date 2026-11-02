@@ -80,6 +80,7 @@ def split_forward(text):
     lines = text[m.end():].lstrip("\n").split("\n")
     hdr, last, blanks = {}, -1, 0
     for i, l in enumerate(lines[:14]):
+        l = plain(l)
         h = HDR_LINE.match(l)
         if h:
             hdr[h.group(1).lower()] = h.group(2).strip()
@@ -101,35 +102,88 @@ URL_RE = re.compile(r"https?://[^\s<>()\"']+")
 
 # ---------------------------------------------------------------- HTML to plain paragraphs
 
+# Structure survives as private-use characters inside the text, so every later step (forwarded
+# block, Spanish cut, link resolution) works on plain lines; the Docs writer turns them into styles.
+B1, B0, I1, I0, U1, U0 = "\ue001", "\ue002", "\ue003", "\ue004", "\ue005", "\ue006"
+H = {1: "\ue011", 2: "\ue012", 3: "\ue013", 4: "\ue014"}  # line prefix: a heading inside the email, by level
+MARKS = re.compile("[\ue001-\ue006\ue011-\ue014]")
+
+
+def plain(text):
+    return MARKS.sub("", text)
+
+
 class _Text(HTMLParser):
     BLOCK = {"p", "div", "br", "li", "tr", "h1", "h2", "h3", "h4", "h5", "h6", "table", "ul", "ol",
              "blockquote", "section", "article", "header", "footer", "hr", "pre"}
     SKIP = {"script", "style", "head", "title"}
+    STYLE_TAGS = {"b": "b", "strong": "b", "i": "i", "em": "i", "u": "u"}
 
     def __init__(self):
         super().__init__(convert_charrefs=True)
         self.out, self.skip, self.href, self.anchor = [], 0, None, []
+        self.depth = {"b": 0, "i": 0, "u": 0}
+        self.stack = []  # per open tag: the styles it switched on
+
+    def _open(self, styles):
+        for k in [k for k in ("b", "i", "u") if k in styles]:
+            self.depth[k] += 1
+            if self.depth[k] == 1:
+                self._emit({"b": B1, "i": I1, "u": U1}[k])
+
+    def _close(self, styles):
+        for k in [k for k in ("u", "i", "b") if k in styles]:
+            self.depth[k] = max(0, self.depth[k] - 1)
+            if self.depth[k] == 0:
+                self._emit({"b": B0, "i": I0, "u": U0}[k])
+
+    def _emit(self, s):
+        (self.anchor if self.href is not None else self.out).append(s)
 
     def handle_starttag(self, tag, attrs):
+        a = dict(attrs)
+        styles = set()
+        if tag in self.STYLE_TAGS:
+            styles.add(self.STYLE_TAGS[tag])
+        st = (a.get("style") or "").lower().replace(" ", "")
+        if re.search(r"font-weight:(bold|[6-9]00)", st):
+            styles.add("b")
+        if "font-style:italic" in st:
+            styles.add("i")
+        if "text-decoration:underline" in st or "text-decoration-line:underline" in st:
+            styles.add("u")
+        self.stack.append((tag, styles))
         if tag in self.SKIP:
             self.skip += 1
-        elif tag == "a":
-            self.href = dict(attrs).get("href")
+            return
+        if tag == "a":
+            self.href = a.get("href")
             self.anchor = []
         elif tag == "li":
-            self.out.append("\n- ")
+            self.out.append("\n• ")
         elif tag == "hr":
             self.out.append("\n\n")
+        elif tag in ("h1", "h2", "h3", "h4", "h5", "h6"):
+            self.out.append("\n" + H[min(int(tag[1]), 4)])
         elif tag in self.BLOCK:
             self.out.append("\n")
+        self._open(styles)
 
     def handle_endtag(self, tag):
+        styles = set()
+        for i in range(len(self.stack) - 1, -1, -1):
+            if self.stack[i][0] == tag:
+                styles = self.stack[i][1]
+                del self.stack[i]
+                break
         if tag in self.SKIP:
             self.skip = max(0, self.skip - 1)
-        elif tag == "a":
+            return
+        self._close(styles)
+        if tag == "a":
             text = "".join(self.anchor).strip()
             href = (self.href or "").strip()
-            if href.startswith("http") and text and text != href and not text.startswith("http"):
+            if href.startswith("http") and plain(text) and plain(text) != href and not plain(text).startswith("http"):
                 self.out.append(f"{text} ({href})")
             elif href.startswith("http"):
                 self.out.append(href)
@@ -152,10 +206,25 @@ class _Text(HTMLParser):
 
 
 def html_to_text(src):
+    """HTML → lines with structure markers (see MARKS); plain() strips them."""
     p = _Text()
     p.feed(src)
     p.close()
     return tidy("".join(p.out))
+
+
+def star_bold(text):
+    """Plain-text emails write *bold* with asterisks; keep the emphasis, drop the asterisks."""
+    return re.sub(r"(?<![\w*])\*([^*\n]{1,120}?)\*(?![\w*])", lambda m: B1 + m.group(1) + B0, text)
+
+
+POINTER_LINE = re.compile(r"^\W*(para (el )?español|en español|versi[oó]n en español|spanish( version)?|"
+                          r"for spanish|中文|chinese( version)?)\b[^\n]{0,80}(abajo|below|continuaci[oó]n|下方|请见)[^\n]{0,20}$", re.I)
+
+
+def drop_pointers(text):
+    """Remove lines like 'Para español, mire más abajo.' that only point at a translation."""
+    return tidy("\n".join(l for l in text.split("\n") if not POINTER_LINE.match(plain(l))))
 
 
 def tidy(text):
@@ -164,6 +233,17 @@ def tidy(text):
     lines = [re.sub(r"[ \t]+", " ", l).strip() for l in text.split("\n")]
     out, blank = [], True
     for l in lines:
+        if not plain(l).strip():
+            if l:  # markers on an otherwise blank line: keep them on the previous line
+                if out:
+                    out[-1] += l
+                else:
+                    out.append(l)
+                    blank = False
+            if not blank:
+                out.append("")
+            blank = True
+            continue
         if not l:
             if not blank:
                 out.append("")
@@ -210,7 +290,7 @@ def strip_spanish(text):
     English ones, provided what follows is Spanish to the end."""
     lines = text.split("\n")
     for i, l in enumerate(lines):
-        if (SPANISH_MARKERS.match(l) or RULE_LINE.match(l)) and looks_spanish(lines[i + 1:i + 20]):
+        if (SPANISH_MARKERS.match(plain(l)) or RULE_LINE.match(plain(l))) and looks_spanish(lines[i + 1:i + 20]):
             return tidy("\n".join(lines[:i]))
     for i in range(2, len(lines)):
         if (line_lang(lines[i]) == "es" and mostly(lines[i:], "es", n=6) and mostly(lines[:i][::-1], "en", n=6)
@@ -406,11 +486,11 @@ def parse_message(raw):
         date = email.utils.parsedate_to_datetime(msg.get("Date")).date()
     except Exception:
         pass
-    plain, htm = body_parts(msg)
-    tp = tidy(plain) if plain.strip() else ""
+    plain_part, htm = body_parts(msg)
+    tp = star_bold(tidy(plain_part)) if plain_part.strip() else ""
     th = html_to_text(htm) if htm.strip() else ""
-    # Newsletters often carry a stub plain part ("view in browser"); take the richer one.
-    text = tp if len(tp) >= 0.5 * len(th) else th
+    # HTML keeps the email's structure; fall back to the plain part only when the HTML is a stub.
+    text = th if len(plain(th)) >= 0.5 * len(plain(tp)) else tp
     shape, block_date = "filter", None
 
     hdr, rest = split_forward(text)
@@ -426,7 +506,7 @@ def parse_message(raw):
         text = tidy(rest)
 
     info = {"shape": shape, "header_date": str(msg.get("Date") or ""), "block_date": block_date,
-            "plain_len": len(tp), "html_len": len(th), "subject": subject, "sender": sender}
+            "plain_len": len(plain(tp)), "html_len": len(plain(th)), "subject": subject, "sender": sender}
     # A school email: sent by Veracross or the school (filter-forwarded copies keep the original
     # From), or forwarded by a person into the bot mailbox (a "Fwd:" with a forwarded block).
     if not (sender.endswith(SCHOOL_SENDERS) or shape == "fwd"
@@ -439,7 +519,7 @@ def parse_message(raw):
         REJECTED.append(info)
         return None
     before = len(text)
-    text = strip_spanish(text)
+    text = drop_pointers(strip_spanish(text))
     info["stripped"] = before - len(text)
     if not sender.endswith(SCHOOL_SENDERS):
         sender = ""  # a person forwarded it; never record their address (CLAUDE.md §3)
@@ -567,24 +647,75 @@ class Docs:
     def append(self, doc_id, heading, body):
         doc = self.get(doc_id)
         end = doc["body"]["content"][-1]["endIndex"] - 1
-        empty = end <= 1
-        lead = "" if empty else "\n"
-        text = f"{lead}{heading}\n{body}\n"
-        h0 = end + len(lead)
-        h1 = h0 + u16len(heading)
-        b0 = h1 + 1
-        b1 = b0 + u16len(body) + 1
-        reqs = [
-            {"insertText": {"location": {"index": end}, "text": text}},
-            {"updateParagraphStyle": {"range": {"startIndex": h0, "endIndex": h1 + 1},
-                                      "paragraphStyle": {"namedStyleType": "HEADING_1"}, "fields": "namedStyleType"}},
-            {"updateParagraphStyle": {"range": {"startIndex": b0, "endIndex": b1},
-                                      "paragraphStyle": {"namedStyleType": "NORMAL_TEXT"}, "fields": "namedStyleType"}},
-            {"updateTextStyle": {"range": {"startIndex": b0, "endIndex": b1},
-                                 "textStyle": {"bold": False, "italic": False}, "fields": "bold,italic"}},
-        ]
-        self._check(self.s.post(f"{self.DOCS}/{doc_id}:batchUpdate", json={"requests": reqs}), "Docs append")
+        reqs = entry_requests(end, heading, body, empty=end <= 1)
+        for i in range(0, len(reqs), 400):  # a long newsletter can need many style runs
+            self._check(self.s.post(f"{self.DOCS}/{doc_id}:batchUpdate", json={"requests": reqs[i:i + 400]}), "Docs append")
         return self.heading_ids(self.get(doc_id)).get(heading)
+
+    def clear(self, doc_id):
+        """Empty a doc (the rebuild mode). Returns the number of characters removed."""
+        doc = self.get(doc_id)
+        end = doc["body"]["content"][-1]["endIndex"]
+        if end <= 2:
+            return 0
+        self._check(self.s.post(f"{self.DOCS}/{doc_id}:batchUpdate", json={"requests": [
+            {"deleteContentRange": {"range": {"startIndex": 1, "endIndex": end - 1}}}]}), "Docs clear")
+        return end - 2
+
+
+HEADING_STYLE = {1: {"bold": True, "underline": True, "italic": True}, 2: {"bold": True, "underline": True},
+                 3: {"bold": True}, 4: {"underline": True}}  # Ahin's ladder: all three, then B+U, B, U (italic alone is inline)
+
+
+def entry_requests(at, heading, body, empty):
+    """Docs batchUpdate requests that append one email at index `at`: the entry heading as
+    Heading 2, then the body with the email's own headings and bold/italic/underline runs as
+    text styles. Offsets are UTF-16 units (u16len); the inserted text carries no markers."""
+    lead = "" if empty else "\n"
+    lines = body.split("\n")
+    out_text, paras, runs = lead + heading + "\n", [], []
+    h0 = at + u16len(lead)
+    h1 = h0 + u16len(heading)
+    paras.append((h0, h1 + 1, "HEADING_2", None))
+    pos = h1 + 1
+    for raw in lines:
+        level = None
+        if raw[:1] in H.values():
+            level = [k for k, v in H.items() if v == raw[0]][0]
+            raw = raw[1:]
+        text, state, start = "", {"b": False, "i": False, "u": False}, {}
+        cur = pos
+        for ch in raw:
+            if ch in (B1, I1, U1, B0, I0, U0):
+                k = {B1: "b", B0: "b", I1: "i", I0: "i", U1: "u", U0: "u"}[ch]
+                on = ch in (B1, I1, U1)
+                if on and not state[k]:
+                    state[k], start[k] = True, cur
+                elif not on and state[k]:
+                    state[k] = False
+                    if cur > start[k]:
+                        runs.append((start[k], cur, k))
+                continue
+            text += ch
+            cur += u16len(ch)
+        for k in state:
+            if state[k] and cur > start[k]:
+                runs.append((start[k], cur, k))
+        out_text += text + "\n"
+        paras.append((pos, cur + 1, "NORMAL_TEXT", level))
+        pos = cur + 1
+    reqs = [{"insertText": {"location": {"index": at}, "text": out_text}},
+            {"updateParagraphStyle": {"range": {"startIndex": h0, "endIndex": pos}, "paragraphStyle": {"namedStyleType": "NORMAL_TEXT"}, "fields": "namedStyleType"}},
+            {"updateTextStyle": {"range": {"startIndex": h0, "endIndex": pos}, "textStyle": {"bold": False, "italic": False, "underline": False}, "fields": "bold,italic,underline"}},
+            {"updateParagraphStyle": {"range": {"startIndex": h0, "endIndex": h1 + 1}, "paragraphStyle": {"namedStyleType": "HEADING_2"}, "fields": "namedStyleType"}}]
+    for a, b, style, level in paras[1:]:
+        if level and b - 1 > a:
+            st = HEADING_STYLE[level]
+            reqs.append({"updateTextStyle": {"range": {"startIndex": a, "endIndex": b - 1}, "textStyle": st, "fields": ",".join(st)}})
+    for a, b, k in runs:
+        key = {"b": "bold", "i": "italic", "u": "underline"}[k]
+        reqs.append({"updateTextStyle": {"range": {"startIndex": a, "endIndex": b}, "textStyle": {key: True}, "fields": key}})
+    return reqs
 
 
 # ---------------------------------------------------------------- main
@@ -601,7 +732,8 @@ def load_sources():
 
 
 def entry_heading(m):
-    return f"{m['date'].isoformat()} {m['subject']}"[:200]
+    d = m["date"]
+    return f"{d:%b} {d.day}, {d.year} · {m['subject']}"[:160]
 
 
 def run(messages, docs, sources, streams, dry_run, resolver, log=print):
@@ -678,6 +810,7 @@ def main():
     ap.add_argument("--since", help="YYYY-MM-DD; default 60 days before the school year's first day")
     ap.add_argument("--summary", help="write a markdown summary here (GitHub step summary)")
     ap.add_argument("--debug", action="store_true", help="print shape, dates and part sizes per message, and why others were rejected")
+    ap.add_argument("--rebuild", action="store_true", help="empty every log doc and write all emails again (new formatting); resets the index")
     a = ap.parse_args()
 
     ledger = json.loads(LEDGER.read_text())
@@ -723,6 +856,13 @@ def main():
         sys.exit("GOOGLE_SERVICE_ACCOUNT_JSON and EMAIL_LOG_FOLDER_ID are needed to write the log.")
 
     sources = load_sources()
+    if a.rebuild:
+        if a.dry_run or docs is None:
+            sys.exit("--rebuild needs a real run with Docs access.")
+        for title, ids in sorted(docs.inventory().items()):
+            n = docs.clear(ids[0])
+            print(f"  emptied {title} ({n} characters)")
+        sources = {"schema": 1, "note": sources.get("note", ""), "docs": {}, "messages": []}
     resolver = http_resolve if not a.eml or not a.dry_run else (lambda u: u)
     if a.eml and a.dry_run:
         resolver = http_resolve if os.environ.get("RESOLVE_LINKS") else (lambda u: u)
