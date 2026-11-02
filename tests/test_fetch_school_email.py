@@ -46,6 +46,17 @@ check(m and m["date"] == dt.date(2026, 9, 22) and m["sender"] == "m@mail1.veracr
 check(m and m["text"].startswith("Grade news and reminders") and "Forwarded message" not in m["text"],
       "manual Fwd: body starts after the block")
 
+# --- forwarded block with no blank line after it, a school-domain sender, and a UTC time past midnight
+fwd2 = ("---------- Forwarded message ---------\nFrom: SFFS Communications <communications@sffriendsschool.org>\n"
+        "Date: Wed, Aug 26, 2026 at 4:48 AM\nSubject: [SFFS] Welcome to the 26-27 School Year!\nTo: <ahin@example.test>\n"
+        "Dear families, welcome back.\n")
+m = f.parse_message(eml("Fwd: [SFFS] Welcome to the 26-27 School Year!", fwd2, sender="Ahin <ahin@example.test>",
+                        date="Sun, 1 Nov 2026 10:00:00 -0800", mid="<fwd2@mail.gmail.com>"))
+check(m and m["date"] == dt.date(2026, 8, 25) and m["text"] == "Dear families, welcome back."
+      and m["sender"] == "communications@sffriendsschool.org",
+      "a forwarded block without a trailing blank line parses; 4:48 AM UTC is the evening before in Pacific")
+check(f.parse_forward_date("Thu, Oct 29, 2026 at 7:00 PM") == dt.date(2026, 10, 29), "7:00 PM UTC is noon the same day")
+
 # --- not a school email
 check(f.parse_message(eml("Security alert", "New sign-in.", sender="Google <no-reply@accounts.google.com>")) is None,
       "a non-Veracross email is ignored")

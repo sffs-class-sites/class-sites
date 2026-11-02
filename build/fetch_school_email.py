@@ -65,7 +65,9 @@ SPANISH_STOP = {"el", "la", "los", "las", "de", "del", "que", "para", "por", "co
                 "también", "sobre", "hasta", "más", "será", "están", "como", "pero", "todos"}
 RULE_LINE = re.compile(r"^\s*([-_=*~]\s*){4,}$")
 FORWARD_BLOCK = re.compile(
-    r"-{3,}\s*Forwarded message\s*-{3,}\s*\n(?P<hdr>(?:.+\n)+?)\n", re.I)
+    r"-{3,}\s*Forwarded message\s*-{3,}\s*\n(?P<hdr>(?:\s*(?:From|Date|Subject|To|Cc)\s*:.*\n)+)", re.I)
+SCHOOL_SENDERS = ("veracross.com", "sffriendsschool.org", "sfquakers.org")
+PACIFIC = "America/Los_Angeles"
 URL_RE = re.compile(r"https?://[^\s<>()\"']+")
 
 
@@ -293,13 +295,23 @@ def clean_subject(s):
 
 
 def parse_forward_date(s):
+    """The 'Date:' line of a forwarded block. It carries no zone; the one-time history forward
+    (Gmail connector, 2026-11-01) wrote UTC, so a time is read as UTC and converted to Pacific.
+    A person's own Gmail forward writes local time, which only shifts the date before 8am;
+    build/build_updates.py matches ledger sources within two days anyway."""
+    from zoneinfo import ZoneInfo
     s = re.sub(r"\s+", " ", s.strip())
     for fmt in ("%a, %b %d, %Y at %I:%M %p", "%a, %b %d, %Y, %I:%M %p", "%a, %d %b %Y at %H:%M",
-                "%b %d, %Y at %I:%M %p", "%a, %b %d, %Y"):
+                "%b %d, %Y at %I:%M %p"):
         try:
-            return dt.datetime.strptime(s, fmt).date()
+            t = dt.datetime.strptime(s, fmt).replace(tzinfo=dt.timezone.utc)
+            return t.astimezone(ZoneInfo(PACIFIC)).date()
         except ValueError:
             pass
+    try:
+        return dt.datetime.strptime(s, "%a, %b %d, %Y").date()
+    except ValueError:
+        pass
     try:
         t = email.utils.parsedate_to_datetime(s)
         return t.date()
@@ -364,11 +376,13 @@ def parse_message(raw):
 
     info = {"shape": shape, "header_date": str(msg.get("Date") or ""), "block_date": block_date,
             "plain_len": len(tp), "html_len": len(th), "subject": subject, "sender": sender}
-    if not sender.endswith("veracross.com") and "veracross.com" not in (msg.get("X-Forwarded-For") or ""):
-        if not re.search(r"m@mail\d*\.veracross\.com", raw.decode("utf-8", "replace")[:6000]):
-            info["rejected"] = "not from Veracross"
-            REJECTED.append(info)
-            return None
+    # A school email: sent by Veracross or the school (filter-forwarded copies keep the original
+    # From), or forwarded by a person into the bot mailbox (a "Fwd:" with a forwarded block).
+    if not (sender.endswith(SCHOOL_SENDERS) or shape == "fwd"
+            or "veracross.com" in (msg.get("X-Forwarded-For") or "")):
+        info["rejected"] = "not a school email, not forwarded"
+        REJECTED.append(info)
+        return None
     if not date:
         info["rejected"] = "no date"
         REJECTED.append(info)
@@ -573,7 +587,7 @@ def main():
             print(f"  [{i['shape']}] {m['date']} hdr={i['header_date']!r} block={i['block_date']!r} "
                   f"plain={i['plain_len']} html={i['html_len']} {m['subject'][:60]}")
         for i in REJECTED:
-            print(f"  rejected ({i['rejected']}): from={i['sender']} {i['subject'][:60]}")
+            print(f"  rejected ({i['rejected']}) [{i['shape']}]: from={i['sender']} {i['subject'][:60]}")
     if a.limit:
         messages = messages[:a.limit]
 
