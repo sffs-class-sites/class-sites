@@ -37,16 +37,21 @@ jobs:
       - name: Validate data against source calendar
         run: python3 tests/validate_important_dates.py
 
+      - name: Validate the Updates ledger (shape, dates, no personal data)
+        run: python3 tests/validate_updates.py
+
       - name: Site Map sync fails closed
         run: |
           pip install pyyaml
           python3 tests/test_site_map.py
           python3 tests/test_classinfo.py
+          python3 tests/test_fetch_school_email.py
 
       - name: Build embeds
         run: |
           python3 build/build_important_dates.py
           python3 build/build_room_parents.py
+          python3 build/build_updates.py
 
       # Pattern A (CLAUDE.md §3): personal data is fetched at deploy time and never committed.
       # Writes nothing unless the Site Map marks room-parents publishable. An invalid Live tab
@@ -78,6 +83,9 @@ jobs:
 
       - name: Room parents checks (fake data; extract, Apps Script validation, embed states)
         run: python3 tests/room_parents_check.py
+
+      - name: Updates embed check (tabs, grade picker, class rollover, phone first view)
+        run: python3 tests/updates_check.py
 
       - name: Upload screenshots
         if: always()
