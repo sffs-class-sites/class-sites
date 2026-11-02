@@ -93,6 +93,7 @@ def build(data):
         "{{SUBTITLE_REST}}": html.escape(re.sub(r"^NOT SANCTIONED\.\s*", "", data["subtitle"])),
         "{{DATA_JSON}}": json.dumps(data, ensure_ascii=False).replace("</", "<\\/"),
         "{{CLASS_JS}}": classinfo.class_js(),
+        "{{LANG_JS}}": classinfo.lang_js(),
     }.items():
         page = page.replace(k, v)
     return page, version
@@ -244,6 +245,9 @@ footer p{margin:4px 0}
 <div class="sffs-hint" hidden>Scroll for more &#8595;</div>
 <script>
 {{CLASS_JS}}
+</script>
+<script>
+{{LANG_JS}}
 </script>
 <script>
 (function(){

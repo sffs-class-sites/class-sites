@@ -26,6 +26,7 @@ from playwright.sync_api import sync_playwright
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 FIX = ROOT / "tests" / "fixtures"
 sys.path.insert(0, str(ROOT / "build"))
+sys.path.insert(0, str(ROOT / "tests"))
 from extract_room_parents import extract  # noqa: E402
 from render_check import SANDBOX  # noqa: E402
 
@@ -146,6 +147,9 @@ def embed_checks(p, tmp):
             if name == "load error":
                 check(fr.get_by_role("button", name="Try again").count() == 1, f"{label}: load error offers Try again")
             ctx.close()
+    print("[translation notice]")
+    from lang_check import check_lang
+    check_lang(b, "http://127.0.0.1:8711/shared/room-parents/?class=2034&today=2026-10-12", check)
     b.close()
     for s in servers:
         s.shutdown()
