@@ -56,7 +56,7 @@ Everything in Site Map sync and room parents is waiting on three things. None of
 
 **C4. The remaining pasted embeds.** The 1st and 3rd homepages still carry pasted-code embeds the monitor can't check — school hours, the birthdays roster, the glitter list. Each becomes either a shared URL embed in the repo or an explicit registry entry marked `type: code` with a hash, so the status page stops being blind to them. The birthdays roster holds children's data and must follow §3 (pattern A extract, never committed).
 
-**C5. Bring the basketball schedule into the repo.** `build_hoops.py` is a one-off outside the repo, delivered as paste-in code, with its own UID scheme (`@sffs-1st-hoops`). It's a third copy of the calendar pattern. Make a shared **team-schedule** embed type driven by a data file, place it by URL, register it. Every sport and club from here on is a data file, not a new build script.
+**C5. Bring the basketball schedule into the repo.** *Step 1 done 2026-11-03: the data, source snapshot, build script and built embed are in `teams/class-2034/hoops-2027-winter/` (README there), and the pasted embed on the 1st-grade site's `resources/basketball` page is registered as `type: code` with its hash, so the status page sees it. Step 2 is the rest of this item.* `build_hoops.py` was a one-off outside the repo, delivered as paste-in code, with its own UID scheme (`@sffs-1st-hoops`). It's a third copy of the calendar pattern. Make a shared **team-schedule** embed type driven by a data file, place it by URL, register it. Every sport and club from here on is a data file, not a new build script.
 
 ---
 

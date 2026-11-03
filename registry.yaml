@@ -36,6 +36,10 @@ embeds:
     type: url
     path: shared/updates/        # placed with ?class=YYYY; on the 1st-grade site since 2026-11-02 (docs/updates-pipeline.md)
     owner: platform
+  hoops-2034-2027-winter:
+    type: code                   # pasted by design until ROADMAP C5 makes a URL team-schedule embed; source and build: teams/class-2034/hoops-2027-winter/
+    owner: platform
+    match: "@sffs-1st-hoops"     # the .ics UID domain inside the pasted code
 
 sites:
   class-2032:            # 3rd grade in 2026–27
@@ -56,6 +60,10 @@ sites:
         embed: important-dates
         box: card             # resized to the standard 935 x 625 and measured 2026-10-31: 4 dates visible on an iPhone
         status: url           # swapped 2026-10-30
+      - page: resources/basketball
+        embed: hoops-2034-2027-winter   # Super Friends winter 2027 schedule, pasted by Ahin 2026-10-29; the monitor goes amber if the pasted code is edited
+        status: code
+        hash: b627556d43b0    # sha256 of the pasted code, first 12 hex; equals teams/class-2034/hoops-2027-winter/1st-hoops-embed.html (checked 2026-11-03)
       - page: email-digest
         embed: updates
         query: {class: 2034}
