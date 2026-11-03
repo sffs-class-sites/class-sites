@@ -21,6 +21,7 @@ Three separate Claude threads fed this repo. Their notes live here as scoped doc
 | `docs/updates-pipeline.md` | Updates embed: the topic ledger built from school emails (Circle Back, Room Parent Digest, Head's Desk), full-text log docs, personal-data and English-only rules, Ahin's setup steps, what's built vs. designed |
 | `docs/swap-to-url-embed.md` | Human checklist: swap a site's pasted copy to the URL embed, check desktop + iPhone, undo, then update `registry.yaml` |
 | `docs/site-template.md` | Standard boxes, the template Site, the copy-and-set-`?class=` rollout to K–8, what room parents may change, and how drift is reported |
+| `docs/sites-editor-driver.md` | `tools/sites_editor.py`: driving the Sites editor from a script attached to a signed-in Chrome (list embeds and boxes, resize, publish), the editor DOM hooks it depends on, what has been tested on the real editor |
 | `docs/ROADMAP.md` | What's next, in order (sections A–G); the first thing a new session or parent reads. Keep it current when a step finishes |
 
 **Precedence.** This file wins on anything repo-wide. A scoped doc wins on the internals of its own artefact — the colour map, the axis-merge algorithm, the event schema. **Where they conflict outside that split, stop and ask Ahin.** Do not average two numbers, do not assume the newer doc is right, do not quietly pick one and carry on.
