@@ -27,7 +27,7 @@ Every shared embed passes CI at the `card` phone size (352 × 235 and 315 × 210
 
 1. In Google Sites as `classpages@`, create a site named **Template – Class Page** (never published to families; it only gets copied).
 2. Make the standard pages: **Home**, **Email Digest**. Keep page names exactly these: the registry keys a slot by the page's URL slug (`home`, `email-digest`).
-3. On each page, **Insert → Embed → By URL → Whole page** for each core slot, using the URL above with `?class=0000` as a placeholder. Drag the box to full column width, then drag the bottom handle until the size label reads **935 × 625** (`card`) or **935 × 875** (`page`). This is the only time a box is sized by hand.
+3. On each page, **Insert → Embed → By URL → Whole page** for each core slot, using the URL above with `?class=0000` as a placeholder. Drag the box to full column width, then size it with the script (`tools/sites_editor.py resize --site <template key> --page <page> --embed <id> --box card --apply`, which needs the template in `registry.yaml` and Chrome started as in `docs/sites-editor-driver.md` §1), or drag the bottom handle by eye and check with `list`: the editor shows **no size label**. This is the only time a box is sized at all.
 4. Add a text block under the core on Home titled **Room parents' corner** (or similar) so copies have an obvious place for their own content.
 5. Publish once to yourself (*untested*: a site has to be published at least once for Make a copy to carry the published settings).
 

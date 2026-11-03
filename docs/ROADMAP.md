@@ -111,7 +111,7 @@ Not everything should run on the Mini, and most of it shouldn't.
 | Builds, tests, deploys, daily live check, monitor, Site Map sync | **GitHub Actions** (already) | Deterministic, free for a public repo, no machine to keep awake |
 | Email extraction, near-match, anything needing judgment on a schedule | **Scheduled Claude task** — cloud, with the Gmail connector signed in as `sfquakerbot` | Runs without the Mini; Claude only does the judgment step, Actions does the rest |
 | Interactive development, reviews, new embed types | **Claude Code in the desktop app on the Mini**, repo folder connected | Where the bot identity lives: `gh` as SFQuakerBot, Chrome as sfquakerbot |
-| Live-site measurement, Sites editor work, Apps Script installs | **The Mini's browser**, driven from a desktop-app session | Needs a signed-in Chrome; nothing else does |
+| Sites editor work (resize, publish), Apps Script installs | **The Mini's browser**, via `tools/sites_editor.py` from a Remote Control or desktop-app session on the Mini (`docs/sites-editor-driver.md`) | Needs a signed-in Chrome; nothing else does. Live-site measurement (`tests/live_check.py`) runs anywhere that reaches sites.google.com, including cloud sessions |
 
 **Mini setup (once, at the console):**
 1. Energy Saver: never sleep, wake for network access.
