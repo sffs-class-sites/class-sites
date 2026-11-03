@@ -2,7 +2,7 @@
 
 Google Sites has no API (CLAUDE.md §5), so sizing an embed box or publishing a site is editor work. This script does that work from the command line, attached to a Chrome that a person signed in, so a Claude session never clicks through the editor one screenshot at a time. Written 2026-11-03.
 
-**Status (2026-11-03):** every command is built. `list` ran read-only on the real editor on 2026-11-02 (§4 has the record). `resize --apply` and `publish --apply` are built from the hooks that run confirmed, tested only on the mock editor (§7) and **not yet run on the real editor**; the first real run is the room-parents box on the 1st-grade homepage (§6). The real editor shows no size label, so `resize` measures the iframe after each drag and aims at the box's shape (h ÷ w), which is what Sites publishes (CLAUDE.md §5).
+**Status (2026-11-03):** every command is built. `list` ran read-only on the real editor on 2026-11-02 (§4 has the record). `resize --apply` ran on the real editor on 2026-11-02: it resized the room-parents box on the 1st-grade homepage, Ahin published that by hand, and the live check confirmed it on 2026-11-03 (§4, §6). `publish --apply` is tested only on the mock editor (§7) and has **not yet run on the real editor**. The real editor shows no size label, so `resize` measures the iframe after each drag and aims at the box's shape (h ÷ w), which is what Sites publishes (CLAUDE.md §5).
 
 ## 1. Set-up on the Mac (once per session, Ahin)
 
@@ -141,7 +141,7 @@ What the records also show:
 - Both sites' top bars carry an element labelled "Can't copy link for unpublished site". It is probably the copy-link button's disabled tooltip, always in the DOM. Not interpreted yet; look at it before building `publish`.
 - No size label is the main change for step 2: `resize` must measure the iframe after each drag.
 
-**2026-11-02 (evening), Ahin's Mac, Chrome 156.0.8078.80, Playwright 1.60.0, window maximised to 1830 × 1050 (viewport 1830 × 963) on a 1920 × 1080 screen.** First real `resize --apply`. Not published.
+**2026-11-02 (evening), Ahin's Mac, Chrome 156.0.8078.80, Playwright 1.60.0, window maximised to 1830 × 1050 (viewport 1830 × 963) on a 1920 × 1080 screen.** First real `resize --apply`. The script didn't publish; Ahin then published class-2034 by hand from the editor, so `publish --apply` still hasn't run for real. `python3 tests/live_check.py --site class-2034` on the Mac, 2026-11-03: **PASS**, room-parents 1154 × 772 (0.669) at 1440 and 352 × 235 (0.668) on an iPhone, no drift note (it was 1154 × 677 / 352 × 206, both drift, before).
 
 `python3 tools/sites_editor.py resize --site class-2034 --page home --embed room-parents --box card` (dry run, exit 0):
 
@@ -197,9 +197,9 @@ The cause is in the script, not the editor: on a reused tab, Playwright's frame 
 ## 6. The plan the brief sets out
 
 1. `list` (read-only) on both class sites: done, run on the Mac 2026-11-02, §4 filled. A re-run at a ≥1440px window is still needed for absolute box sizes.
-2. `resize`: built 2026-11-03 (there is no size label, so it measures the iframe after each drag and aims at the box's shape). Dry run by default; `--apply` drags; never publishes. **Run for real 2026-11-02 on class-2034 room-parents: 1154 × 677 → 1154 × 772 (0.669), not published** (§4).
+2. `resize`: built 2026-11-03 (there is no size label, so it measures the iframe after each drag and aims at the box's shape). Dry run by default; `--apply` drags; never publishes. **Run for real 2026-11-02 on class-2034 room-parents: 1154 × 677 → 1154 × 772 (0.669); Ahin published it by hand** (§4).
 3. `publish`: built 2026-11-03: click Publish, confirm in the dialog. Separate command so a resize can be inspected in the editor first. **Not yet run on the real editor**; the dialog has never been seen, so the first run may stop and ask for it to be recorded.
-4. Verify with `python3 tests/live_check.py --site class-2034`: the room-parents row should show h ÷ w 0.668 and no drift note; then update that slot's comment in `registry.yaml` and CLAUDE.md §7. Baseline run from a cloud session on 2026-11-03, before any resize: room-parents 1154 × 677 (0.587) on a desktop, 352 × 206 (0.585) on an iPhone, both listed as drift; everything else passed. That container reaches sites.google.com, so the check can run from there as well as from the Mac.
+4. Verify with `python3 tests/live_check.py --site class-2034`: the room-parents row should show h ÷ w 0.668 and no drift note; then update that slot's comment in `registry.yaml` and CLAUDE.md §7. Baseline run from a cloud session on 2026-11-03, before any resize: room-parents 1154 × 677 (0.587) on a desktop, 352 × 206 (0.585) on an iPhone, both listed as drift; everything else passed. That container reaches sites.google.com, so the check can run from there as well as from the Mac. **Done 2026-11-03** on the Mac after Ahin published: PASS, room-parents 1154 × 772 (0.669) on a desktop and 352 × 235 (0.668) on an iPhone, no drift note; `registry.yaml` and CLAUDE.md §7 updated.
 
 ## 7. Mock test
 

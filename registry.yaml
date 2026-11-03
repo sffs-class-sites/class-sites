@@ -64,7 +64,7 @@ sites:
       - page: home
         embed: room-parents   # under the welcome text; replaced the pasted glitter list 2026-10-31
         query: {class: 2034}
-        box: card             # live box is still 935 x 549 (h/w 0.587, placed 2026-10-31): the daily check lists the drift until it is dragged to 935 x 625
+        box: card             # at card since 2026-11-02: tools/sites_editor.py resize took it from h/w 0.586 to 0.669, Ahin published; live 1154 x 772 desktop, 352 x 235 iPhone (live check 2026-11-03, no drift)
         status: url
   scratch:                 # test Site on Ahin's personal account; delete once the pattern is proven
     name: Scratch embed test
