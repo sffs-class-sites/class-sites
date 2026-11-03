@@ -6,13 +6,21 @@ Google Sites has no API (CLAUDE.md §5), so sizing an embed box or publishing a 
 
 ## 1. Set-up on the Mac (once per session, Ahin)
 
-1. Start Chrome with remote debugging on a profile that is signed in as `classpages@sffriendsschool.org` (admin on the class Sites). The script never handles a password, never launches a browser of its own, and is not headless: it drives the account's own window.
+1. Start Chrome for the script. The script can do it (added 2026-11-03, tested on Linux with a fake profile only; **not yet run on the Mac**):
+
+   ```bash
+   python3 tools/sites_editor.py chrome
+   ```
+
+   It looks in `~/Library/Application Support/Google/Chrome/classpages` (override: `--user-data-dir`, or `SITES_EDITOR_CHROME_DIR`), a Chrome user data dir of its own, because Chrome 136+ refuses `--remote-debugging-port` on the default one. If that dir has a profile whose `Preferences` lists `classpages@sffriendsschool.org` under `account_info`, it starts the real Chrome app on it (`open -na "Google Chrome"`), maximised, debug port 9222, one blank tab, and waits for the port. If the dir is missing or not signed in, it starts Chrome there on the Google sign-in page, says so, and exits 1: a person signs in as `classpages@` once, then runs the command again. If the port is already up it does nothing. If a Chrome on that dir is already running without the port, macOS just focuses it and the command stops after 20 s with that explanation: quit that window and run again. A Claude session on the Mini runs this behind its normal permission prompt. The script never handles a password, and it is not headless: it drives the account's own window.
+
+   By hand, the same thing is:
 
    ```bash
    open -na "Google Chrome" --args --remote-debugging-port=9222 --user-data-dir="$HOME/Library/Application Support/Google/Chrome/classpages"
    ```
 
-   The `--user-data-dir` is whichever profile directory holds the `classpages@` sign-in. A fresh directory works too: sign in by hand in that window, once. Make the window at least 1440px wide and as tall as the screen allows: below 1440 the editor scales its canvas (701px cards at 1200), so sizes print smaller than the registry's, though shapes still hold; and a drag needs the block's bottom edge plus the drag distance inside the window, or `resize` stops before touching anything. Keep at least one tab open in that Chrome, or Playwright can't attach (§4, record of real runs).
+   The `--user-data-dir` is the data dir that holds the `classpages@` sign-in. A fresh directory works too: sign in by hand in that window, once. Make the window at least 1440px wide and as tall as the screen allows: below 1440 the editor scales its canvas (701px cards at 1200), so sizes print smaller than the registry's, though shapes still hold; and a drag needs the block's bottom edge plus the drag distance inside the window, or `resize` stops before touching anything. Keep at least one tab open in that Chrome, or Playwright can't attach (§4, record of real runs).
 
 2. Python side (same as the live check):
 
@@ -36,6 +44,7 @@ One site, one page, one action per run. No command loops over sites. Every write
 
 | Command | Does | Writes to the Site? |
 |---|---|---|
+| `chrome` | starts the real Chrome on the `classpages@` data dir, maximised, debug port on, one tab (§1) | no |
 | `tabs` | lists the attached Chrome's tabs | no |
 | `list --site class-2034 --page home` | opens the site's editor (or reuses its open tab), selects the page in the Pages panel, finds each URL-embed block of ours by its `data-url`, prints its URL, query, box size and position in the editor, the wrapper frame's src and the iframe's ancestor chain; flags registered slots that are missing | no |
 | `list … --select` | also clicks each block's corner and reports whether the editor marked it selected (`aria-selected`), the hook `resize` relies on | no (a click selects; nothing changes) |

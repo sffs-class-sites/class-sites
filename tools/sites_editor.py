@@ -11,6 +11,7 @@ Docs, the editor DOM it depends on, and what has been tested: docs/sites-editor-
 
 Commands (one site, one page, one action per run; no loops over sites):
 
+    chrome                                 start Chrome for the script: the classpages@ data dir, maximised, debug port on
     tabs                                   what the attached Chrome has open
     list    --site class-2034 --page home  every embed on the page: URL, box, position (read-only)
     resize  --site .. --page .. --embed room-parents --box card [--apply]   drag the box to a standard shape
@@ -30,9 +31,14 @@ import datetime as dt
 import json
 import os
 import pathlib
+import platform
 import re
+import shutil
+import subprocess
 import sys
+import time
 import urllib.parse
+import urllib.request
 
 import yaml
 
@@ -48,6 +54,10 @@ PAGES = "https://sffs-class-sites.github.io/class-sites/"
 SITES = os.environ.get("SITES_EDITOR_ORIGIN", "https://sites.google.com")
 EDITOR = SITES + "/d/{site_id}/edit"
 CDP = "http://localhost:9222"
+ACCOUNT = "classpages@sffriendsschool.org"
+# A Chrome *user data dir* of its own, signed in once as classpages@ (Chrome 136+ refuses --remote-debugging-port
+# on the default data dir). Override with --user-data-dir or SITES_EDITOR_CHROME_DIR.
+CHROME_DIR = os.environ.get("SITES_EDITOR_CHROME_DIR") or str(pathlib.Path.home() / "Library/Application Support/Google/Chrome/classpages")
 PACE_MS = 1500          # pause after anything that changes what the editor shows; keeps actions human-paced
 LOAD_WAIT = 40          # × 500 ms to wait for the editor to lay its embeds out
 MIN_WINDOW_W = 1440     # registry boxes were measured in the editor at this width; narrower scales the canvas
@@ -130,8 +140,7 @@ def attach(pw, cdp):
         browser = pw.chromium.connect_over_cdp(cdp, timeout=10000)
     except PlaywrightError as e:
         raise Stop(f"can't attach to Chrome at {cdp} ({str(e).splitlines()[0]}).\n"
-                   f"Start Chrome with remote debugging, signed in as classpages@, with at least one tab open:\n"
-                   f'  open -na "Google Chrome" --args --remote-debugging-port=9222 --user-data-dir=<profile dir>')
+                   f"Start Chrome for the script first:  python3 tools/sites_editor.py chrome")
     if not browser.contexts:
         raise Stop("attached to Chrome but it has no browser context (no window open?)")
     return browser
@@ -450,6 +459,77 @@ def inventory(page, reg, site_key, slug, rows):
     return base
 
 
+# --- starting Chrome -----------------------------------------------------------------------------
+
+def profiles_in(data_dir):
+    """{profile directory name: [account emails]} for every profile in a Chrome user data dir."""
+    out = {}
+    for pref in pathlib.Path(data_dir).glob("*/Preferences"):
+        try:
+            info = json.loads(pref.read_text()).get("account_info") or []
+        except (OSError, ValueError):
+            continue
+        out[pref.parent.name] = [a.get("email", "") for a in info if isinstance(a, dict)]
+    return out
+
+
+def debug_port_up(cdp):
+    try:
+        with urllib.request.urlopen(cdp.rstrip("/") + "/json/version", timeout=2) as r:
+            return json.load(r).get("Browser")
+    except Exception:
+        return None
+
+
+def chrome_command(data_dir, profile, port, url):
+    """The command that starts the real Chrome app with this data dir, maximised, debug port on, one tab open."""
+    args = [f"--remote-debugging-port={port}", f"--user-data-dir={data_dir}", f"--profile-directory={profile}",
+            "--start-maximized", "--no-first-run", "--no-default-browser-check", url]
+    if os.environ.get("SITES_EDITOR_HEADLESS"):   # mock test only: no display on CI
+        args[0:0] = ["--headless=new", "--no-sandbox"]
+    if platform.system() == "Darwin" and not os.environ.get("PW_CHROMIUM"):
+        return ["open", "-na", "Google Chrome", "--args"] + args
+    exe = os.environ.get("PW_CHROMIUM") or shutil.which("google-chrome") or shutil.which("chromium")
+    if not exe:
+        raise Stop("no Chrome found: set PW_CHROMIUM=<path to the Chrome binary>")
+    return [exe] + args
+
+
+def cmd_chrome(a, reg):
+    cdp = a.cdp
+    port = urllib.parse.urlsplit(cdp).port or 9222
+    up = debug_port_up(cdp)
+    if up:
+        print(f"Chrome is already listening at {cdp} ({up}); nothing to start")
+        return 0
+    data_dir = pathlib.Path(a.user_data_dir).expanduser()
+    profiles = profiles_in(data_dir) if data_dir.exists() else {}
+    signed_in = [name for name, emails in profiles.items() if ACCOUNT in emails]
+    if not data_dir.exists() or not signed_in:
+        # First time: make the data dir, open Chrome on the Google sign-in page, and leave the sign-in to a person.
+        data_dir.mkdir(parents=True, exist_ok=True)
+        cmd = chrome_command(data_dir, "Default", port, "https://accounts.google.com/")
+        why = "doesn't exist yet" if not profiles else f"has no profile signed in as {ACCOUNT} (profiles: {profiles})"
+        print(f"{data_dir} {why}. Starting Chrome there on the Google sign-in page; sign in as {ACCOUNT} by hand, "
+              f"once, then run this command again. (This script never handles a password.)")
+        print("  " + " ".join(cmd))
+        subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return 1
+    profile = signed_in[0]
+    cmd = chrome_command(data_dir, profile, port, "about:blank")
+    print(f"starting Chrome with {data_dir} (profile {profile!r}, signed in as {ACCOUNT}), maximised, debug port {port}:")
+    print("  " + " ".join(cmd))
+    subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    for _ in range(40):
+        time.sleep(0.5)
+        up = debug_port_up(cdp)
+        if up:
+            print(f"Chrome is up: {up} at {cdp}. Next: list / resize / publish")
+            return 0
+    raise Stop(f"Chrome didn't open the debug port within 20 s. Most likely a Chrome using {data_dir} was already running "
+               f"without it (macOS then just focuses that window and ignores the flags): quit that window and run again")
+
+
 # --- commands -----------------------------------------------------------------------------------
 
 def cmd_tabs(a, reg):
@@ -627,6 +707,8 @@ def main(argv=None):
     ap.add_argument("--cdp", default=CDP, help=f"Chrome's remote-debugging URL (default {CDP})")
     ap.add_argument("--registry", default=str(ROOT / "registry.yaml"))
     sub = ap.add_subparsers(dest="cmd", required=True)
+    p = sub.add_parser("chrome", help="start the real Chrome on the classpages@ data dir, maximised, with the debug port on")
+    p.add_argument("--user-data-dir", default=CHROME_DIR, help=f"Chrome user data dir signed in as {ACCOUNT} (default {CHROME_DIR})")
     sub.add_parser("tabs", help="list what the attached Chrome has open")
     p = sub.add_parser("list", help="print every embed on one page of one site (read-only)")
     p.add_argument("--site", required=True, help="site key in registry.yaml, e.g. class-2034")
@@ -645,7 +727,7 @@ def main(argv=None):
     a = ap.parse_args(argv)
     try:
         reg = load_registry(a.registry)
-        return {"tabs": cmd_tabs, "list": cmd_list, "resize": cmd_resize, "publish": cmd_publish}[a.cmd](a, reg)
+        return {"chrome": cmd_chrome, "tabs": cmd_tabs, "list": cmd_list, "resize": cmd_resize, "publish": cmd_publish}[a.cmd](a, reg)
     except Stop as e:
         print(f"STOP: {e}", file=sys.stderr)
         return 1
