@@ -2,7 +2,7 @@
 
 Google Sites has no API (CLAUDE.md §5), so sizing an embed box or publishing a site is editor work. This script does that work from the command line, attached to a Chrome that a person signed in, so a Claude session never clicks through the editor one screenshot at a time. Written 2026-11-03.
 
-**Status (2026-11-03):** `list` is built and tested against a mock editor only (`tests/test_sites_editor.py`). **It has not yet run against the real editor**, because the session that wrote it ran in a cloud container with no connection to the Mac. `resize --apply` and `publish --apply` are not built: they wait for the DOM record in §4, which the first real `list --select --dump` run fills in. Until then both commands dry-run and `--apply` exits 2.
+**Status (2026-11-02, Mac time):** `list` is built and tested against a mock editor (`tests/test_sites_editor.py`). On 2026-11-02 it also ran read-only against the real editor for class-2034 and class-2032 (§4 has the record). The real editor shows no size label, so `resize` has to measure the iframe instead. `resize --apply` and `publish --apply` are still not built: both commands dry-run and `--apply` exits 2.
 
 ## 1. Set-up on the Mac (once per session, Ahin)
 
@@ -61,19 +61,84 @@ Google changes the editor without notice and its class names are obfuscated, so 
 
 | Script needs | How it looks for it | Status |
 |---|---|---|
-| The editor tab | a tab whose URL starts with `https://sites.google.com/d/<site_id>/`; otherwise opens `…/d/<site_id>/edit` | assumed (URL pattern from the task brief; the editor is expected to redirect to `…/p/<page id>/edit`) |
-| Signed-in check | a redirect to `accounts.google.com` means "not signed in", stop | assumed |
-| Who is signed in | `[aria-label^="Google Account"]` in the top bar (the avatar button, which names the account in Google apps) | assumed |
-| The Pages panel | `[role=tree]`; if absent, a `[role=tab]`/button labelled "Pages" is clicked to open it | assumed |
-| A page entry | the smallest visible element whose text is exactly the page title (`email-digest` → "Email Digest"), preferring one under `[role=tree]`/`[role=treeitem]`; clicked at its centre, then the editor URL is printed | assumed |
-| Our embeds | every frame on the editor page whose URL starts with `https://sffs-class-sites.github.io/class-sites/shared/<id>/`, as in `tests/live_check.py`; the outermost frame below the editor document is the block (Sites wraps URL embeds in a `*-atari-embeds.googleusercontent.com` frame on the published site; the editor is expected to do the same) | assumed |
-| Box size | the bounding box of that outermost iframe element, in CSS px of the editor window; expected to equal the editor's size label at a ≥1440px window | assumed |
-| Selecting a block | a click on the top edge of the nearest ancestor element that starts above the iframe (a click inside the iframe goes to the embed); falls back to the iframe's top-left corner | assumed |
-| Size label | after selecting, every visible text node matching `W × H` (digits, × or x), nearest the block first; its element's attributes are printed so the real hook can be recorded here | assumed; the mock shows one |
-| Resize handle | not yet looked for; expected at the bottom centre of the selected block | **not recorded** (needed for step 2) |
-| Publish | not yet looked for; expected a button labelled "Publish" and a confirmation dialog with its own "Publish" button | **not recorded** (needed for step 3) |
+| The editor tab | a tab whose URL starts with `https://sites.google.com/d/<site_id>/`; otherwise opens `…/d/<site_id>/edit` | **confirmed 2026-11-02**: `…/d/<site_id>/edit` redirects to `…/d/<site_id>/p/<page id>/edit` (class-2034 also added `?pli=1`) |
+| Signed-in check | a redirect to `accounts.google.com` means "not signed in", stop | assumed (not exercised: the profile was signed in) |
+| Who is signed in | `[aria-label^="Google Account"]` in the top bar (the avatar button, which names the account in Google apps) | **confirmed 2026-11-02**: `aria-label="Google Account: SFFS Class Pages (classpages@sffriendsschool.org)"` (a newline before the parenthesis) |
+| The Pages panel | `[role=tree]`; if absent, a `[role=tab]`/button labelled "Pages" is clicked to open it | **confirmed 2026-11-02**: the panel was closed; `[role=tab]` "Pages" opened it; one `[role=tree]` with one `[role=treeitem]` per top-level page (`aria-labelledby` = the page's id, `aria-selected="true"` on the current page). Item labels: "Home page, titled Home.", "Room Info.", "Email Digest.", "Resources. Child pages available." |
+| A page entry | the smallest visible element whose text is exactly the page title (`email-digest` → "Email Digest"), preferring one under `[role=tree]`/`[role=treeitem]`; clicked at its centre, then the editor URL is printed | **confirmed for Home 2026-11-02**: the element found is a role-less `div` inside the treeitem; the click worked. The editor had already opened on Home, so the URL didn't change: moving to a different page is not yet exercised |
+| Our embeds | every frame on the editor page whose URL starts with `https://sffs-class-sites.github.io/class-sites/shared/<id>/`, as in `tests/live_check.py`; the outermost frame below the editor document is the block (Sites wraps URL embeds in a `*-atari-embeds.googleusercontent.com` frame on the published site; the editor is expected to do the same) | **confirmed 2026-11-02**, but the wrapper differs: in the editor our page is a child of `https://www.gstatic.com/atari/embeds/<hash>/intermediate-frame-minified.html` (the `*-atari-embeds.googleusercontent.com` frames on the page belong to other Custom embeds, not ours). The wrapper's parent is `div[aria-label="Whole page embed"]`, which carries our URL in `data-url`. That is a hook that works without entering frames |
+| Box size | the bounding box of that outermost iframe element, in CSS px of the editor window; expected to equal the editor's size label at a ≥1440px window | **measured only at a 1200px window** (2026-11-02): the canvas is scaled, so card embeds measure 701 wide against the registry's 935 (×0.75). The h/w ratios still hold: class-2034 room-parents 0.586, important-dates 0.666; class-2032 important-dates 0.669 (card = 0.668). Re-run at ≥1440 before `resize` |
+| Selecting a block | a click on the top edge of the nearest ancestor element that starts above the iframe (a click inside the iframe goes to the embed); falls back to the iframe's top-left corner | **confirmed 2026-11-02** via the fallback (every ancestor shares the iframe's top edge). The corner click selects the block: its `div[role=gridcell][aria-label="IFRAME"]` gets `aria-selected="true" aria-grabbed="true"`, which is a usable "is selected" hook. On screen: a blue outline with 8 round handles, a floating toolbar ("Open in a new tab", "Remove") and a section toolbar on the left |
+| Size label | after selecting, every visible text node matching `W × H` (digits, × or x), nearest the block first; its element's attributes are printed so the real hook can be recorded here | **does not exist** (2026-11-02): the real editor shows no `W × H` label on a selected embed (none in either DOM record or screenshot). `resize` has to read the iframe's bounding box after each drag, not a label |
+| Resize handle | not yet looked for; expected at the bottom centre of the selected block | **seen, no DOM hook** (2026-11-02): the screenshot shows a round handle at the bottom centre of the selected block's outline, `(x + w/2, y + h)`, plus corners and side midpoints. No ARIA/role/data hook found for it in the dump; it would have to be driven by position |
+| Publish | not yet looked for; expected a button labelled "Publish" and a confirmation dialog with its own "Publish" button | **found, not clicked** (2026-11-02): `div[role=button]` with text "Publish", `data-tooltip="Publish"`, `guidedhelpid="at-appbar-publish"`; next to it a `[aria-label="Publish options"]` menu button. The confirmation dialog has not been seen |
 
-Record of real runs: *none yet*. When the first `list --select --dump` runs on the Mac, paste here: the date, the editor URL after selecting Home, the ancestor chain printed for a block, the element the size label lives in, and anything the script stopped on.
+### Record of real runs
+
+**2026-11-02, Ahin's Mac, Chrome 156.0.8078.80, Playwright 1.60.0, window 1200 × 919 (narrower than the 1440 the doc asks for).** Read-only; nothing in either Site was changed or published.
+
+What stopped the first attempt: Chrome had been started with `--remote-debugging-port=9222` but had **no tabs open**, and `tabs` failed with `STOP: can't attach to Chrome at http://localhost:9222 (BrowserType.connect_over_cdp: Protocol error (Browser.setDownloadBehavior): Browser context management is not supported.)`. Opening one tab (`curl -X PUT 'http://localhost:9222/json/new?about:blank'`) fixed it. Keep at least one Chrome window open before attaching.
+
+`python3 tools/sites_editor.py list --site class-2034 --page home --select --dump` (exit 0):
+
+```
+opening https://sites.google.com/d/1vqA_IFOx0oCDUi95RtQ-PPo-3LcD_szY/edit
+signed in as: Google Account: SFFS Class Pages  
+(classpages@sffriendsschool.org)
+page 'Home': clicked its entry in the <div role=None>; panel opened via [role=tab]:has-text("Pages"); editor URL unchanged (https://sites.google.com/d/1vqA_IFOx0oCDUi95RtQ-PPo-3LcD_szY/p/13dwUNzc1KK6w3xcGRqiyBHCDDldaatKq/edit?pli=1)
+window 1200 × 919 (device pixel ratio 1)  ← narrower than 1440; the canvas may be scaled, so sizes below may not be editor-box sizes
+- room-parents  https://sffs-class-sites.github.io/class-sites/shared/room-parents/?class=2034
+    box 701 × 411 (h/w 0.586) at x=117 y=634 in the window; registry box card = 935 × 625 (h/w 0.668)
+    wrapped by https://www.gstatic.com/atari/embeds/9581c1cb067d2cf0b0db63dc0d8422ac/intermediate-frame-minified.ht
+    iframe ancestors: iframe > div[aria-label='Whole page embed'] > div > div > div > div[role=gridcell][aria-label='IFRAME']
+- important-dates  https://sffs-class-sites.github.io/class-sites/shared/important-dates/
+    box 701 × 467 (h/w 0.666) at x=117 y=1766 in the window; registry box card = 935 × 625 (h/w 0.668)
+    wrapped by https://www.gstatic.com/atari/embeds/9581c1cb067d2cf0b0db63dc0d8422ac/intermediate-frame-minified.ht
+    iframe ancestors: iframe > div[aria-label='Whole page embed'] > div > div > div > div[role=gridcell][aria-label='IFRAME']
+- selected room-parents by clicking the iframe's top-left corner (no block element starts above it): size label(s) none found
+- selected important-dates by clicking the iframe's top-left corner (no block element starts above it): size label(s) none found
+DOM record written: /Users/thomasfamilybot/code/sffs/class-sites/_editor/class-2034-home-20261102-194812.json / .html / .png
+```
+
+`python3 tools/sites_editor.py list --site class-2032 --page home --select --dump` (exit 0):
+
+```
+opening https://sites.google.com/d/1x30kZaz22W2SSzdL3fTxNm0jbSVyKWo9/edit
+signed in as: Google Account: SFFS Class Pages  
+(classpages@sffriendsschool.org)
+page 'Home': clicked its entry in the <div role=None>; panel opened via [role=tab]:has-text("Pages"); editor URL unchanged (https://sites.google.com/d/1x30kZaz22W2SSzdL3fTxNm0jbSVyKWo9/p/1lD9M1-iZL34rVm03vuw-aotRWE5FtwNj/edit)
+window 1200 × 919 (device pixel ratio 1)  ← narrower than 1440; the canvas may be scaled, so sizes below may not be editor-box sizes
+- important-dates  https://sffs-class-sites.github.io/class-sites/shared/important-dates/
+    box 701 × 469 (h/w 0.669) at x=117 y=448 in the window; registry box card = 935 × 625 (h/w 0.668)
+    wrapped by https://www.gstatic.com/atari/embeds/9581c1cb067d2cf0b0db63dc0d8422ac/intermediate-frame-minified.ht
+    iframe ancestors: iframe > div[aria-label='Whole page embed'] > div > div > div > div[role=gridcell][aria-label='IFRAME']
+- selected important-dates by clicking the iframe's top-left corner (no block element starts above it): size label(s) none found
+DOM record written: /Users/thomasfamilybot/code/sffs/class-sites/_editor/class-2032-home-20261102-194828.json / .html / .png
+```
+
+Full ancestor chain from the DOM record (the same for all three embeds; obfuscated classes left out), from the iframe outwards:
+
+```
+iframe[tabindex=-1][name=<tile data-id>]          the gstatic wrapper frame; the box
+div[aria-label="Whole page embed"][data-url=<our embed URL>]   (height 0)
+div[aria-disabled=true]
+div
+div[data-id=<tile id>]
+div[role=gridcell][aria-label="IFRAME"][aria-selected][aria-grabbed][tabindex=-1]   selection state lives here
+div
+tile[data-id=<tile id>]
+div  (class includes row_Default)
+div
+row[data-id=<row id>]
+div  (class includes group_Default)
+```
+
+What the records also show:
+
+- Room-parents on class-2034 is the only embed off the card ratio (0.586 vs 0.668). That fits §6 step 4.
+- In the editor, the class-2034 room-parents embed renders its error state: "Couldn't load room parent contacts. Check your connection and try again." The published page wasn't checked here.
+- Both sites' top bars carry an element labelled "Can't copy link for unpublished site". It is probably the copy-link button's disabled tooltip, always in the DOM. Not interpreted yet; look at it before building `publish`.
+- No size label is the main change for step 2: `resize` must measure the iframe after each drag.
 
 ## 5. What the DOM record holds
 
@@ -85,7 +150,7 @@ Record of real runs: *none yet*. When the first `list --select --dump` runs on t
 
 ## 6. The plan the brief sets out
 
-1. `list` (read-only) on both class sites: done in code; **run it on the Mac and fill §4 before anything else.**
+1. `list` (read-only) on both class sites: done, run on the Mac 2026-11-02, §4 filled. A re-run at a ≥1440px window is still needed for absolute box sizes.
 2. `resize`: select the block, drag the bottom-centre handle until the size label reads the target height, reading the label after each drag (the editor snaps to a grid). Dry run by default; `--apply` drags; never publishes.
 3. `publish`: click Publish, confirm. Separate command so a resize can be inspected in the editor first.
 4. Verify with `python3 tests/live_check.py --site class-2034`: the room-parents row should show h ÷ w 0.668 and no drift note; then update that slot's comment in `registry.yaml` and CLAUDE.md §7.
