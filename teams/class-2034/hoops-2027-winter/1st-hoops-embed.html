@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="sffs-embed" content="1st-hoops-2027-winter@2026-10-29.28f5532d">
+<meta name="robots" content="noindex">
+<title>Super Friends · 1st Grade Basketball · Winter 2027</title>
+<style>
+:root{
+  --ink:#1f2937;--sub:#5b6472;--line:#e2e5ea;--bg:#fff;--panel:#f7f8fa;
+  --accent:#3457a6;--accent-light:#eaeffb;
+  --home:#1a7f5a;--home-bg:#e7f6ef;--away:#2166b0;--away-bg:#e8f1fb;
+  --today-bg:#fff6d8;--today-border:#e3c22b;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.45}
+.wrap{height:100%;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;border:2px solid #d6dff5;border-radius:12px;padding:16px}
+header{margin-bottom:10px}
+h1{font-size:1.35rem;margin:0 0 4px}
+.subtitle{margin:0 0 4px;color:var(--sub);font-size:.9rem}
+.venue{margin:0 0 10px;font-size:.9rem}
+.venue a{color:var(--accent);font-weight:600}
+.header-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn,.source-link{display:inline-flex;align-items:center;gap:6px;font-family:inherit;font-weight:600;font-size:.82rem;line-height:1;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--accent);text-decoration:none;cursor:pointer}
+.btn:hover,.source-link:hover{background:var(--accent-light)}
+.toolbar{position:sticky;top:-16px;z-index:5;background:#fff;margin:0 -16px;padding:10px 16px 8px;border-bottom:1px solid var(--line)}
+.row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;align-items:center}
+.row::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;font-family:inherit;font-weight:600;font-size:.8rem;line-height:1;padding:7px 11px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.chip:hover{background:var(--accent-light)}
+.chip.on,.chip.pref.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip:focus-visible,.btn:focus-visible,.add:focus-visible,.source-link:focus-visible,.venue a:focus-visible{outline:3px solid #f0a055;outline-offset:2px}
+.chip[hidden]{display:none}
+.toggle{font-size:.8rem;color:var(--sub);display:inline-flex;align-items:center;gap:6px;margin-left:auto;white-space:nowrap}
+table{width:100%;border-collapse:collapse;margin-top:6px}
+td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top;font-size:.9rem}
+.month-row td{background:var(--panel);font-weight:700;color:var(--accent);padding:7px 8px;scroll-margin-top:96px}
+.date-cell,.time-cell{white-space:nowrap;font-weight:700;width:1%}
+.time-cell{font-weight:600}
+.badge{display:inline-block;font-weight:700;font-size:.72rem;line-height:1;padding:4px 7px;border-radius:999px;white-space:nowrap;margin-right:4px}
+.badge.home{color:var(--home);background:var(--home-bg)}.badge.away{color:var(--away);background:var(--away-bg)}
+.event-title{font-weight:600}
+.event-details{color:var(--sub);font-size:.84rem;margin-top:2px}
+tr.off td{color:var(--sub)}
+tr.off .event-title{font-weight:500;font-style:italic}
+.next-flag{display:inline-block;margin-left:8px;font-size:.64rem;font-weight:800;letter-spacing:.04em;color:#fff;background:var(--accent);border-radius:999px;padding:3px 7px;vertical-align:2px}
+.addall-note{margin:8px 0 0;color:var(--sub);font-size:.8rem}
+.pref-row{margin-top:10px;padding:10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.pref-label{margin:0 0 8px;font-size:.84rem;font-weight:600}
+.pref-pills{display:flex;flex-wrap:wrap;gap:6px}
+.pref-hint{display:block;margin-top:6px;font-size:.75rem;color:var(--sub)}
+.action-cell{white-space:nowrap;text-align:right;width:1%}
+.add{font-family:inherit;font-weight:600;font-size:.75rem;line-height:1;padding:6px 9px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--accent);text-decoration:none;cursor:pointer;display:inline-block;margin-left:4px}
+.add:hover{background:var(--accent-light)}
+tr.today td{background:var(--today-bg)}
+tr.today td:first-child{box-shadow:inset 4px 0 0 var(--today-border)}
+tr[hidden]{display:none}
+.empty{padding:18px;text-align:center;color:var(--sub)}
+.sffs-fade{position:fixed;left:2px;right:2px;bottom:2px;height:58px;z-index:8;pointer-events:none;background:linear-gradient(to bottom,rgba(255,255,255,0),#fff 72%);border-radius:0 0 10px 10px}
+.sffs-hint{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:9;pointer-events:none;white-space:nowrap;font:600 12px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#3457a6;background:#eaeffb;border:1px solid #d6dff5;padding:7px 13px;border-radius:999px;box-shadow:0 1px 5px rgba(0,0,0,.13)}
+.sffs-fade[hidden],.sffs-hint[hidden]{display:none}
+@media (max-width:560px){
+  .wrap{padding:12px}
+  .toolbar{top:-12px;margin:0 -12px;padding:8px 12px}
+  h1{font-size:1.15rem}
+  table,tbody,tr,td{display:block;width:100%}
+  tr.month-row td{margin-top:8px;border-radius:8px;border:0}
+  tr.ev{border:1px solid var(--line);border-radius:12px;padding:9px 11px;margin:8px 0;display:grid;grid-template-columns:auto 1fr;column-gap:10px;row-gap:4px}
+  tr.ev[hidden]{display:none}
+  tr.ev td{border:0;padding:0;width:auto}
+  .date-cell{grid-column:1}
+  .time-cell{grid-column:2;text-align:right}
+  .what-cell{grid-column:1/3}
+  .action-cell{grid-column:1/3;text-align:left}
+  tr.off .action-cell,tr.off .time-cell{display:none}
+  .add{margin:2px 6px 0 0}
+}
+@media print{html,body{height:auto}body{overflow:visible}.wrap{height:auto;overflow:visible;border:0}.toolbar,.action-cell,.header-actions,.pref-row,.addall-note,.sffs-fade,.sffs-hint{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header>
+    <h1>Super Friends · 1st Grade Basketball · Winter 2027</h1>
+    <p class="subtitle">Every game is at St. Stephen School and lasts one hour.</p>
+    <p class="venue">St. Stephen School, 473 Eucalyptus Dr, San Francisco, CA 94132 &nbsp;<a href="https://www.google.com/maps/search/?api=1&amp;query=St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132" target="_blank" rel="noopener noreferrer">Map ↗</a></p>
+    <div class="header-actions">
+      <a class="source-link" href="https://docs.google.com/spreadsheets/d/1yt4BqKV1B9GRYvB8HigbZp232yIL1bL7k44elidcheU/edit?gid=1029480334#gid=1029480334" target="_blank" rel="noopener noreferrer">Full league schedule ↗</a>
+      <button type="button" class="btn" id="addall">Add all games to my calendar</button>
+    </div>
+    <p class="addall-note" id="addall-note"></p>
+    <div class="pref-row">
+      <p class="pref-label">Which calendar do you use? Each game below will get one matching "add" button.</p>
+      <div class="pref-pills" role="group" aria-label="Your calendar">
+        <button type="button" class="chip pref" data-pref="google" aria-pressed="false">Google Calendar</button>
+        <button type="button" class="chip pref" data-pref="outlook" aria-pressed="false">Outlook</button>
+        <button type="button" class="chip pref" data-pref="apple" aria-pressed="false">Apple Calendar</button>
+      </div>
+      <span class="pref-hint">Remembers your choice next time you visit this page.</span>
+    </div>
+  </header>
+  <nav class="toolbar" id="toolbar" aria-label="Jump to month">
+    <div class="row" role="group" aria-label="Jump to month"><button type="button" class="chip jump" data-jump="m-2027-01">Jan</button><button type="button" class="chip jump" data-jump="m-2027-02">Feb</button>
+      <label class="toggle"><input type="checkbox" id="showpast"> Show past games</label>
+    </div>
+  </nav>
+  <table><tbody id="cal-body">
+<tr class="month-row" id="m-2027-01" data-month="m-2027-01"><td colspan="4">January 2027</td></tr>
+<tr class="ev game" data-i="0" data-date="2027-01-03" data-month="m-2027-01"><td class="date-cell">Sun, Jan 3</td><td class="time-cell">11:00 AM</td><td class="what-cell"><div class="event-title">vs. Alvarado Cougars</div><div class="event-details"><span class="badge away">Away</span> Court 2</div></td><td class="action-cell"></td></tr>
+<tr class="ev game" data-i="1" data-date="2027-01-10" data-month="m-2027-01"><td class="date-cell">Sun, Jan 10</td><td class="time-cell">11:00 AM</td><td class="what-cell"><div class="event-title">vs. Paws</div><div class="event-details"><span class="badge home">Home</span> Court 2</div></td><td class="action-cell"></td></tr>
+<tr class="ev game" data-i="2" data-date="2027-01-17" data-month="m-2027-01"><td class="date-cell">Sun, Jan 17</td><td class="time-cell">11:00 AM</td><td class="what-cell"><div class="event-title">vs. Dunking Dragons</div><div class="event-details"><span class="badge home">Home</span> Court 2</div></td><td class="action-cell"></td></tr>
+<tr class="ev game" data-i="3" data-date="2027-01-24" data-month="m-2027-01"><td class="date-cell">Sun, Jan 24</td><td class="time-cell">8:00 AM</td><td class="what-cell"><div class="event-title">vs. Cubs</div><div class="event-details"><span class="badge home">Home</span> Court 2</div></td><td class="action-cell"></td></tr>
+<tr class="ev game" data-i="4" data-date="2027-01-31" data-month="m-2027-01"><td class="date-cell">Sun, Jan 31</td><td class="time-cell">12:00 PM</td><td class="what-cell"><div class="event-title">vs. Jaguars</div><div class="event-details"><span class="badge away">Away</span> Court 2</div></td><td class="action-cell"></td></tr>
+<tr class="month-row" id="m-2027-02" data-month="m-2027-02"><td colspan="4">February 2027</td></tr>
+<tr class="ev game" data-i="5" data-date="2027-02-07" data-month="m-2027-02"><td class="date-cell">Sun, Feb 7</td><td class="time-cell">11:00 AM</td><td class="what-cell"><div class="event-title">vs. Jaguars 2</div><div class="event-details"><span class="badge away">Away</span> Court 1</div></td><td class="action-cell"></td></tr>
+<tr class="ev off" data-date="2027-02-14" data-month="m-2027-02"><td class="date-cell">Sun, Feb 14</td><td class="time-cell">&nbsp;</td><td class="what-cell"><div class="event-title">No game this week</div></td><td class="action-cell"></td></tr>
+<tr class="ev game" data-i="6" data-date="2027-02-21" data-month="m-2027-02"><td class="date-cell">Sun, Feb 21</td><td class="time-cell">11:00 AM</td><td class="what-cell"><div class="event-title">vs. Celtics</div><div class="event-details"><span class="badge home">Home</span> Court 2</div></td><td class="action-cell"></td></tr>
+<tr class="ev game" data-i="7" data-date="2027-02-28" data-month="m-2027-02"><td class="date-cell">Sun, Feb 28</td><td class="time-cell">2:00 PM</td><td class="what-cell"><div class="event-title">vs. Pegasus 1</div><div class="event-details"><span class="badge away">Away</span> Court 2</div></td><td class="action-cell"></td></tr>
+  </tbody></table>
+  <p class="empty" id="empty" hidden>No games to show.</p>
+</div>
+<div class="sffs-fade" hidden></div>
+<div class="sffs-hint" hidden>Scroll for more &#8595;</div>
+<script>
+(function(){
+  var ICS = ["BEGIN:VEVENT\r\nUID:2027-01-03-super-friends@sffs-1st-hoops\r\nDTSTAMP:20261029T000000Z\r\nDTSTART:20270103T190000Z\r\nDTEND:20270103T200000Z\r\nSUMMARY:Super Friends vs. Alvarado Cougars (1st Grade Hoops)\r\nDESCRIPTION:Away game\\, Court 2. St. Stephen School\\, 473 Eucalyptus Dr\\, San Francisco\\, CA 94132\r\nLOCATION:St. Stephen School\\, 473 Eucalyptus Dr\\, San Francisco\\, CA 94132\r\nEND:VEVENT", "BEGIN:VEVENT\r\nUID:2027-01-10-super-friends@sffs-1st-hoops\r\nDTSTAMP:20261029T000000Z\r\nDTSTART:20270110T190000Z\r\nDTEND:20270110T200000Z\r\nSUMMARY:Super Friends vs. Paws (1st Grade Hoops)\r\nDESCRIPTION:Home game\\, Court 2. St. Stephen School\\, 473 Eucalyptus Dr\\, San Francisco\\, CA 94132\r\nLOCATION:St. Stephen School\\, 473 Eucalyptus Dr\\, San Francisco\\, CA 94132\r\nEND:VEVENT", "BEGIN:VEVENT\r\nUID:2027-01-17-super-friends@sffs-1st-hoops\r\nDTSTAMP:20261029T000000Z\r\nDTSTART:20270117T190000Z\r\nDTEND:20270117T200000Z\r\nSUMMARY:Super Friends vs. Dunking Dragons (1st Grade Hoops)\r\nDESCRIPTION:Home game\\, Court 2. St. Stephen School\\, 473 Eucalyptus Dr\\, San Francisco\\, CA 94132\r\nLOCATION:St. Stephen School\\, 473 Eucalyptus Dr\\, San Francisco\\, CA 94132\r\nEND:VEVENT", "BEGIN:VEVENT\r\nUID:2027-01-24-super-friends@sffs-1st-hoops\r\nDTSTAMP:20261029T000000Z\r\nDTSTART:20270124T160000Z\r\nDTEND:20270124T170000Z\r\nSUMMARY:Super Friends vs. Cubs (1st Grade Hoops)\r\nDESCRIPTION:Home game\\, Court 2. St. Stephen School\\, 473 Eucalyptus Dr\\, San Francisco\\, CA 94132\r\nLOCATION:St. Stephen School\\, 473 Eucalyptus Dr\\, San Francisco\\, CA 94132\r\nEND:VEVENT", "BEGIN:VEVENT\r\nUID:2027-01-31-super-friends@sffs-1st-hoops\r\nDTSTAMP:20261029T000000Z\r\nDTSTART:20270131T200000Z\r\nDTEND:20270131T210000Z\r\nSUMMARY:Super Friends vs. Jaguars (1st Grade Hoops)\r\nDESCRIPTION:Away game\\, Court 2. St. Stephen School\\, 473 Eucalyptus Dr\\, San Francisco\\, CA 94132\r\nLOCATION:St. Stephen School\\, 473 Eucalyptus Dr\\, San Francisco\\, CA 94132\r\nEND:VEVENT", "BEGIN:VEVENT\r\nUID:2027-02-07-super-friends@sffs-1st-hoops\r\nDTSTAMP:20261029T000000Z\r\nDTSTART:20270207T190000Z\r\nDTEND:20270207T200000Z\r\nSUMMARY:Super Friends vs. Jaguars 2 (1st Grade Hoops)\r\nDESCRIPTION:Away game\\, Court 1. St. Stephen School\\, 473 Eucalyptus Dr\\, San Francisco\\, CA 94132\r\nLOCATION:St. Stephen School\\, 473 Eucalyptus Dr\\, San Francisco\\, CA 94132\r\nEND:VEVENT", "BEGIN:VEVENT\r\nUID:2027-02-21-super-friends@sffs-1st-hoops\r\nDTSTAMP:20261029T000000Z\r\nDTSTART:20270221T190000Z\r\nDTEND:20270221T200000Z\r\nSUMMARY:Super Friends vs. Celtics (1st Grade Hoops)\r\nDESCRIPTION:Home game\\, Court 2. St. Stephen School\\, 473 Eucalyptus Dr\\, San Francisco\\, CA 94132\r\nLOCATION:St. Stephen School\\, 473 Eucalyptus Dr\\, San Francisco\\, CA 94132\r\nEND:VEVENT", "BEGIN:VEVENT\r\nUID:2027-02-28-super-friends@sffs-1st-hoops\r\nDTSTAMP:20261029T000000Z\r\nDTSTART:20270228T220000Z\r\nDTEND:20270228T230000Z\r\nSUMMARY:Super Friends vs. Pegasus 1 (1st Grade Hoops)\r\nDESCRIPTION:Away game\\, Court 2. St. Stephen School\\, 473 Eucalyptus Dr\\, San Francisco\\, CA 94132\r\nLOCATION:St. Stephen School\\, 473 Eucalyptus Dr\\, San Francisco\\, CA 94132\r\nEND:VEVENT"];
+  var META = [{"t": "Super Friends vs. Alvarado Cougars (1st Grade Hoops)", "f": "2027-01-03-super-friends.ics", "g": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=Super%20Friends%20vs.%20Alvarado%20Cougars%20(1st%20Grade%20Hoops)&dates=20270103T190000Z/20270103T200000Z&details=Away%20game%2C%20Court%202.%20St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132&location=St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132", "o": "https://outlook.live.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&startdt=2027-01-03T19%3A00%3A00Z&enddt=2027-01-03T20%3A00%3A00Z&subject=Super%20Friends%20vs.%20Alvarado%20Cougars%20(1st%20Grade%20Hoops)&body=Away%20game%2C%20Court%202.%20St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132&location=St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132"}, {"t": "Super Friends vs. Paws (1st Grade Hoops)", "f": "2027-01-10-super-friends.ics", "g": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=Super%20Friends%20vs.%20Paws%20(1st%20Grade%20Hoops)&dates=20270110T190000Z/20270110T200000Z&details=Home%20game%2C%20Court%202.%20St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132&location=St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132", "o": "https://outlook.live.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&startdt=2027-01-10T19%3A00%3A00Z&enddt=2027-01-10T20%3A00%3A00Z&subject=Super%20Friends%20vs.%20Paws%20(1st%20Grade%20Hoops)&body=Home%20game%2C%20Court%202.%20St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132&location=St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132"}, {"t": "Super Friends vs. Dunking Dragons (1st Grade Hoops)", "f": "2027-01-17-super-friends.ics", "g": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=Super%20Friends%20vs.%20Dunking%20Dragons%20(1st%20Grade%20Hoops)&dates=20270117T190000Z/20270117T200000Z&details=Home%20game%2C%20Court%202.%20St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132&location=St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132", "o": "https://outlook.live.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&startdt=2027-01-17T19%3A00%3A00Z&enddt=2027-01-17T20%3A00%3A00Z&subject=Super%20Friends%20vs.%20Dunking%20Dragons%20(1st%20Grade%20Hoops)&body=Home%20game%2C%20Court%202.%20St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132&location=St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132"}, {"t": "Super Friends vs. Cubs (1st Grade Hoops)", "f": "2027-01-24-super-friends.ics", "g": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=Super%20Friends%20vs.%20Cubs%20(1st%20Grade%20Hoops)&dates=20270124T160000Z/20270124T170000Z&details=Home%20game%2C%20Court%202.%20St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132&location=St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132", "o": "https://outlook.live.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&startdt=2027-01-24T16%3A00%3A00Z&enddt=2027-01-24T17%3A00%3A00Z&subject=Super%20Friends%20vs.%20Cubs%20(1st%20Grade%20Hoops)&body=Home%20game%2C%20Court%202.%20St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132&location=St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132"}, {"t": "Super Friends vs. Jaguars (1st Grade Hoops)", "f": "2027-01-31-super-friends.ics", "g": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=Super%20Friends%20vs.%20Jaguars%20(1st%20Grade%20Hoops)&dates=20270131T200000Z/20270131T210000Z&details=Away%20game%2C%20Court%202.%20St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132&location=St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132", "o": "https://outlook.live.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&startdt=2027-01-31T20%3A00%3A00Z&enddt=2027-01-31T21%3A00%3A00Z&subject=Super%20Friends%20vs.%20Jaguars%20(1st%20Grade%20Hoops)&body=Away%20game%2C%20Court%202.%20St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132&location=St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132"}, {"t": "Super Friends vs. Jaguars 2 (1st Grade Hoops)", "f": "2027-02-07-super-friends.ics", "g": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=Super%20Friends%20vs.%20Jaguars%202%20(1st%20Grade%20Hoops)&dates=20270207T190000Z/20270207T200000Z&details=Away%20game%2C%20Court%201.%20St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132&location=St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132", "o": "https://outlook.live.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&startdt=2027-02-07T19%3A00%3A00Z&enddt=2027-02-07T20%3A00%3A00Z&subject=Super%20Friends%20vs.%20Jaguars%202%20(1st%20Grade%20Hoops)&body=Away%20game%2C%20Court%201.%20St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132&location=St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132"}, {"t": "Super Friends vs. Celtics (1st Grade Hoops)", "f": "2027-02-21-super-friends.ics", "g": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=Super%20Friends%20vs.%20Celtics%20(1st%20Grade%20Hoops)&dates=20270221T190000Z/20270221T200000Z&details=Home%20game%2C%20Court%202.%20St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132&location=St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132", "o": "https://outlook.live.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&startdt=2027-02-21T19%3A00%3A00Z&enddt=2027-02-21T20%3A00%3A00Z&subject=Super%20Friends%20vs.%20Celtics%20(1st%20Grade%20Hoops)&body=Home%20game%2C%20Court%202.%20St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132&location=St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132"}, {"t": "Super Friends vs. Pegasus 1 (1st Grade Hoops)", "f": "2027-02-28-super-friends.ics", "g": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=Super%20Friends%20vs.%20Pegasus%201%20(1st%20Grade%20Hoops)&dates=20270228T220000Z/20270228T230000Z&details=Away%20game%2C%20Court%202.%20St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132&location=St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132", "o": "https://outlook.live.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&startdt=2027-02-28T22%3A00%3A00Z&enddt=2027-02-28T23%3A00%3A00Z&subject=Super%20Friends%20vs.%20Pegasus%201%20(1st%20Grade%20Hoops)&body=Away%20game%2C%20Court%202.%20St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132&location=St.%20Stephen%20School%2C%20473%20Eucalyptus%20Dr%2C%20San%20Francisco%2C%20CA%2094132"}];
+  var KEY = 'sffsCalendarPref', LABEL = {google: 'Google', outlook: 'Outlook', apple: 'Apple'};
+  function safeGet(k){ try { return localStorage.getItem(k); } catch(e) { return null; } }
+  function safeSet(k, v){ try { localStorage.setItem(k, v); } catch(e) {} }
+  var w = document.getElementById('wrap');
+  var bar = document.getElementById('toolbar');
+  var rows = [].slice.call(document.querySelectorAll('tr.ev'));
+  var games = rows.filter(function(r){ return r.classList.contains('game'); });
+  var months = [].slice.call(document.querySelectorAll('tr.month-row'));
+  var jumps = [].slice.call(document.querySelectorAll('.chip.jump'));
+  var showPast = document.getElementById('showpast');
+  var empty = document.getElementById('empty');
+
+  function ymd(s){ var p = s.split('-'); return new Date(+p[0], +p[1]-1, +p[2]); }
+  var today = new Date(); today.setHours(0,0,0,0);
+  if (/[?&]today=\d{4}-\d{2}-\d{2}/.test(location.search)) { today = ymd(location.search.match(/today=(\d{4}-\d{2}-\d{2})/)[1]); }  // for tests
+  function isPast(r){ return ymd(r.getAttribute('data-date')) < today; }
+  var allPast = rows.every(isPast);  // season over: show everything rather than an empty box
+
+  var upcoming = null;
+  games.forEach(function(r){
+    var a = ymd(r.getAttribute('data-date'));
+    if (a.getTime() === today.getTime()) r.classList.add('today');
+    if (!upcoming && a >= today) upcoming = r;
+  });
+  if (upcoming && !upcoming.classList.contains('today')) {
+    var flag = document.createElement('span'); flag.className = 'next-flag'; flag.textContent = 'NEXT UP';
+    upcoming.querySelector('.event-title').appendChild(flag);
+  }
+
+  function apply(){
+    var past = showPast.checked || allPast, any = false;
+    rows.forEach(function(r){ var hide = !past && isPast(r); r.hidden = hide; if (!hide) any = true; });
+    months.forEach(function(m){
+      var key = m.getAttribute('data-month');
+      var vis = rows.some(function(r){ return !r.hidden && r.getAttribute('data-month') === key; });
+      m.hidden = !vis;
+      jumps.forEach(function(j){ if (j.getAttribute('data-jump') === key) j.hidden = !vis; });
+    });
+    empty.hidden = any;
+    hint();
+  }
+
+  function jump(id){
+    var t = document.getElementById(id); if (!t) return;
+    var top = t.getBoundingClientRect().top - w.getBoundingClientRect().top - w.clientTop + w.scrollTop - bar.offsetHeight - 2;
+    try { w.scrollTo({top: Math.max(0, top), behavior: 'smooth'}); } catch(e) { w.scrollTop = Math.max(0, top); }
+  }
+  jumps.forEach(function(j){ j.addEventListener('click', function(){ jump(j.getAttribute('data-jump')); }); });
+  showPast.addEventListener('change', apply);
+
+  function download(name, text){
+    var blob = new Blob([text], {type: 'text/calendar;charset=utf-8'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  }
+  function wrapCal(list){
+    return 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//SFFS Class Page//1st Grade Hoops//EN\r\nCALSCALE:GREGORIAN\r\n' + list.join('\r\n') + '\r\nEND:VCALENDAR\r\n';
+  }
+  document.getElementById('addall').addEventListener('click', function(){
+    download('Super-Friends-winter-2027-games.ics', wrapCal(ICS));
+  });
+
+  var NOTE = {
+    google: 'Downloads a calendar file with every game. In Google Calendar, go to <strong>Settings &rarr; Import &amp; export &rarr; Import</strong> and choose the downloaded file to add them all at once.',
+    outlook: 'Downloads a calendar file with every game. In Outlook, open the file (or use <strong>Import</strong> in your calendar settings) to add them all at once.',
+    apple: 'Downloads a calendar file with every game. Open it and Apple Calendar will offer to add them all at once.'
+  };
+  function renderButtons(pref){
+    games.forEach(function(r){
+      var i = +r.getAttribute('data-i'), m = META[i], cell = r.querySelector('.action-cell'), el;
+      cell.textContent = '';
+      if (pref === 'apple') {
+        el = document.createElement('button'); el.type = 'button';
+        el.addEventListener('click', function(){ download(m.f, wrapCal([ICS[i]])); });
+      } else {
+        el = document.createElement('a'); el.href = pref === 'outlook' ? m.o : m.g;
+        el.target = '_blank'; el.rel = 'noopener noreferrer';
+      }
+      el.className = 'add cal-btn';
+      el.textContent = '+ ' + LABEL[pref];
+      el.setAttribute('aria-label', 'Add ' + m.t + ' to ' + LABEL[pref] + (pref === 'apple' ? ' Calendar' : ''));
+      cell.appendChild(el);
+    });
+  }
+  function setPref(pref){
+    if (!LABEL[pref]) pref = 'google';
+    [].slice.call(document.querySelectorAll('.chip.pref')).forEach(function(b){
+      var on = b.getAttribute('data-pref') === pref; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on);
+    });
+    document.getElementById('addall-note').innerHTML = NOTE[pref];
+    renderButtons(pref);
+  }
+  [].slice.call(document.querySelectorAll('.chip.pref')).forEach(function(b){
+    b.addEventListener('click', function(){ var p = b.getAttribute('data-pref'); safeSet(KEY, p); setPref(p); });
+  });
+  setPref(safeGet(KEY) || 'google');
+
+  var h = document.querySelector('.sffs-hint'), f = document.querySelector('.sffs-fade');
+  function hint(){ var more = w.scrollHeight - w.clientHeight - w.scrollTop > 8; h.hidden = !more; f.hidden = !more; }
+  w.addEventListener('scroll', hint, {passive: true});
+  window.addEventListener('resize', hint);
+  if (window.ResizeObserver) new ResizeObserver(hint).observe(w);
+
+  apply();
+})();
+</script>
+</body>
+</html>

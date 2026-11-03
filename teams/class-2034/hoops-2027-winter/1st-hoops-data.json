@@ -1,0 +1,31 @@
+{
+  "id": "1st-hoops-2027-winter",
+  "title": "Super Friends · 1st Grade Basketball · Winter 2027",
+  "subtitle": "Every game is at St. Stephen School and lasts one hour.",
+  "team": "Super Friends",
+  "event_suffix": "(1st Grade Hoops)",
+  "duration_minutes": 60,
+  "timezone_note": "All games fall before DST starts on 2027-03-14, so Pacific = UTC-8.",
+  "utc_offset_hours": -8,
+  "source": {
+    "url": "https://docs.google.com/spreadsheets/d/1yt4BqKV1B9GRYvB8HigbZp232yIL1bL7k44elidcheU/edit?gid=1029480334#gid=1029480334",
+    "label": "Full league schedule",
+    "tab": "1st Grade Hoops",
+    "retrieved": "2026-10-29"
+  },
+  "venue": {
+    "name": "St. Stephen School",
+    "address": "473 Eucalyptus Dr, San Francisco, CA 94132"
+  },
+  "games": [
+    {"date": "2027-01-03", "time": "11:00", "opponent": "Alvarado Cougars", "home_away": "Away", "court": "Court 2"},
+    {"date": "2027-01-10", "time": "11:00", "opponent": "Paws", "home_away": "Home", "court": "Court 2"},
+    {"date": "2027-01-17", "time": "11:00", "opponent": "Dunking Dragons", "home_away": "Home", "court": "Court 2"},
+    {"date": "2027-01-24", "time": "08:00", "opponent": "Cubs", "home_away": "Home", "court": "Court 2"},
+    {"date": "2027-01-31", "time": "12:00", "opponent": "Jaguars", "home_away": "Away", "court": "Court 2"},
+    {"date": "2027-02-07", "time": "11:00", "opponent": "Jaguars 2", "home_away": "Away", "court": "Court 1"},
+    {"date": "2027-02-14", "no_game": true},
+    {"date": "2027-02-21", "time": "11:00", "opponent": "Celtics", "home_away": "Home", "court": "Court 2"},
+    {"date": "2027-02-28", "time": "14:00", "opponent": "Pegasus 1", "home_away": "Away", "court": "Court 2"}
+  ]
+}
