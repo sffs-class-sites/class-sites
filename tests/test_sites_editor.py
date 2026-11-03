@@ -174,7 +174,7 @@ def main():
         run(["tabs"], 0, "context 0")
         out = run(["list", "--site", "class-2034", "--page", "home", "--select", "--dump"], 0,
                   "classpages@sffriendsschool.org", "935 × 625 (h/w 0.668)", "935 × 549 (h/w 0.587)", "registry box card",
-                  "block data-url: " + PAGES + "shared/room-parents/?class=2034", "DOM record written", "pages tree",
+                  "with this data-url; our page is in Playwright's frame tree", "DOM record written", "pages tree",
                   "selected room-parents by a corner click: editor marks it selected = True")
         if "updates" in out.split("signed in as")[1]:
             problems.append("list home: updates (on the other page) was listed")

@@ -241,30 +241,25 @@ def go_to_page(page, slug):
 
 # --- embeds on the canvas -----------------------------------------------------------------------
 
-def top_frame(frame):
-    """The outermost frame below the editor document that contains this frame (Sites wraps URL embeds)."""
-    while frame.parent_frame and frame.parent_frame.parent_frame:
-        frame = frame.parent_frame
-    return frame
-
-
-def our_frames(page, reg):
-    """[(embed id, frame)] for every frame on the editor page whose URL is one of our Pages embeds."""
+def our_blocks(page, reg):
+    """[(embed id, query, block element)] for every URL-embed block on the editor page whose data-url is one of ours.
+    Found in the editor document itself: on a tab that was open before the script attached, Playwright's frame tree
+    shows the gstatic wrapper frames with an empty URL and nothing below them (2026-11-02), so frames can't be relied on."""
     out = []
-    for f in page.frames:
-        eid, _ = embed_of(reg, f.url)
+    for b in page.query_selector_all(BLOCK_SEL):
+        eid, q = embed_of(reg, b.get_attribute("data-url") or "")
         if eid:
-            out.append((eid, f))
+            out.append((eid, q, b))
     return out
 
 
 def wait_for_embeds(page, reg, expected):
     for _ in range(LOAD_WAIT):
-        found = our_frames(page, reg)
+        found = our_blocks(page, reg)
         if len(found) >= expected:
             return found
         page.wait_for_timeout(500)
-    return our_frames(page, reg)
+    return our_blocks(page, reg)
 
 
 ANCESTORS_JS = """
@@ -292,29 +287,24 @@ MEASURE_JS = """
 
 
 def describe_embeds(page, reg, slots):
-    """One row per embed of ours on the canvas, outermost frame first, sorted top to bottom."""
+    """One row per URL-embed block of ours on the canvas, sorted top to bottom."""
     rows = []
-    seen = set()
-    for eid, frame in wait_for_embeds(page, reg, len(slots)):
-        outer = top_frame(frame)
-        if outer in seen:
-            continue
-        seen.add(outer)
-        try:
-            el = outer.frame_element()
-        except PlaywrightError:
-            continue
+    frames = {f.url for f in page.frames}
+    for eid, q, block in wait_for_embeds(page, reg, len(slots)):
+        el = block_iframe(block)
         m = el.evaluate(MEASURE_JS)
+        url = block.get_attribute("data-url")
         rows.append({
             "embed": eid,
-            "url": frame.url,
-            "query": url_query(frame.url),
-            "wrapper_url": outer.url if outer is not frame else None,
+            "url": url,
+            "query": q,
+            "wrapper_url": el.get_attribute("src"),
+            "frame_seen": url in frames,   # whether Playwright's frame tree also shows our page (it doesn't on a reused tab)
             "x": round(m["x"]), "y": round(m["y"]), "w": round(m["w"]), "h": round(m["h"]),
             "layout_w": m["layout_w"], "layout_h": m["layout_h"],
             "sandbox": el.get_attribute("sandbox"),
             "ancestors": el.evaluate(ANCESTORS_JS),
-            "block_data_url": el.evaluate(f"e => e.closest('{BLOCK_SEL}')?.getAttribute('data-url')"),
+            "block_data_url": url,
         })
     rows.sort(key=lambda r: (r["y"], r["x"]))
     return rows
@@ -476,7 +466,7 @@ def show_rows(reg, site, slug, rows, vp):
     slots = slots_on(site, slug)
     print(f"window {vp['w']} × {vp['h']} (device pixel ratio {vp['dpr']})" + window_note(vp))
     if not rows:
-        print("no embed of ours on this page (no frame whose URL starts with " + PAGES + "shared/...)")
+        print(f"no embed of ours on this page (no {BLOCK_SEL} whose data-url starts with {PAGES}shared/...)")
     for r in rows:
         want = next((s for s in slots if s["embed"] == r["embed"] and slot_query(s) == r["query"]), None)
         box = box_of(reg, want["box"]) if want and want.get("box") else None
@@ -489,14 +479,14 @@ def show_rows(reg, site, slug, rows, vp):
             print(f"    laid out at {r['layout_w']} × {r['layout_h']}, drawn scaled ×{round(r['w'] / r['layout_w'], 3)}")
         if r["wrapper_url"]:
             print(f"    wrapped by {r['wrapper_url'][:100]}")
-        print(f"    block data-url: {r['block_data_url'] or 'none (' + BLOCK_SEL + ' not found above the iframe)'}")
+        print(f"    block: {BLOCK_SEL[:36]}…] with this data-url; our page {'is' if r['frame_seen'] else 'is not'} in Playwright's frame tree")
         chain = " > ".join(f"{p['tag']}" + (f"[role={p['attrs']['role']}]" if 'role' in p['attrs'] else "")
                            + (f"[aria-label={p['attrs']['aria-label']!r}]" if 'aria-label' in p['attrs'] else "")
                            for p in r["ancestors"][:6])
         print(f"    iframe ancestors: {chain}")
     for s in slots:
         if not any(r["embed"] == s["embed"] for r in rows):
-            print(f"- MISSING: registry lists {s['embed']} on this page but no frame of ours carries its URL")
+            print(f"- MISSING: registry lists {s['embed']} on this page but no URL-embed block carries its URL")
 
 
 def cmd_list(a, reg):
