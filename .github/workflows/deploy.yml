@@ -87,6 +87,9 @@ jobs:
       - name: Updates embed check (tabs, grade picker, class rollover, phone first view)
         run: python3 tests/updates_check.py
 
+      - name: Live check self-test (fake Site built from this build; the real Sites are checked daily)
+        run: python3 tests/live_check.py --mock
+
       - name: Upload screenshots
         if: always()
         uses: actions/upload-artifact@v4

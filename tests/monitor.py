@@ -181,7 +181,8 @@ small{{color:var(--sub)}} code{{font-size:.8rem}}
 <h2>Shared embeds</h2>
 <div class="wrap"><table><thead><tr><th>Embed</th><th>Status</th><th>Version</th><th>Notes</th></tr></thead><tbody>{emb_rows}</tbody></table></div>
 <p class="legend">The ball fills as a site's embed slots become healthy: URL embeds, or pasted code where that's by design (empty = none, full = all).
-<b>Needs attention</b> means it works but has a to-do, such as an old pasted copy. <b>Broken</b> opens an issue for Ahin.</p>
+<b>Needs attention</b> means it works but has a to-do, such as an old pasted copy. <b>Broken</b> opens an issue for Ahin.
+Box sizes, <code>?class=</code> and clicks inside the embeds are measured daily by the <a href="https://github.com/sffs-class-sites/class-sites/actions/workflows/live-check.yml" target="_blank" rel="noopener">Live Sites check</a> (its report is in each run's summary).</p>
 </main></body></html>
 """
 

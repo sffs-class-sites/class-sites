@@ -47,7 +47,7 @@ On an iPhone, in Safari and in Chrome:
 ## 4. Afterwards
 
 - The next status check (daily, or on the next deploy) shows *Needs attention: now a URL embed: set status: url in registry.yaml*. That's the cue to change the site's slot in `registry.yaml` from `pasted-code` to `url` and delete its `hash` line. Ask Claude, or edit it in a PR. The status then turns *OK*, and the Harvey ball fills.
-- The daily live check already covers the URL embed on the scratch Site. Once both class sites are swapped, the scratch Site can be deleted (CLAUDE.md §7).
+- The daily live check measures every slot in `registry.yaml` on the published Sites, so a new slot is checked from the next morning once its registry entry is in: record `box` (the editor size) and, if the URL carries `?class=`, `query: {class: YYYY}`. A wrong class or a missing embed opens an issue; a box shape that drifts from `box` is only listed in the report.
 
 ## Box shapes for new embeds
 
@@ -55,4 +55,4 @@ Sites keeps a box's shape on phones, so a wide, short box is a letterbox there. 
 
 ## Resizing an existing box
 
-To bring a box down (for example the 935 × 935 Important Dates boxes to 935 × 625): open the page in the Sites editor, click the box, drag its bottom-centre handle up until the size label reads about 935 × 625, publish, then run the checks in section 2 on a desktop and an iPhone. Afterwards record the new `box` in `registry.yaml`. Changing the shape of a box never changes its content: the embed adapts to whatever frame it gets.
+Use the script, from a session on the Mini with Chrome started for it (`docs/sites-editor-driver.md` §1): `python3 tools/sites_editor.py resize --site <key> --page <page> --embed <id> --box card --apply`, look at the result in the editor, then `publish --site <key> --apply`, then `python3 tests/live_check.py --site <key>` should show the slot at the box's shape with no drift note. By hand it is: open the page in the Sites editor, click the box, drag its bottom-centre handle (the editor shows no size label; judge by the live check afterwards), publish, then run the checks in section 2 on a desktop and an iPhone. Either way record the new `box` in `registry.yaml`. Changing the shape of a box never changes its content: the embed adapts to whatever frame it gets.
