@@ -1,22 +1,23 @@
 /* SFFS shared embeds: a translation notice for viewers whose browser is not set to English.
  *
  * Every embed is written in English with lang="en", so Chrome, Safari and Edge offer their own
- * translation. An embed cannot start that itself; what it can do is, when navigator.languages says
- * the viewer prefers another language, show one line in that language with a link that opens this
- * same page through Google Translate in a new tab (works in every browser, inside the Sites iframe).
- * The viewer can dismiss it; the choice is remembered in this browser only.
+ * translation. An embed cannot start that itself; what it can do is, when the viewer's first
+ * (preferred) language in navigator.languages is not English, show one line in that language with
+ * a link that opens this same page through Google Translate in a new tab (works in every browser,
+ * inside the Sites iframe). Only the first entry counts: a browser listing English first and
+ * another language after it belongs to someone who reads English (2026-11-02, Ahin saw a
+ * Portuguese notice that way). The viewer can dismiss it; the choice is remembered in this
+ * browser only.
  */
 (function () {
   var KEY = 'sffsLangDismiss';
   function safeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function safeSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   var langs = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || 'en'];
-  var pick = null;
-  for (var i = 0; i < langs.length; i++) {
-    var p = String(langs[i]).toLowerCase().split('-')[0];
-    if (p && p !== 'en') { pick = {tag: langs[i], code: p}; break; }
-  }
-  if (!pick || safeGet(KEY) === pick.code) return;
+  var first = String(langs[0] || 'en');
+  var code = first.toLowerCase().split('-')[0];
+  if (!code || code === 'en' || safeGet(KEY) === code) return;
+  var pick = {tag: first, code: code};
   var wrap = document.getElementById('wrap') || document.body;
   var name = pick.code;
   try { name = new Intl.DisplayNames([pick.tag], {type: 'language'}).of(pick.code) || pick.code; } catch (e) {}
