@@ -208,7 +208,7 @@ idx = {"docs": {"circle-back@2026-27": {"url": "https://docs.google.com/document
            {"date": "2026-09-04", "subject": "Hello from your room parents!", "doc_url": "u", "anchor": "u#heading=h.3"},
            {"date": "2026-09-04", "subject": "Something else entirely", "doc_url": "u", "anchor": "u#heading=h.9"},
            {"date": "2026-09-28", "subject": "SPEAK announcement", "doc_url": "u", "anchor": "u#heading=h.4"},
-           {"date": "2026-09-11", "subject": "Circle of Friends // Supporting Someone", "doc_url": "u", "anchor": "u#heading=h.5"},
+           {"date": "2026-09-11", "subject": "Circle of Friends", "doc_url": "u", "anchor": "u#heading=h.5"},  # the fetcher reduces these subjects to the phrase
            {"date": "2026-09-11", "subject": "[SFFS] Campus Safety Incident", "doc_url": "u", "anchor": "u#heading=h.6"},
            {"date": "2026-09-11", "subject": "sharing in 3A", "doc_url": "u", "anchor": "u#heading=h.7"}]}
 data = json.loads(json.dumps(ledger))
@@ -224,8 +224,8 @@ speak = [s for s in data["sources"] if s["subject"] == "Fwd: SPEAK announcement"
 check(speak["doc_anchor"].endswith("h.4"), "a 'Fwd:' prefix in the ledger subject is ignored")
 re3a = [s for s in data["sources"] if s["subject"] == "Re: sharing in 3A"][0]
 check(re3a["doc_anchor"].endswith("h.7"), "a 'Re:' prefix in the ledger subject is ignored")
-cof = [s for s in data["sources"] if s["subject"].startswith("Circle of Friends // Supporting a staff")][0]
-check(cof["doc_anchor"].endswith("h.5"), "a redacted title links as the only unmatched email of its day")
+cof = [s for s in data["sources"] if s["subject"] == "Circle of Friends" and s["date"] == "2026-09-11"][0]
+check(cof["doc_anchor"].endswith("h.5"), "a redacted Circle of Friends subject links exactly, by date")
 check(n == 7 and data["log"]["docs"]["circle-back"].endswith("/D1/edit") and data["log"]["docs"]["head"] is None,
       "seven linked; log.docs filled per stream for the current year only")
 

@@ -19,6 +19,7 @@ import os
 import pathlib
 import smtplib
 import sys
+from zoneinfo import ZoneInfo
 from email.message import EmailMessage
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -67,6 +68,94 @@ def clock(hm):
     return f"{h}:{m} {suf}" if m != "00" else f"{h} {suf}"
 
 
+# --- where a topic lands on the page: a port of the embed's tab rules (build_updates.py, TABS)
+LOWER, MIDDLE = ["K", "1", "2", "3", "4"], ["5", "6", "7", "8"]
+
+
+def _start(t):
+    return (t.get("when") or {}).get("date")
+
+
+def _end(t):
+    w = t.get("when") or {}
+    return w.get("end") or w.get("date")
+
+
+def _span_days(t):
+    if not _start(t):
+        return 0
+    return (dt.date.fromisoformat(_end(t)) - dt.date.fromisoformat(_start(t))).days + 1
+
+
+def _short_span(t):
+    return 0 < _span_days(t) <= 7
+
+
+def _is_past(t, today):
+    e = _end(t)
+    return bool(e) and dt.date.fromisoformat(e) < today
+
+
+def _latest_date(t):
+    return t["updates"][-1]["date"]
+
+
+def _has_open_action(t, today):
+    if t.get("deadline"):
+        return dt.date.fromisoformat(t["deadline"]["date"]) >= today
+    return bool(t.get("action")) and not _is_past(t, today)
+
+
+def tabs_for(t, today):
+    """The tab labels the topic appears under today, in the page's tab order."""
+    s, e = _start(t), _end(t)
+    iso = today.isoformat()
+    in7 = (today + dt.timedelta(days=7)).isoformat()
+    out = []
+    if _has_open_action(t, today):
+        out.append("Deadlines")
+    if s and _short_span(t) and e >= iso and s < in7:
+        out.append("This week")
+    if s and _short_span(t) and s >= in7:
+        out.append("Coming up")
+    if _latest_date(t) >= (today - dt.timedelta(days=7)).isoformat():
+        out.append("What changed")
+    if t["kind"] == "classroom":
+        out.append("Classroom")
+    if ((t["kind"] in ("notice", "volunteer")) or (s and not _short_span(t) and t["kind"] != "classroom")) \
+            and t["kind"] != "letter" and not _is_past(t, today):
+        out.append("Good to know")
+    if t["kind"] == "letter":
+        out.append("From the Head")
+    return out
+
+
+def views_for(t):
+    """Which grade views show the topic (a site's ?class= resolves to one grade)."""
+    a = t.get("audience")
+    if a == "all":
+        return "all grade views"
+    if a == "lower":
+        return "Lower School views (K–4)"
+    if a == "middle":
+        return "Middle School views (5–8) only; not on the 1st or 3rd grade sites unless a family adds those grades"
+    return ", ".join(GRADE_WORD.get(g, g) for g in a) + " view" + ("s" if len(a) > 1 else "") + " only"
+
+
+def filed_line(t, today):
+    tabs = tabs_for(t, today)
+    if not tabs:
+        where = "no tab right now (its date has passed and it is older than a week); History only"
+    else:
+        where = " · ".join(tabs)
+        if tabs == ["What changed"]:
+            if _is_past(t, today):
+                where += " only, because the date has passed; it leaves the page on " + fmt((dt.date.fromisoformat(_latest_date(t)) + dt.timedelta(days=8)).isoformat())
+            else:
+                where += " only; it leaves the page on " + fmt((dt.date.fromisoformat(_latest_date(t)) + dt.timedelta(days=8)).isoformat())
+    return f"Filed under: {where}. Shown on: {views_for(t)}."
+
+
 def audience(t):
     a = t.get("audience")
     if a == "all":
@@ -78,7 +167,7 @@ def audience(t):
     return ", ".join(GRADE_WORD.get(g, g) for g in a)
 
 
-def topic_line(t, note=None):
+def topic_line(t, note=None, today=None):
     bits = [t["title"]]
     w = when_text(t)
     if w:
@@ -87,6 +176,8 @@ def topic_line(t, note=None):
     line = " · ".join(bits)
     if note:
         line += f"\n    {note}"
+    if today:
+        line += f"\n    {filed_line(t, today)}"
     return line
 
 
@@ -108,7 +199,8 @@ def diff(old, new, old_idx, new_idx):
     return {"added": added, "updated": updated, "processed": new_src, "logged": logged, "index": new_idx or {}}
 
 
-def compose(d, pages):
+def compose(d, pages, today=None):
+    today = today or dt.datetime.now(ZoneInfo("America/Los_Angeles")).date()
     n_add, n_upd = len(d["added"]), len(d["updated"])
     if n_add or n_upd:
         subject = "Class sites: " + ", ".join(x for x in [f"{n_add} new topic{'s' * (n_add != 1)}" if n_add else "",
@@ -125,12 +217,13 @@ def compose(d, pages):
     review = pages.rstrip("/") + "/shared/updates/?class=2034&tab=changed"
     lines.append(f"Review the result on the Updates page (What changed tab, 1st grade view):\n{review}")
     lines.append(f"Same page for 3rd grade: {pages.rstrip('/')}/shared/updates/?class=2032&tab=changed")
+    lines.append("Each item below says which tab it is filed under today and which grade views show it.")
     if d["added"]:
         lines.append(f"\nNew on the Updates page ({n_add}):")
-        lines += ["  - " + topic_line(t, t["updates"][-1]["note"] if t["updates"] else None) for t in d["added"]]
+        lines += ["  - " + topic_line(t, t["updates"][-1]["note"] if t["updates"] else None, today) for t in d["added"]]
     if d["updated"]:
         lines.append(f"\nUpdated ({n_upd}):")
-        lines += ["  - " + topic_line(t, note) for t, note in d["updated"]]
+        lines += ["  - " + topic_line(t, note, today) for t, note in d["updated"]]
     if d["processed"]:
         lines.append(f"\nEmails read for this change ({len(d['processed'])}):")
         for s in d["processed"]:
@@ -165,9 +258,10 @@ def main():
     ap.add_argument("--to", default=os.environ.get("UPDATES_NOTIFY_TO", ""))
     ap.add_argument("--send", action="store_true")
     ap.add_argument("--out", help="also write the subject and body to this file")
+    ap.add_argument("--today", help="YYYY-MM-DD, for tests (default: today in America/Los_Angeles)")
     a = ap.parse_args()
     d = diff(load(a.base_data), load(a.data), load(a.base_sources), load(a.sources))
-    subject, body = compose(d, a.pages_url)
+    subject, body = compose(d, a.pages_url, dt.date.fromisoformat(a.today) if a.today else None)
     if not subject:
         print("Nothing changed on the Updates page; no email.")
         return

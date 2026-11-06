@@ -423,13 +423,24 @@ def school_year_label(d):
 
 # ---------------------------------------------------------------- message parsing
 
+CIRCLE_OF_FRIENDS = "Circle of Friends"
+
+
 def clean_subject(s):
     s = re.sub(r"\s+", " ", s or "").strip()
     while True:
         n = re.sub(r"^(fwd?|fw|re|aw)\s*:\s*", "", s, flags=re.I)
         if n == s:
-            return s
+            break
         s = n
+    # Circle of Friends emails name the person being supported (a staff member on leave, a new
+    # baby) in the subject itself, and the subject is public: in the index, the ledger, the PR
+    # body and the change email. Keep only the phrase (Ahin, 2026-11-05). The stream and grade
+    # are recorded separately, so nothing else is lost. Two such emails on one day would be
+    # taken for a resend of each other; accepted.
+    if CIRCLE_OF_FRIENDS.lower() in s.lower():
+        return CIRCLE_OF_FRIENDS
+    return s
 
 
 def parse_forward_date(s):
