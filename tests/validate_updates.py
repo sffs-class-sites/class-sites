@@ -60,8 +60,15 @@ def main():
         date(sy[k], f"school_year.{k}", errors)
     date(data["built_through"], "built_through", errors)
 
+    def cof_check(subject, where):
+        # Circle of Friends subjects name people; the fetcher reduces them to the phrase and so
+        # must anyone editing by hand (docs/updates-pipeline.md, personal data rule).
+        if "circle of friends" in subject.lower() and subject != "Circle of Friends":
+            errors.append(f"{where}: a Circle of Friends subject must be exactly 'Circle of Friends' (it names people): {subject!r}")
+
     src_ids = set()
     for s in data["sources"]:
+        cof_check(s.get("subject", ""), f"source {s.get('id')}")
         for k in ("id", "stream", "date", "subject"):
             if k not in s:
                 errors.append(f"source {s.get('id')}: missing {k}")
@@ -160,6 +167,7 @@ def main():
             fps.add(m.get("fingerprint"))
             if m.get("sender") and not m["sender"].endswith("veracross.com"):
                 errors.append(f"sources.json: sender is not Veracross: {m['sender']}")
+            cof_check(m.get("subject", ""), f"sources.json {m.get('date')}")
             for s in (m.get("subject", ""),):
                 if PHONE.search(s):
                     errors.append(f"sources.json: phone number in subject {s!r}")
