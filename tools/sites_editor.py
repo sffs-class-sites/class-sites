@@ -686,27 +686,52 @@ def cmd_publish(a, reg):
     with sync_playwright() as pw:
         browser = attach(pw, a.cdp)
         page = editor_tab(browser, site)
-        btn = page.query_selector(PUBLISH_SEL) or page.query_selector(PUBLISH_FALLBACK)
-        if not btn or not btn.is_visible():
-            raise Stop(f"no Publish button ({PUBLISH_SEL} or {PUBLISH_FALLBACK}) in the editor's app bar")
-        print(f"Publish button found: '{' '.join((btn.inner_text() or '').split())}'")
-        if not a.apply:
-            print("dry run only; add --apply to click Publish and confirm in its dialog")
-            return 0
-        btn.click()
-        pace(page)
         d = dialog_state(page)
+        if d and "publish" in d["text"].lower():
+            # The review dialog covers the app bar, so look for it before the button (a previous run may have left it).
+            print("the publish dialog is already open")
+            if not a.apply:
+                print(f"dialog: {d['text'][:200]!r}; buttons {d['buttons']}")
+                print("dry run only; left the dialog as it was")
+                return 0
+        else:
+            btn = page.query_selector(PUBLISH_SEL) or page.query_selector(PUBLISH_FALLBACK)
+            if not btn or not btn.is_visible():
+                raise Stop(f"no Publish button ({PUBLISH_SEL} or {PUBLISH_FALLBACK}) in the editor's app bar")
+            print(f"Publish button found: '{' '.join((btn.inner_text() or '').split())}'")
+            if not a.apply:
+                print("dry run only; add --apply to click Publish and confirm in its dialog")
+                return 0
+            btn.click()
+            pace(page)
+            d = dialog_state(page)
         if not d:
             raise HalfDone("clicked Publish but no dialog opened. Look at the editor: if it published without asking, "
                            "check the live page; otherwise nothing changed")
         print(f"dialog: {d['text'][:200]!r}; buttons {d['buttons']}")
+        buttons = page.locator('[role=dialog] [role=button], [role=dialog] button, [role=alertdialog] [role=button]')
+        if re.search(r"no unpublished changes", d["text"], re.I):
+            # The review dialog with nothing to review: its Publish is disabled (seen 2026-11-06 after a restore).
+            back = buttons.filter(has_text=re.compile(r"^\s*return to editor\s*$", re.I))
+            if back.count():
+                back.first.click()
+            else:
+                page.keyboard.press("Escape")
+            pace(page)
+            print("nothing to publish: the draft is what is live already ('There are no unpublished changes to review'); "
+                  "returned to the editor")
+            return 0
         confirm = [b for b in d["buttons"] if b.lower() == "publish"]
         if len(confirm) != 1:
             page.keyboard.press("Escape")
             raise HalfDone(f"the dialog has no single 'Publish' button (buttons: {d['buttons']}); pressed Escape to close it. "
                            f"Nothing was published; record the dialog in docs/sites-editor-driver.md §4")
-        page.locator('[role=dialog] [role=button], [role=dialog] button, [role=alertdialog] [role=button]').filter(
-            has_text=re.compile(r"^\s*Publish\s*$")).first.click()
+        ok = buttons.filter(has_text=re.compile(r"^\s*Publish\s*$")).first
+        if ok.get_attribute("aria-disabled") == "true":
+            page.keyboard.press("Escape")
+            raise HalfDone("the dialog's Publish button is disabled though the dialog doesn't say why; pressed Escape. "
+                           "Nothing was published; look at the editor")
+        ok.click(timeout=10000)
         for _ in range(20):
             page.wait_for_timeout(500)
             if not dialog_state(page):

@@ -52,7 +52,7 @@ Not allowed (each one breaks the core or the check):
 - Paste code embeds that show children's names or contact details (CLAUDE.md §3: personal data goes through pattern A, never pasted).
 - Unpublish the site.
 
-If something goes wrong: **⋮ → Version history** in the editor restores a previous version; then publish again (*untested*, see `docs/swap-to-url-embed.md` §3).
+If something goes wrong: **⋮ → Version history** in the editor restores a previous version; then publish again. Scripted and tested 2026-11-06: `python3 tools/sites_editor.py restore --site <site> --apply`, then `publish … --apply` (`docs/sites-editor-driver.md` §3).
 
 ## 4. Drift is expected
 

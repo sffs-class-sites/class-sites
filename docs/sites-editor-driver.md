@@ -2,7 +2,7 @@
 
 Google Sites has no API (CLAUDE.md §5), so sizing an embed box or publishing a site is editor work. This script does that work from the command line, attached to a Chrome that a person signed in, so a Claude session never clicks through the editor one screenshot at a time. Written 2026-11-03.
 
-**Status (2026-11-03):** every command is built. `list` ran read-only on the real editor on 2026-11-02 (§4 has the record). `resize --apply` ran on the real editor on 2026-11-02: it resized the room-parents box on the 1st-grade homepage, Ahin published that by hand, and the live check confirmed it on 2026-11-03 (§4, §6). `chrome` started the signed-in Chrome on the Mini on 2026-11-06 (§4). `publish --apply` is tested only on the mock editor (§7) and has **not yet run on the real editor**. The real editor shows no size label, so `resize` measures the iframe after each drag and aims at the box's shape (h ÷ w), which is what Sites publishes (CLAUDE.md §5).
+**Status (2026-11-03):** every command is built. `list` ran read-only on the real editor on 2026-11-02 (§4 has the record). `resize --apply` ran on the real editor on 2026-11-02: it resized the room-parents box on the 1st-grade homepage, Ahin published that by hand, and the live check confirmed it on 2026-11-03 (§4, §6). On 2026-11-06 on the Mini: `chrome` started the signed-in Chrome; `resize --apply` dragged the same box to `page`; `restore --apply` (new: the editor's Version history, §3) put the live version back as the draft; `publish --apply` opened the real publish dialog, found "There are no unpublished changes to review" and returned to the editor; the live check passed unchanged (§4). The one thing still unexercised is the dialog's Publish button itself: it was disabled, because there was nothing to publish. The real editor shows no size label, so `resize` measures the iframe after each drag and aims at the box's shape (h ÷ w), which is what Sites publishes (CLAUDE.md §5).
 
 ## 1. Set-up on the Mac (once per session, Ahin)
 
@@ -52,7 +52,9 @@ One site, one page, one action per run. No command loops over sites. Every write
 | `resize --site class-2034 --page home --embed room-parents --box card` | dry run: prints the current box, the target shape and the drag it would do | no |
 | `resize … --apply` | selects the block, drags its bottom-centre handle, re-measures, repeats (up to 6 drags) until h ÷ w is within 0.005 of the box; prints before and after; **never publishes**. Stops before dragging if the block won't select or the handle would leave the window; stops after a drag that changed the width or nothing (exit 2, message says what to check; ⌘Z in the editor undoes it) | yes, unpublished |
 | `publish --site class-2034` | dry run: finds the app-bar Publish button | no |
-| `publish … --apply` | clicks Publish, reads the dialog, clicks its single **Publish** button, waits for the dialog to close. If the dialog isn't one Cancel/Publish pair it presses Escape and stops (exit 2) with what it saw | yes, live |
+| `publish … --apply` | clicks Publish, reads the review dialog; if it says there are no unpublished changes, clicks **Return to editor** and exits 0 with "nothing to publish"; otherwise clicks its single **Publish** button (stops if that button is disabled) and waits for the dialog to close. A dialog it doesn't understand: Escape, exit 2, with what it saw | yes, live |
+| `restore --site class-2034` | dry run: opens Version history, lists the versions, selects the newest **Published …** one (what families see now), closes the panel | no |
+| `restore … --apply` | the same, then **Restore this site version** and its **Restore** confirmation: the draft becomes the live version again, unpublished edits are dropped; **never publishes**. The rollback (§3): after a bad publish, `restore` then `publish` | yes, unpublished |
 
 Exit codes: 0 ok; 1 the editor, Chrome or the registry isn't as expected (the `STOP:` line says what, and the script guessed nothing); 2 a write stopped half-way (the `STOPPED HALF-WAY:` line says what to look at in the editor).
 
@@ -62,7 +64,7 @@ Pacing: the script waits 1.5 s after anything that changes what the editor shows
 
 ## 3. Rollback
 
-The editor's **⋮ → Version history** restores an earlier version; publish again afterwards. **Untested** (also `docs/site-template.md` §3). Test it on the 1st-grade site before the first `resize --apply`: make a trivial change, restore, confirm the published page is unchanged.
+`python3 tools/sites_editor.py restore --site <site> --apply` makes the newest published version the draft again through the editor's Version history (what a person does by hand with **⋮ → Version history → Restore this site version**), then `publish … --apply` puts it live. **Tested 2026-11-06** on the 1st-grade site (§4): a box was dragged to the wrong shape, `restore` put the live version back, `publish` found nothing to publish, and the live check still passed. What `restore` can't do: pick an older version than the newest published one (do that by hand), or undo a publish that has already happened (that is `restore` of the version before it, by hand, then `publish`). Also `docs/site-template.md` §3.
 
 ## 4. What in the editor DOM the script depends on
 
@@ -81,7 +83,8 @@ Google changes the editor without notice and its class names are obfuscated, so 
 | Selecting a block | scroll it into view, click the iframe's top-left corner (+2, +2); then `div[role=gridcell][aria-label="IFRAME"]` above it must carry `aria-selected="true"` or the script stops | **confirmed 2026-11-02** (the click and the attribute) and **2026-11-06** (scroll first): important-dates, starting at y=2002 in a 963px-tall window, was scrolled to, clicked and marked selected |
 | Size label | none: the real editor shows no `W × H` on a selected embed (2026-11-02). `resize` measures the iframe's bounding box after every drag instead, and aims at the registry box's shape | **confirmed absent 2026-11-02** |
 | Resize handle | by position only: bottom centre of the selected block's iframe, `(x + w/2, y + h)`; the script moves there, presses, moves down in 12 steps, releases, and checks the iframe got taller and no wider | **confirmed 2026-11-02**: one drag of +95px took room-parents from 1154 × 677 to 1154 × 772, width unchanged, no snapping visible |
-| Publish | `[guidedhelpid="at-appbar-publish"]` (fallback: `div[role=button]` with text Publish); then a `[role=dialog]`/`[role=alertdialog]` with exactly one button whose text is Publish, which is clicked; the dialog must close within 10 s | button **found 2026-11-02**; the dialog is **assumed** (never opened) and the script stops with a dump of it if it differs |
+| Publish | `[guidedhelpid="at-appbar-publish"]` (fallback: `div[role=button]` with text Publish); then a `[role=dialog]`/`[role=alertdialog]` with exactly one button whose text is Publish, which is clicked; the dialog must close within 10 s | button **found 2026-11-02**; dialog **seen 2026-11-06**: a full-window "Review changes and publish" with buttons Back, Publish settings, Publish, and (when there is nothing to publish) the text "There are no unpublished changes to review", a disabled Publish (`aria-disabled="true"`) and a RETURN TO EDITOR button. The enabled Publish has **not been clicked** yet |
+| Version history (`restore`) | `[aria-label="Open version history"]` in the app bar opens a full-window `[role=dialog]` with a `[role=complementary]` panel titled "Version history", newest first: "Current version", then entries whose italic label starts "Published …"; clicking an entry shows its date in the dialog's header and two buttons, `[aria-label="Restore this site version"]` and "Restore this page version"; the site one opens a small confirmation "Restore this version?" with Cancel and Restore; after Restore the panel closes and the app bar is back | **confirmed 2026-11-06** (all of it, one run) |
 
 ### Record of real runs
 
@@ -247,6 +250,16 @@ exit=0
 
 `tabs` then showed one `about:blank`. The window came up 1830 × 963 (maximised on the 1920 × 1080 screen). The mock test (`PW_CHROMIUM="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"`) passes on the Mini; it runs on free ports and a temp profile, so it can run beside the live Chrome.
 
+**2026-11-06 (evening), the Mini: rollback and publish, on the 1st-grade site.** The test §3 asked for, done so that families would see no change. In order:
+
+1. `resize --site class-2034 --page home --embed room-parents --box page --apply`: one drag of +308px, 1154 × 772 (0.669) → 1154 × 1080 (0.936). Unpublished.
+2. `restore --site class-2034` (dry run, built for this): opened Version history, listed `TODAY | Current version | SFFS Class Pages | MONDAY | Published November 3, 7:17 AM | SFFS Class Pages | Published November 2, 7:54 AM | Ahin Thomas | …`, selected "Published November 3, 7:17 AM" (headed "November 2, 8:23 PM": the draft's save time, published the next morning by Ahin), found the Restore button, closed the panel.
+3. `restore … --apply`: the same, then the confirmation `'Restore this version?\nFollow these steps to restore your site to the version from November 2 at 8:23 PM.\n\n1. Select the Restore button.\n2. Review your draft site.\n3. Select the Publish button to make …'; buttons ['Cancel', 'Restore']`; clicked Restore; the panel closed. `list` then measured room-parents at 1154 × 772 (0.669) again.
+4. `publish --site class-2034 --apply`: the app-bar button opened `'Review changes and publish\nPublish\nThere are no unpublished changes to review\nRETURN TO EDITOR'; buttons ['Back', 'Publish settings', 'Publish', 'RETURN TO EDITOR']`. The first version of the script tried to click that Publish, which is disabled, and timed out with a traceback, leaving the dialog open. Fixed the same evening (it now reads the "no unpublished changes" text, clicks RETURN TO EDITOR and exits 0; and it looks for an already-open dialog before the app-bar button, which the dialog covers). The re-run printed `nothing to publish: the draft is what is live already …; returned to the editor`.
+5. `tests/live_check.py --site class-2034`: PASS, room-parents 1154 × 772 (0.669) desktop, 352 × 235 (0.668) iPhone, unchanged. The mock test still passes.
+
+So the rollback works and the publish dialog is known. Not exercised: clicking an enabled Publish, which needs a real change; the first real one will be the next box or page edit. Two things about running this from a Claude session on the Mini: Claude Code's auto-mode classifier refused `resize --apply` once and `restore --apply` twice as writes to a shared resource, though a person had said yes in chat; Ahin had an allow rule added to the Mini's `~/.claude/settings.json` for `python3 /Users/thomasfamilybot/code/sffs/class-sites/tools/sites_editor.py *`, which is why that clone exists at that path. And a run of this script started from a `cd` into another clone isn't covered by that rule.
+
 ## 5. What the DOM record holds
 
 `list --dump` writes three files under `_editor/` (ignored by git; it holds the editor page's HTML, which may carry the signed-in account's name):
@@ -259,7 +272,7 @@ exit=0
 
 1. `list` (read-only) on both class sites: done, run on the Mac 2026-11-02, §4 filled; re-run on class-2034 at an 1830px window 2026-11-06 with the `data-url` lookup.
 2. `resize`: built 2026-11-03 (there is no size label, so it measures the iframe after each drag and aims at the box's shape). Dry run by default; `--apply` drags; never publishes. **Run for real 2026-11-02 on class-2034 room-parents: 1154 × 677 → 1154 × 772 (0.669); Ahin published it by hand** (§4).
-3. `publish`: built 2026-11-03: click Publish, confirm in the dialog. Separate command so a resize can be inspected in the editor first. **Not yet run on the real editor**; the dialog has never been seen, so the first run may stop and ask for it to be recorded.
+3. `publish`: built 2026-11-03: click Publish, confirm in the dialog. Separate command so a resize can be inspected in the editor first. **Run for real 2026-11-06**: the dialog is recorded in §4; there was nothing to publish, so the enabled Publish button is still unclicked. `restore` (the §3 rollback) was built and run for real the same day.
 4. Verify with `python3 tests/live_check.py --site class-2034`: the room-parents row should show h ÷ w 0.668 and no drift note; then update that slot's comment in `registry.yaml` and CLAUDE.md §7. Baseline run from a cloud session on 2026-11-03, before any resize: room-parents 1154 × 677 (0.587) on a desktop, 352 × 206 (0.585) on an iPhone, both listed as drift; everything else passed. That container reaches sites.google.com, so the check can run from there as well as from the Mac. **Done 2026-11-03** on the Mac after Ahin published: PASS, room-parents 1154 × 772 (0.669) on a desktop and 352 × 235 (0.668) on an iPhone, no drift note; `registry.yaml` and CLAUDE.md §7 updated.
 
 ## 7. Mock test
