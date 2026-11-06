@@ -30,8 +30,9 @@ new = {"sources": old["sources"] + [{"id": "sc-1103", "stream": "school", "date"
                   topic("tee", "Spirit tee", kind="deadline", audience=["1", "3"], deadline={"date": "2026-11-10", "what": "Order"})]}
 new["topics"][0]["updates"].append({"source": "sc-1103", "date": "2026-11-03", "note": "Table sign-ups open."})
 idx_old = {"messages": []}
-idx_new = {"messages": [{"fingerprint": "f1", "date": "2026-11-03", "subject": "[SFFS] Craft Fair",
+idx_new = {"messages": [{"message_id": "<m1>", "fingerprint": "f1", "date": "2026-11-03", "subject": "[SFFS] Craft Fair",
                          "anchor": "https://docs.google.com/document/d/D/edit#heading=h.1"}]}
+idx_redacted = {"messages": [dict(idx_new["messages"][0], fingerprint="f1-changed", subject="Circle of Friends")]}
 
 d = n.diff(old, new, idx_old, idx_new)
 check([t["id"] for t in d["added"]] == ["tee"], "a topic not in the old ledger is new")
@@ -65,6 +66,8 @@ s2, b2 = n.compose(n.diff(new, new, idx_old, idx_new), "https://example.test/", 
 check(s2 == "Class sites: 1 new school email logged" and "extraction step reads them next" in b2, "index-only change: logged, not yet read")
 s3, _ = n.compose(n.diff(new, new, idx_new, idx_new), "https://example.test/", TODAY)
 check(s3 is None, "no change, no email")
+s5, _ = n.compose(n.diff(new, new, idx_new, idx_redacted), "https://example.test/", TODAY)
+check(s5 is None, "a redacted subject (new fingerprint, same message id) is not a newly logged email")
 only_src = {"sources": new["sources"], "topics": old["topics"]}
 s4, _ = n.compose(n.diff(old, only_src, idx_new, idx_new), "https://example.test/", TODAY)
 check(s4 == "Class sites: 1 email read, nothing new for the Updates page", f"an email read with no topic change still reports: {s4!r}")

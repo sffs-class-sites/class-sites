@@ -1,6 +1,6 @@
 # Extraction routine (E1b): turning new school emails into Updates
 
-These are the working instructions for the scheduled Claude routine **"Class sites: email extraction"** (runs hourly 7am–9pm Pacific in Claude's cloud; configured at https://claude.ai/code/routines). The routine's stored prompt only says: clone the repo, read this file, follow it. Keeping the instructions here puts them under the same PR and CI gate as everything else (`CLAUDE.md` §4). A person running a session can follow the same steps.
+These are the working instructions for the scheduled Claude routine **"Class sites: email extraction"** (runs hourly at :50, 7am–9pm Pacific, after the :23 fetch, in Claude's cloud; configured at https://claude.ai/code/routines). The routine's stored prompt only says: clone the repo, read this file, follow it. Keeping the instructions here puts them under the same PR and CI gate as everything else (`CLAUDE.md` §4). A person running a session can follow the same steps.
 
 Decided with Ahin 2026-11-05: ledger changes **publish without a review step**. The routine pushes a branch, CI checks it, a bot merges it, the site deploys, and `build/notify_changes.py` emails Ahin a plain-English summary with a link to the page. That email is the review; a mistake is fixed by a follow-up PR (or by replying to the email). Before this date Ahin approved every ledger change in the session that produced it.
 

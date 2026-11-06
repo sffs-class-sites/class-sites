@@ -194,8 +194,11 @@ def diff(old, new, old_idx, new_idx):
             updated.append((t, "; ".join(new_notes) if new_notes else "Details changed."))
     old_src = {s["id"] for s in (old or {}).get("sources", [])}
     new_src = [s for s in new["sources"] if s["id"] not in old_src]
-    old_fp = {m["fingerprint"] for m in (old_idx or {}).get("messages", [])}
-    logged = [m for m in (new_idx or {}).get("messages", []) if m["fingerprint"] not in old_fp]
+    # Keyed on message_id, not fingerprint: a fingerprint changes when a subject is redacted
+    # (the Circle of Friends rule), and that is not a newly logged email.
+    key = lambda m: m.get("message_id") or m.get("fingerprint")
+    old_ids = {key(m) for m in (old_idx or {}).get("messages", [])}
+    logged = [m for m in (new_idx or {}).get("messages", []) if key(m) not in old_ids]
     return {"added": added, "updated": updated, "processed": new_src, "logged": logged, "index": new_idx or {}}
 
 
