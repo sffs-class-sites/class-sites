@@ -9,7 +9,7 @@
   "last_day": "2027-06-09",
   "end_year": 2027
  },
- "built_through": "2026-11-05",
+ "built_through": "2026-11-06",
  "log": {
   "note": "Full text of every email lives in Google Docs in the bot's Drive, one document per stream per school year. Each email is a dated heading; the pipeline fills doc_url and the per-source anchor once the documents exist.",
   "docs": {
@@ -536,6 +536,12 @@
    "stream": "circle-back",
    "date": "2026-11-05",
    "subject": "SFFS Circle Back: November 5, 2026"
+  },
+  {
+   "id": "t1-1106",
+   "stream": "teachers-1",
+   "date": "2026-11-06",
+   "subject": "1st Grade Field Trip next Thursday 11/12!"
   }
  ],
  "topics": [
@@ -2370,24 +2376,29 @@
   },
   {
    "id": "g1-field-trip-gfe-2026-11-12",
-   "kind": "volunteer",
+   "kind": "event",
    "audience": [
     "1"
    ],
-   "title": "1st grade field trip: Garden for the Environment (chaperones needed)",
-   "summary": "A last-minute walking field trip to Garden for the Environment, a community and educational garden, on Thu Nov 12: gather at 8:30, walk and take MUNI, guided visit, snack and lunch there, back for regular dismissal at 2:40. The teachers need 2 parent chaperones; see the email for who to tell.",
+   "title": "1st grade field trip: Garden for the Environment",
+   "summary": "Walking field trip to Garden for the Environment on Thu Nov 12, part of the gardening study. Arrive on time by 8:30; the class leaves around 8:40 to walk to MUNI. Wear comfortable walking shoes and clothes that can get dirty, and bring a jacket or raincoat. Pack a hearty snack, lunch and water bottle: don't order Choice Lunch for that day, the class leaves before it arrives. Back around 2:00 for regular dismissal at 2:40. Chaperones are confirmed.",
    "when": {
     "date": "2026-11-12",
     "start_time": "08:30",
     "end_time": "14:40",
     "location": "Garden for the Environment"
    },
-   "action": "Volunteer to chaperone",
+   "action": "Pack a lunch",
    "updates": [
     {
      "source": "t1-1105",
      "date": "2026-11-05",
      "note": "Announced; 2 chaperones needed."
+    },
+    {
+     "source": "t1-1106",
+     "date": "2026-11-06",
+     "note": "Chaperones confirmed. Details added: arrive by 8:30, packed lunch (no Choice Lunch that day), walking shoes and a rain layer, back by 2:00."
     }
    ]
   },
