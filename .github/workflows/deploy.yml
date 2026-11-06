@@ -46,6 +46,8 @@ jobs:
           python3 tests/test_site_map.py
           python3 tests/test_classinfo.py
           python3 tests/test_fetch_school_email.py
+          python3 tests/test_pending_emails.py
+          python3 tests/test_notify_changes.py
 
       - name: Build embeds
         run: |
@@ -173,6 +175,36 @@ jobs:
           PR: ${{ github.event.pull_request.number }}
         run: gh pr comment "$PR" --body-file "$RUNNER_TEMP/comment.md" --edit-last --create-if-none
 
+  # Content PRs from the pipeline's bots merge themselves once the required build check passes
+  # (CLAUDE.md §4 "Who merges"): the email-log index (email-log-auto) and the extraction
+  # routine's ledger changes (updates-auto). Decided 2026-11-05. The repo's auto-merge setting
+  # is off, so this merges explicitly, as SFQuakerBot (SYNC_BOT_TOKEN). A failed build never
+  # reaches this job, and a human can still close the PR.
+  automerge:
+    if: >-
+      github.event_name == 'pull_request'
+      && github.event.pull_request.head.repo.full_name == github.repository
+      && contains(fromJSON('["email-log-auto", "updates-auto"]'), github.event.pull_request.head.ref)
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.SYNC_BOT_TOKEN }}
+      PR: ${{ github.event.pull_request.number }}
+      REPO: ${{ github.repository }}
+    steps:
+      - name: Merge
+        run: |
+          if [ -z "$GH_TOKEN" ]; then echo "SYNC_BOT_TOKEN is not set; leaving the PR for a person." >> "$GITHUB_STEP_SUMMARY"; exit 0; fi
+          # The check result can take a moment to register after this job starts.
+          for i in 1 2 3 4 5 6; do
+            if gh pr merge "$PR" --repo "$REPO" --squash --delete-branch; then
+              echo "Merged #$PR." >> "$GITHUB_STEP_SUMMARY"; exit 0
+            fi
+            sleep 20
+          done
+          echo "Could not merge #$PR; see the log. The PR stays open." >> "$GITHUB_STEP_SUMMARY"
+          exit 1
+
   # Opens one issue for Ahin while the monitor shows something broken (red); closes it when fixed.
   monitor-alert:
     if: always() && github.event_name == 'schedule'
@@ -200,6 +232,8 @@ jobs:
     if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
     permissions:
       pages: write
       id-token: write
@@ -209,3 +243,39 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # After a push to main deploys, email Ahin what changed on the Updates page (new or updated
+  # topics, the emails read, links to the full text and to the page). Decided 2026-11-05: this
+  # email is the review of pipeline changes. Sent from the bot's Gmail (BOT_GMAIL_APP_PASSWORD,
+  # SMTP) to the UPDATES_NOTIFY_TO variable. Quiet when neither ledger nor index changed.
+  notify:
+    if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'
+    needs: deploy
+    runs-on: ubuntu-latest
+    env:
+      BEFORE: ${{ github.event.before }}
+      BOT_GMAIL_APP_PASSWORD: ${{ secrets.BOT_GMAIL_APP_PASSWORD }}
+      UPDATES_NOTIFY_TO: ${{ vars.UPDATES_NOTIFY_TO }}
+      PAGES_URL: ${{ needs.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Email the change summary
+        run: |
+          if ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then echo "Previous commit unknown; nothing to compare." >> "$GITHUB_STEP_SUMMARY"; exit 0; fi
+          if git diff --quiet "$BEFORE" HEAD -- shared/updates/data.json shared/updates/sources.json; then
+            echo "Updates ledger and index unchanged; no email." >> "$GITHUB_STEP_SUMMARY"; exit 0
+          fi
+          git show "$BEFORE:shared/updates/data.json" > "$RUNNER_TEMP/base-data.json" 2>/dev/null || : > "$RUNNER_TEMP/base-data.json"
+          git show "$BEFORE:shared/updates/sources.json" > "$RUNNER_TEMP/base-sources.json" 2>/dev/null || : > "$RUNNER_TEMP/base-sources.json"
+          if [ -z "$BOT_GMAIL_APP_PASSWORD" ] || [ -z "$UPDATES_NOTIFY_TO" ]; then
+            echo "Not configured: needs the BOT_GMAIL_APP_PASSWORD secret and the UPDATES_NOTIFY_TO variable. The summary is below instead." >> "$GITHUB_STEP_SUMMARY"
+            python3 build/notify_changes.py --base-data "$RUNNER_TEMP/base-data.json" --base-sources "$RUNNER_TEMP/base-sources.json" \
+              --pages-url "${PAGES_URL:-https://sffs-class-sites.github.io/class-sites/}" --out "$RUNNER_TEMP/mail.txt"
+          else
+            python3 build/notify_changes.py --base-data "$RUNNER_TEMP/base-data.json" --base-sources "$RUNNER_TEMP/base-sources.json" \
+              --pages-url "${PAGES_URL:-https://sffs-class-sites.github.io/class-sites/}" --out "$RUNNER_TEMP/mail.txt" --send
+          fi
+          { echo '```'; cat "$RUNNER_TEMP/mail.txt" 2>/dev/null || echo "(no email: nothing to report)"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"

@@ -3,18 +3,20 @@ name: Email log
 # Fetches the school emails forwarded to the bot's Gmail and appends their full text to the
 # per-stream Google Docs in the bot's Drive (docs/updates-pipeline.md, E1a). Then opens or
 # updates one PR carrying shared/updates/sources.json, the index of deep links the Updates
-# embed's History links use. Needs:
+# embed's History links use. deploy.yml's automerge job merges that PR once the build check
+# passes (decided 2026-11-05: no human step; the change is announced by email after deploy).
+# Needs:
 #   secret   BOT_GMAIL_APP_PASSWORD       App Password for sfquakerbot@gmail.com (IMAP, read-only)
 #   secret   GOOGLE_SERVICE_ACCOUNT_JSON  the Drive bot's key; Editor on the log folder
 #   secret   SYNC_BOT_TOKEN               a token that may open PRs (github.token's PRs skip CI)
 #   variable EMAIL_LOG_FOLDER_ID          the "Class sites - email log" Drive folder
-# Runs Wednesday 09:00 and Thursday 13:30 Pacific (cron is UTC; an hour later in winter) and on
-# demand. On a PR that touches the fetcher it runs a dry run: reads the mailbox, classifies and
-# cleans, writes nothing, and puts what it would log in the job summary.
+# Runs hourly (at :07, so the extraction routine at :35 sees the result; Actions minutes are
+# unlimited on a public repo) and on demand. On a PR that touches the fetcher it runs a dry
+# run: reads the mailbox, classifies and cleans, writes nothing, and puts what it would log
+# in the job summary.
 on:
   schedule:
-    - cron: "0 16 * * 3"
-    - cron: "30 20 * * 4"
+    - cron: "7 * * * *"
   workflow_dispatch:
     inputs:
       dry_run:
@@ -69,7 +71,7 @@ jobs:
           pip install google-auth requests
           # An index PR from an earlier run may still be open: start from its index so those
           # emails are not logged into the Docs a second time.
-          if git fetch origin email-log-auto 2>/dev/null; then
+          if gh pr view email-log-auto --json state -q .state 2>/dev/null | grep -q OPEN && git fetch origin email-log-auto 2>/dev/null; then
             git checkout origin/email-log-auto -- shared/updates/sources.json 2>/dev/null || true
           fi
           if [ "$DRY" = "true" ]; then
