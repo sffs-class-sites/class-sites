@@ -70,6 +70,8 @@ BLOCK_SEL = 'div[aria-label="Whole page embed"][data-url]'   # one per URL embed
 CELL_SEL = 'div[role=gridcell][aria-label="IFRAME"]'          # ancestor that carries aria-selected / aria-grabbed
 PUBLISH_SEL = '[guidedhelpid="at-appbar-publish"]'            # the app-bar Publish button
 PUBLISH_FALLBACK = 'div[role=button]:has-text("Publish")'
+VH_OPEN = '[aria-label="Open version history"]'               # app bar; opens the full-window Version history
+VH_RESTORE_SITE = '[aria-label="Restore this site version"]'  # appears once a version other than the current one is selected
 
 
 class Stop(Exception):
@@ -716,6 +718,98 @@ def cmd_publish(a, reg):
     return 0
 
 
+def confirm_dialog(page):
+    """Like dialog_state, but the smallest open dialog: Version history is itself a full-window [role=dialog]."""
+    return page.evaluate("""
+    () => {
+      const ds = [...document.querySelectorAll('[role=dialog], [role=alertdialog]')]
+        .map(e => [e, e.getBoundingClientRect()]).filter(([e, r]) => r.height > 0)
+        .sort((a, b) => a[1].width * a[1].height - b[1].width * b[1].height);
+      if (!ds.length) return null;
+      const d = ds[0][0];
+      const buttons = [...d.querySelectorAll('[role=button], button')].filter(b => b.getBoundingClientRect().height > 0)
+        .map(b => (b.innerText || b.getAttribute('aria-label') || '').trim());
+      return {text: d.innerText.trim().slice(0, 400), buttons, w: ds[0][1].width};
+    }""")
+
+
+def close_version_history(page):
+    page.keyboard.press("Escape")
+    pace(page)
+    if page.query_selector(VH_RESTORE_SITE) or page.locator('[role=complementary]').filter(has_text="Version history").count():
+        back = page.query_selector('[role=dialog] [aria-label="Back"], [role=dialog] [aria-label="Close"]')
+        if back:
+            back.click()
+            pace(page)
+
+
+def cmd_restore(a, reg):
+    """Make the newest published version (what families see now) the draft again, dropping unpublished edits.
+
+    The editor's rollback (docs/sites-editor-driver.md §3). Never publishes: after a restore the draft equals the
+    live site, so `publish` afterwards changes nothing visible; after a bad publish, `restore` then `publish` is
+    the way back."""
+    site = site_of(reg, a.site)
+    print(f"restore {a.site} to its newest published version" + ("" if a.apply else "  (dry run: nothing is restored)"))
+    with sync_playwright() as pw:
+        browser = attach(pw, a.cdp)
+        page = editor_tab(browser, site)
+        panel = page.locator('[role=complementary]').filter(has_text="Version history").first
+        if panel.count():
+            print("version history is already open")
+        else:
+            btn = page.query_selector(VH_OPEN)
+            if not btn or not btn.is_visible():
+                raise Stop(f"no {VH_OPEN} button in the editor's app bar")
+            btn.click()
+            pace(page, 3000)
+            panel = page.locator('[role=complementary]').filter(has_text="Version history").first
+        if not panel.count():
+            raise Stop("clicked version history but no panel titled 'Version history' opened")
+        lines = [l.strip() for l in panel.inner_text().split("\n") if l.strip()]
+        print("versions, newest first: " + " | ".join(lines[2:14]) + (" …" if len(lines) > 14 else ""))
+        published = panel.get_by_text(re.compile(r"^Published ")).first
+        if not published.count():
+            close_version_history(page)
+            raise Stop("no 'Published …' version in the list (closed the panel)")
+        label = published.inner_text().strip()
+        published.click()
+        pace(page)
+        header = page.evaluate("(document.querySelector('[role=dialog]') || {innerText: ''}).innerText.split('\\n')[0]")
+        print(f"selected '{label}' (the editor heads it {header!r})")
+        restore = page.query_selector(VH_RESTORE_SITE)
+        if not restore or not restore.is_visible():
+            close_version_history(page)
+            raise Stop(f"no {VH_RESTORE_SITE} button after selecting that version (closed the panel)")
+        if not a.apply:
+            close_version_history(page)
+            print("dry run only; add --apply to click 'Restore this site version' and confirm. Nothing is published by restore.")
+            return 0
+        restore.click()
+        pace(page)
+        d = confirm_dialog(page)
+        if not d or d["w"] > 1200:
+            raise HalfDone("clicked 'Restore this site version' but no confirmation dialog opened; look at the editor")
+        print(f"dialog: {d['text'][:200]!r}; buttons {d['buttons']}")
+        confirm = [b for b in d["buttons"] if b.lower() == "restore"]
+        if len(confirm) != 1:
+            page.keyboard.press("Escape")
+            raise HalfDone(f"the dialog has no single 'Restore' button (buttons: {d['buttons']}); pressed Escape to close it. "
+                           f"Nothing was restored; record the dialog in docs/sites-editor-driver.md §4")
+        page.locator('[role=dialog] [role=button], [role=dialog] button, [role=alertdialog] [role=button]').filter(
+            has_text=re.compile(r"^\s*Restore\s*$")).last.click()
+        for _ in range(20):
+            page.wait_for_timeout(500)
+            vh = page.query_selector(VH_OPEN)
+            if not page.query_selector(VH_RESTORE_SITE) and vh and vh.is_visible():
+                break
+        else:
+            raise HalfDone("confirmed Restore but the version history is still open after 10 s; look at the editor")
+        pace(page)
+        print(f"restored '{label}' as the draft; not published. Check with: list --site {a.site} --page <page>")
+    return 0
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--cdp", default=CDP, help=f"Chrome's remote-debugging URL (default {CDP})")
@@ -738,10 +832,14 @@ def main(argv=None):
     p = sub.add_parser("publish", help="click Publish and confirm (dry run unless --apply)")
     p.add_argument("--site", required=True)
     p.add_argument("--apply", action="store_true")
+    p = sub.add_parser("restore", help="make the newest published version the draft again, via Version history (dry run unless --apply); never publishes")
+    p.add_argument("--site", required=True)
+    p.add_argument("--apply", action="store_true")
     a = ap.parse_args(argv)
     try:
         reg = load_registry(a.registry)
-        return {"chrome": cmd_chrome, "tabs": cmd_tabs, "list": cmd_list, "resize": cmd_resize, "publish": cmd_publish}[a.cmd](a, reg)
+        return {"chrome": cmd_chrome, "tabs": cmd_tabs, "list": cmd_list, "resize": cmd_resize, "publish": cmd_publish,
+                "restore": cmd_restore}[a.cmd](a, reg)
     except Stop as e:
         print(f"STOP: {e}", file=sys.stderr)
         return 1
