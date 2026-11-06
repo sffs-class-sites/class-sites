@@ -9,7 +9,7 @@
   "last_day": "2027-06-09",
   "end_year": 2027
  },
- "built_through": "2026-10-29",
+ "built_through": "2026-11-05",
  "log": {
   "note": "Full text of every email lives in Google Docs in the bot's Drive, one document per stream per school year. Each email is a dated heading; the pipeline fills doc_url and the per-source anchor once the documents exist.",
   "docs": {
@@ -147,6 +147,12 @@
    "subject": "[SFFS] Introducing the New SFFS Brand"
   },
   {
+   "id": "t3-0825",
+   "stream": "teachers-3",
+   "date": "2026-08-25",
+   "subject": "Join Our Third Grade Room Parent Team"
+  },
+  {
    "id": "sc-0828",
    "stream": "school",
    "date": "2026-08-28",
@@ -255,6 +261,12 @@
    "subject": "thank you & Padlet"
   },
   {
+   "id": "sc-0918",
+   "stream": "school",
+   "date": "2026-09-18",
+   "subject": "Volunteer Opportunity in Lower School Art"
+  },
+  {
    "id": "d1-0922",
    "stream": "digest-1",
    "date": "2026-09-22",
@@ -322,6 +334,12 @@
    "subject": "SFFS Circle Back: October 1, 2026"
   },
   {
+   "id": "t3-1003",
+   "stream": "teachers-3",
+   "date": "2026-10-03",
+   "subject": "Seeking volunteers for 3rd grade art class with Yara"
+  },
+  {
    "id": "d3-1006",
    "stream": "digest-3",
    "date": "2026-10-06",
@@ -382,6 +400,12 @@
    "subject": "[SFFS] Fall Conference Signups Now Open! / Carla's upcoming leave"
   },
   {
+   "id": "sc-1019b",
+   "stream": "school",
+   "date": "2026-10-19",
+   "subject": "[SFFS] Fall Conference Signups Now Open!"
+  },
+  {
    "id": "d3-1020",
    "stream": "digest-3",
    "date": "2026-10-20",
@@ -398,6 +422,12 @@
    "stream": "school",
    "date": "2026-10-20",
    "subject": "Día de los muertos Ofrenda & Guac/Salsa Recipes"
+  },
+  {
+   "id": "sc-1020b",
+   "stream": "school",
+   "date": "2026-10-20",
+   "subject": "Día de los muertos Ofrenda & Guac/Salsa Recipies"
   },
   {
    "id": "d1-1020",
@@ -452,6 +482,60 @@
    "stream": "school",
    "date": "2026-10-29",
    "subject": "[SFFS] 3rd Grade Overnight Trip: May 3 - 4, 2027"
+  },
+  {
+   "id": "sc-1102",
+   "stream": "school",
+   "date": "2026-11-02",
+   "subject": "[SFFS] Fall Play Tickets On Sale Now!"
+  },
+  {
+   "id": "t1-1103",
+   "stream": "teachers-1",
+   "date": "2026-11-03",
+   "subject": "Circle of Friends: Welcome baby Nico!"
+  },
+  {
+   "id": "sc-1103",
+   "stream": "school",
+   "date": "2026-11-03",
+   "subject": "[SFFS] Save the Date! Craft Fair is Saturday, December 12"
+  },
+  {
+   "id": "sc-1103b",
+   "stream": "school",
+   "date": "2026-11-03",
+   "subject": "[SFFS] Valkyries Championship Parade and Spirit Day 💜 🏀 🖤"
+  },
+  {
+   "id": "sc-1104",
+   "stream": "school",
+   "date": "2026-11-04",
+   "subject": "Registration for Winter Enrichment Classes Opens Wednesday, Nov. 11th at 7 pm"
+  },
+  {
+   "id": "d1-1104",
+   "stream": "digest-1",
+   "date": "2026-11-04",
+   "subject": "SFFS 1st Grade | Room Parent Digest | 11-03-26"
+  },
+  {
+   "id": "d3-1104",
+   "stream": "digest-3",
+   "date": "2026-11-04",
+   "subject": "SFFS 3rd Grade | Room Parent Digest | 11-03-26"
+  },
+  {
+   "id": "t1-1105",
+   "stream": "teachers-1",
+   "date": "2026-11-05",
+   "subject": "Chaperones needed! 1st grade field trip"
+  },
+  {
+   "id": "cb-1105",
+   "stream": "circle-back",
+   "date": "2026-11-05",
+   "subject": "SFFS Circle Back: November 5, 2026"
   }
  ],
  "topics": [
@@ -886,6 +970,36 @@
    ]
   },
   {
+   "id": "ms-parenting-stress-2026-11-17",
+   "kind": "event",
+   "audience": "middle",
+   "title": "Parenting: Middle School stress and emotional regulation",
+   "summary": "Middle School Counselor Kylie Dayan and Director of Counseling and Wellness Katherine Preston on adolescent emotional wellness, starting from Dr. Lisa Damour's episode \"How to Show Up for Your Teen with Big Emotions\". The first of four sessions this year. On Zoom.",
+   "when": {
+    "date": "2026-11-17",
+    "start_time": "19:00",
+    "end_time": "20:00",
+    "location": "Zoom"
+   },
+   "links": [
+    {
+     "label": "Zoom",
+     "url": "https://sffriendsschool-org.zoom.us/j/83289208633"
+    },
+    {
+     "label": "The Lisa Damour episode",
+     "url": "https://www.npr.org/transcripts/1166789948"
+    }
+   ],
+   "updates": [
+    {
+     "source": "cb-1105",
+     "date": "2026-11-05",
+     "note": "Save the date."
+    }
+   ]
+  },
+  {
    "id": "8th-grade-parent-coffee",
    "kind": "event",
    "audience": [
@@ -1056,7 +1170,7 @@
    "kind": "event",
    "audience": "all",
    "title": "GrandFriends Day",
-   "summary": "Grandparents and special friends visit classrooms. Light refreshments in the Gym, program at 10:00. Register your child's GrandFriend. Added later: Nov 20 is an early dismissal day for all students at 11:30; ED/A3 available, bring a lunch (no ChoiceLunch).",
+   "summary": "Grandparents and special friends visit classrooms. Light refreshments in the Gym, program at 10:00. Register your child's GrandFriend. Added later: Nov 20 is an early dismissal day for all students at 11:30; ED/A3 available, bring a lunch (no ChoiceLunch). Parents can volunteer for the day through a form.",
    "when": {
     "date": "2026-11-20",
     "start_time": "10:00",
@@ -1067,6 +1181,10 @@
     {
      "label": "Register",
      "url": "https://www.boostmyschool.com/orgs/sffriendsschool/events/grandfriends/register/step-1"
+    },
+    {
+     "label": "Parent volunteer form",
+     "url": "https://docs.google.com/forms/d/e/1FAIpQLSctFtIVNrzAd_ZYd6HwV8aTjB8dGIihlZmTJMmpWSWVxsqD1g/viewform"
     }
    ],
    "updates": [
@@ -1084,6 +1202,11 @@
      "source": "cb-1029",
      "date": "2026-10-29",
      "note": "Added: early dismissal 11:30 for all; ED/A3 available; no ChoiceLunch."
+    },
+    {
+     "source": "cb-1105",
+     "date": "2026-11-05",
+     "note": "Parent volunteer form added."
     }
    ]
   },
@@ -1126,11 +1249,52 @@
    ]
   },
   {
+   "id": "craft-fair-2026",
+   "kind": "event",
+   "audience": "all",
+   "title": "SFFS Craft Fair",
+   "summary": "A festive bazaar of crafts and food made by the community, open to all (invite family and friends), with a Sporting Gear Swap, a 4th grade cafe and a service project assembling hygiene kits with Simply the Basics. Middle Schoolers, parents from every grade, faculty and staff can sell: sign up as a vendor by Fri Dec 4. Middle School vendors must attend training Fri Nov 13 at 11:45 in the Learning Commons.",
+   "when": {
+    "date": "2026-12-12",
+    "start_time": "13:00",
+    "end_time": "16:00",
+    "location": "SFFS"
+   },
+   "deadline": {
+    "date": "2026-12-04",
+    "what": "Sign up to be a vendor"
+   },
+   "official": true,
+   "action": "Sign up to sell",
+   "links": [
+    {
+     "label": "Vendor sign-up",
+     "url": "https://docs.google.com/forms/d/e/1FAIpQLSceQNlD1gNLmMMGQtkIwvu53eyGVP2lNyk2mt-eC_5vMmgUZQ/viewform"
+    },
+    {
+     "label": "Craft Fair information",
+     "url": "https://sites.google.com/sffriendsschool.org/sffs-craft-fair-committee/home"
+    }
+   ],
+   "updates": [
+    {
+     "source": "sc-1103",
+     "date": "2026-11-03",
+     "note": "Announced; vendor sign-up open until Dec 4."
+    },
+    {
+     "source": "cb-1105",
+     "date": "2026-11-05",
+     "note": "Time added: 1:00–4:00 pm."
+    }
+   ]
+  },
+  {
    "id": "ms-fall-play-2026",
    "kind": "event",
    "audience": "all",
    "title": "Middle School Fall Play: Romeo and Juliet—Together [and Alive!] at Last!",
-   "summary": "A comedy that upends Shakespeare through a middle school production gone wild. Thu Nov 12 and Fri Nov 13 at 7:00, Sat Nov 14 at 1:00 and 5:00. Tickets go on sale Mon Nov 2. Families who need ticket support can contact drama teacher Russell Wright (rwright@sffriendsschool.org).",
+   "summary": "A comedy that upends Shakespeare through a middle school production gone wild. Thu Nov 12 and Fri Nov 13 at 7:00, Sat Nov 14 at 1:00 and 5:00. Tickets ($5 youth, $10 adults) went on sale Nov 2 and requests now exceed seating; there are no door sales. The school is looking at more seats and may offer waitlisted families the final dress rehearsal, Wed Nov 11 at 3:00 pm: tell drama teacher Russell Wright (rwright@sffriendsschool.org) if you are on the waitlist and interested. Families who need ticket support can contact him too.",
    "when": {
     "date": "2026-11-12",
     "end": "2026-11-14",
@@ -1138,7 +1302,7 @@
     "end_time": "21:00",
     "location": "SFFS"
    },
-   "action": "Buy tickets from Nov 2",
+   "action": "Buy tickets (waitlist)",
    "updates": [
     {
      "source": "cb-1015",
@@ -1154,6 +1318,22 @@
      "source": "cb-1029",
      "date": "2026-10-29",
      "note": "Tickets on sale Mon Nov 2; ticket support available."
+    },
+    {
+     "source": "sc-1102",
+     "date": "2026-11-02",
+     "note": "Tickets on sale: $5 youth, $10 adults; ticket link added."
+    },
+    {
+     "source": "cb-1105",
+     "date": "2026-11-05",
+     "note": "Requests exceed seating; no door sales. Waitlisted families may be offered the final dress rehearsal, Wed Nov 11 at 3:00 pm."
+    }
+   ],
+   "links": [
+    {
+     "label": "Tickets",
+     "url": "https://friendsfallplay.ludus.com/index.php"
     }
    ]
   },
@@ -1190,7 +1370,7 @@
    "kind": "notice",
    "audience": "all",
    "title": "Annual Fund",
-   "summary": "Goal $1.2M. Every trustee and administrative leader has given, plus a third of faculty and staff. A class volunteer will be in touch. Latest: over 20% of families, $350,000 raised (Oct 29).",
+   "summary": "Goal $1.2M. Every trustee and administrative leader has given, plus a third of faculty and staff. A class volunteer will be in touch. Latest: 1 in 4 families, closing in on $400,000 (Nov 5).",
    "action": "Make a gift",
    "links": [
     {
@@ -1218,6 +1398,11 @@
      "source": "cb-1029",
      "date": "2026-10-29",
      "note": "Over 20% of families; $350,000."
+    },
+    {
+     "source": "cb-1105",
+     "date": "2026-11-05",
+     "note": "1 in 4 families; closing in on $400,000."
     }
    ],
    "pin": true
@@ -1268,6 +1453,24 @@
      "source": "cb-1022",
      "date": "2026-10-22",
      "note": "Announced."
+    }
+   ]
+  },
+  {
+   "id": "valkyries-spirit-day-2026-11-04",
+   "kind": "event",
+   "audience": "all",
+   "title": "Valkyries spirit day",
+   "summary": "To celebrate the Valkyries' championship, students and staff were invited to wear lavender and black on Wed Nov 4, the day of the parade. School ran as usual, including Middle School MAP testing. Absences needed the Family Portal attendance form by 8:30 am, and missed work must be made up.",
+   "when": {
+    "date": "2026-11-04",
+    "location": "SFFS"
+   },
+   "updates": [
+    {
+     "source": "sc-1103b",
+     "date": "2026-11-03",
+     "note": "Announced by the Head of School."
     }
    ]
   },
@@ -1408,6 +1611,20 @@
      "source": "cb-1022",
      "date": "2026-10-22",
      "note": "Announced."
+    }
+   ]
+  },
+  {
+   "id": "lost-and-found",
+   "kind": "notice",
+   "audience": "all",
+   "title": "Lost and Found",
+   "summary": "Missing water bottles or clothing? Check the Lost and Found on the first floor near room 118. Unclaimed items are donated over Winter Break.",
+   "updates": [
+    {
+     "source": "cb-1105",
+     "date": "2026-11-05",
+     "note": "Reminder; items donated over Winter Break."
     }
    ]
   },
@@ -1723,6 +1940,27 @@
    ]
   },
   {
+   "id": "black-families-fall-dinner-2026",
+   "kind": "event",
+   "audience": "all",
+   "title": "SFFS Black Families Affinity annual fall dinner",
+   "summary": "Bring your family for food, drinks and good company; everyone is encouraged to come. Please RSVP so there is enough food (see the email for who to tell).",
+   "when": {
+    "date": "2026-11-10",
+    "start_time": "17:30",
+    "end_time": "19:00",
+    "location": "Room 234"
+   },
+   "action": "RSVP",
+   "updates": [
+    {
+     "source": "cb-1105",
+     "date": "2026-11-05",
+     "note": "Announced."
+    }
+   ]
+  },
+  {
    "id": "school-store-2026",
    "kind": "notice",
    "audience": "all",
@@ -1815,18 +2053,30 @@
    "kind": "event",
    "audience": "all",
    "title": "SPEAK: AI is Moving Fast, What Parents Need to Know (Eric Hudson)",
-   "summary": "Educator and school advisor Eric Hudson on how AI is changing education and how adults can help young people use it well. Doors 6:45. Sold out; a waitlist is open.",
+   "summary": "Educator and school advisor Eric Hudson on the state of AI in education, early research on how students and teachers use it, and the opportunities and risks ahead. The talk was Nov 2; a recording is available until Dec 4, with resources he recommended.",
    "when": {
     "date": "2026-11-02",
     "start_time": "19:00",
     "end_time": "20:30",
     "location": "Mount Tamalpais School, 100 Harvard Ave"
    },
-   "action": "Join the waitlist",
+   "action": "Watch the recording by Dec 4",
    "links": [
     {
-     "label": "Waitlist (Eventbrite)",
-     "url": "https://www.eventbrite.com/e/ai-is-moving-fast-what-parents-need-to-know-tickets-2000287412497?aff=oddtdtcreator"
+     "label": "Recording (SPEAK)",
+     "url": "https://www.speaksf.org/"
+    },
+    {
+     "label": "Eric Hudson: Learning on Purpose",
+     "url": "https://erichudson.substack.com/"
+    },
+    {
+     "label": "Common Sense Media and AI",
+     "url": "https://about.commonsensemedia.org/ai"
+    },
+    {
+     "label": "Day of AI (MIT)",
+     "url": "https://dayofai.org/"
     }
    ],
    "updates": [
@@ -1844,6 +2094,11 @@
      "source": "cb-1008",
      "date": "2026-10-08",
      "note": "Sold out; waitlist."
+    },
+    {
+     "source": "cb-1105",
+     "date": "2026-11-05",
+     "note": "Recording available until Dec 4, with recommended resources."
     }
    ]
   },
@@ -1888,7 +2143,7 @@
    "kind": "volunteer",
    "audience": "all",
    "title": "Volunteer at the Stay Over Program (Sundays)",
-   "summary": "Families volunteer 2–4 pm on Sundays at Downtown High School with a family shelter serving SFUSD students, bringing games, crafts and healthy snacks for about 32 people. Sign up for a slot (through December). Questions to friendsatSOP@gmail.com.",
+   "summary": "Families volunteer 2–4 pm on Sundays at Downtown High School with a family shelter serving SFUSD students, bringing games, crafts and healthy snacks for about 10 people. Sign up for a slot (through December). Questions to friendsatSOP@gmail.com.",
    "when": {
     "date": "2026-09-21",
     "end": "2026-12-31",
@@ -1913,6 +2168,11 @@
      "source": "cb-1015",
      "date": "2026-10-15",
      "note": "Student reflection added."
+    },
+    {
+     "source": "cb-1105",
+     "date": "2026-11-05",
+     "note": "Snacks now for about 10 people."
     }
    ]
   },
@@ -1967,16 +2227,16 @@
    "kind": "notice",
    "audience": "middle",
    "title": "Middle School athletics: volleyball and cross country",
-   "summary": "Circle Back lists each week's games. Coming up: three home volleyball games Wed Nov 4 (8th White 3:45, 6th 4:45, 7th Blue 5:45) and Friends Volleyball Night Fri Nov 6 from 3:45 with home scrimmages at 4:00, 5:00 and 6:00. The full schedule is in the Family Portal's athletics calendar.",
+   "summary": "Circle Back lists each week's games. Coming up: Friends Volleyball Night Fri Nov 6 from 3:45 with home scrimmages at 4:00, 5:00 and 6:00; cross country league finals Mon Nov 9 at 3:00; SFAL volleyball playoffs Mon Nov 9 to Fri Nov 13 at 3:15. The full schedule is in the Family Portal's athletics calendar.",
    "when": {
-    "date": "2026-11-04",
-    "end": "2026-11-06",
+    "date": "2026-11-06",
+    "end": "2026-11-13",
     "location": "SFFS"
    },
    "links": [
     {
-     "label": "Family Portal",
-     "url": "https://accounts.veracross.com/sffs/portals/login"
+     "label": "Athletics calendar (Family Portal)",
+     "url": "https://portals.veracross.com/sffs/parent/pages/Athletics-Calendar"
     }
    ],
    "updates": [
@@ -1989,6 +2249,11 @@
      "source": "cb-1029",
      "date": "2026-10-29",
      "note": "Nov 4 home games and Nov 6 Friends Volleyball Night."
+    },
+    {
+     "source": "cb-1105",
+     "date": "2026-11-05",
+     "note": "Cross country league finals Nov 9; SFAL volleyball playoffs Nov 9–13."
     }
    ]
   },
@@ -2100,6 +2365,29 @@
      "source": "d1-1020",
      "date": "2026-10-21",
      "note": "Reminder to sign up."
+    }
+   ]
+  },
+  {
+   "id": "g1-field-trip-gfe-2026-11-12",
+   "kind": "volunteer",
+   "audience": [
+    "1"
+   ],
+   "title": "1st grade field trip: Garden for the Environment (chaperones needed)",
+   "summary": "A last-minute walking field trip to Garden for the Environment, a community and educational garden, on Thu Nov 12: gather at 8:30, walk and take MUNI, guided visit, snack and lunch there, back for regular dismissal at 2:40. The teachers need 2 parent chaperones; see the email for who to tell.",
+   "when": {
+    "date": "2026-11-12",
+    "start_time": "08:30",
+    "end_time": "14:40",
+    "location": "Garden for the Environment"
+   },
+   "action": "Volunteer to chaperone",
+   "updates": [
+    {
+     "source": "t1-1105",
+     "date": "2026-11-05",
+     "note": "Announced; 2 chaperones needed."
     }
    ]
   },
@@ -2442,6 +2730,35 @@
    ]
   },
   {
+   "id": "winter-enrichment-registration-2026",
+   "kind": "deadline",
+   "audience": "all",
+   "title": "Winter enrichment classes and music lessons: registration opens Nov 11",
+   "summary": "Registration opens Wed Nov 11 at 7:00 pm in Ultracamp; an email with the link goes out then. Classes fill quickly, so create an Ultracamp account beforehand. Classes begin the week of Dec 7. Lower Schoolers stay checked into Extended Day during classes (the ED cost is deducted); Middle Schoolers pay full price. Adjusted-tuition discounts are available. Questions to mvendrell@sffriendsschool.org.",
+   "deadline": {
+    "date": "2026-11-11",
+    "what": "Registration opens at 7:00 pm"
+   },
+   "action": "Create an Ultracamp account",
+   "links": [
+    {
+     "label": "Class schedule, descriptions and fees",
+     "url": "https://docs.google.com/document/d/1DIfml1o4zUUsC0Pt8S6F61s6fkDrQjgHSArvJikyEa8/edit?usp=sharing"
+    },
+    {
+     "label": "Ultracamp (create an account)",
+     "url": "https://www.ultracamp.com/clientlogin.aspx?idCamp=549&campCode=sfs"
+    }
+   ],
+   "updates": [
+    {
+     "source": "sc-1104",
+     "date": "2026-11-04",
+     "note": "Announced."
+    }
+   ]
+  },
+  {
    "id": "arrival-dismissal-attendance",
    "kind": "notice",
    "audience": "all",
@@ -2711,6 +3028,11 @@
      "source": "pga-1020",
      "date": "2026-10-20",
      "note": "The 1st grade Class Friend introduced the role."
+    },
+    {
+     "source": "t1-1103",
+     "date": "2026-11-03",
+     "note": "1st grade: meal sign-up for a staff member's family after a new baby, Tuesdays and Fridays through Dec 19, delivered to the front desk by 3:00 pm. See the email for the sign-up and dietary notes."
     }
    ]
   },
