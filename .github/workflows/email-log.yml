@@ -10,13 +10,15 @@ name: Email log
 #   secret   GOOGLE_SERVICE_ACCOUNT_JSON  the Drive bot's key; Editor on the log folder
 #   secret   SYNC_BOT_TOKEN               a token that may open PRs (github.token's PRs skip CI)
 #   variable EMAIL_LOG_FOLDER_ID          the "Class sites - email log" Drive folder
-# Runs hourly (at :07, so the extraction routine at :35 sees the result; Actions minutes are
-# unlimited on a public repo) and on demand. On a PR that touches the fetcher it runs a dry
+# Runs hourly at :23 (the extraction routine runs at :50 and sees the result; Actions minutes
+# are unlimited on a public repo) and on demand. Not at the top of the hour: GitHub delays or
+# drops scheduled runs then, and the first night at :07 produced one run in twelve hours
+# (2026-11-06). Schedules stay best-effort, so a missed hour just means the next one catches up. On a PR that touches the fetcher it runs a dry
 # run: reads the mailbox, classifies and cleans, writes nothing, and puts what it would log
 # in the job summary.
 on:
   schedule:
-    - cron: "7 * * * *"
+    - cron: "23 * * * *"
   workflow_dispatch:
     inputs:
       dry_run:
