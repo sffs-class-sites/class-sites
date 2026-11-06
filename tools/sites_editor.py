@@ -503,21 +503,35 @@ def cmd_chrome(a, reg):
         print(f"Chrome is already listening at {cdp} ({up}); nothing to start")
         return 0
     data_dir = pathlib.Path(a.user_data_dir).expanduser()
-    profiles = profiles_in(data_dir) if data_dir.exists() else {}
+    unreadable = None
+    try:
+        exists = data_dir.exists()
+        if exists:
+            os.listdir(data_dir)   # only to find out whether this process may read it
+    except OSError as e:
+        # macOS keeps Chrome's data dir from some processes (the claude CLI on the Mini, 2026-11-06: EPERM on
+        # listing, though the dir is the user's own). Then the script can't tell who is signed in; Chrome can
+        # still start there, and `list` prints the account.
+        exists, unreadable = True, e
+    profiles = profiles_in(data_dir) if exists and not unreadable else {}
     signed_in = [name for name, emails in profiles.items() if ACCOUNT in emails]
-    if not data_dir.exists() or not signed_in:
+    if not exists or (not signed_in and not unreadable):
         # First time: make the data dir, open Chrome on the Google sign-in page, and leave the sign-in to a person.
         data_dir.mkdir(parents=True, exist_ok=True)
         cmd = chrome_command(data_dir, "Default", port, "https://accounts.google.com/")
-        why = "doesn't exist yet" if not profiles else f"has no profile signed in as {ACCOUNT} (profiles: {profiles})"
+        why = "doesn't exist yet" if not exists else f"has no profile signed in as {ACCOUNT} (profiles: {profiles})"
         print(f"{data_dir} {why}. Starting Chrome there on the Google sign-in page; sign in as {ACCOUNT} by hand, "
               f"once, then run this command again. (This script never handles a password.)")
         print("  " + " ".join(cmd))
         subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return 1
-    profile = signed_in[0]
+    profile = signed_in[0] if signed_in else "Default"
     cmd = chrome_command(data_dir, profile, port, "about:blank")
-    print(f"starting Chrome with {data_dir} (profile {profile!r}, signed in as {ACCOUNT}), maximised, debug port {port}:")
+    if unreadable:
+        print(f"can't read {data_dir} ({unreadable.strerror}): this process isn't allowed to look at Chrome's data, so who is "
+              f"signed in is unknown. Starting Chrome there anyway, maximised, debug port {port}; `list` prints the account:")
+    else:
+        print(f"starting Chrome with {data_dir} (profile {profile!r}, signed in as {ACCOUNT}), maximised, debug port {port}:")
     print("  " + " ".join(cmd))
     subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     for _ in range(40):

@@ -2,17 +2,17 @@
 
 Google Sites has no API (CLAUDE.md §5), so sizing an embed box or publishing a site is editor work. This script does that work from the command line, attached to a Chrome that a person signed in, so a Claude session never clicks through the editor one screenshot at a time. Written 2026-11-03.
 
-**Status (2026-11-03):** every command is built. `list` ran read-only on the real editor on 2026-11-02 (§4 has the record). `resize --apply` ran on the real editor on 2026-11-02: it resized the room-parents box on the 1st-grade homepage, Ahin published that by hand, and the live check confirmed it on 2026-11-03 (§4, §6). `publish --apply` is tested only on the mock editor (§7) and has **not yet run on the real editor**. The real editor shows no size label, so `resize` measures the iframe after each drag and aims at the box's shape (h ÷ w), which is what Sites publishes (CLAUDE.md §5).
+**Status (2026-11-03):** every command is built. `list` ran read-only on the real editor on 2026-11-02 (§4 has the record). `resize --apply` ran on the real editor on 2026-11-02: it resized the room-parents box on the 1st-grade homepage, Ahin published that by hand, and the live check confirmed it on 2026-11-03 (§4, §6). `chrome` started the signed-in Chrome on the Mini on 2026-11-06 (§4). `publish --apply` is tested only on the mock editor (§7) and has **not yet run on the real editor**. The real editor shows no size label, so `resize` measures the iframe after each drag and aims at the box's shape (h ÷ w), which is what Sites publishes (CLAUDE.md §5).
 
 ## 1. Set-up on the Mac (once per session, Ahin)
 
-1. Start Chrome for the script. The script can do it (added 2026-11-03, tested on Linux with a fake profile. On the Mac, 2026-11-06, only the "already running" path has run: it found the debug Chrome on 9222 and started nothing. **Starting Chrome on the Mac is not yet tested**):
+1. Start Chrome for the script. The script can do it (added 2026-11-03; on the Mini, 2026-11-06, it started the signed-in Chrome twice, §4):
 
    ```bash
    python3 tools/sites_editor.py chrome
    ```
 
-   It looks in `~/Library/Application Support/Google/Chrome/classpages` (override: `--user-data-dir`, or `SITES_EDITOR_CHROME_DIR`), a Chrome user data dir of its own, because Chrome 136+ refuses `--remote-debugging-port` on the default one. If that dir has a profile whose `Preferences` lists `classpages@sffriendsschool.org` under `account_info`, it starts the real Chrome app on it (`open -na "Google Chrome"`), maximised, debug port 9222, one blank tab, and waits for the port. If the dir is missing or not signed in, it starts Chrome there on the Google sign-in page, says so, and exits 1: a person signs in as `classpages@` once, then runs the command again. If the port is already up it does nothing. If a Chrome on that dir is already running without the port, macOS just focuses it and the command stops after 20 s with that explanation: quit that window and run again. A Claude session on the Mini runs this behind its normal permission prompt. The script never handles a password, and it is not headless: it drives the account's own window.
+   It looks in `~/Library/Application Support/Google/Chrome/classpages` (override: `--user-data-dir`, or `SITES_EDITOR_CHROME_DIR`), a Chrome user data dir of its own, because Chrome 136+ refuses `--remote-debugging-port` on the default one. If that dir has a profile whose `Preferences` lists `classpages@sffriendsschool.org` under `account_info`, it starts the real Chrome app on it (`open -na "Google Chrome"`), maximised, debug port 9222, one blank tab, and waits for the port. If the dir is missing or not signed in, it starts Chrome there on the Google sign-in page, says so, and exits 1: a person signs in as `classpages@` once, then runs the command again. If the dir exists but the process may not read it (on the Mini, macOS refuses the claude CLI a look inside Chrome's data dir: "Operation not permitted", with or without Claude Code's own sandbox), it can't tell who is signed in, so it starts Chrome there anyway on a blank tab and exits 0 once the port is up; `list` then prints the account. If the port is already up it does nothing. If a Chrome on that dir is already running without the port, macOS just focuses it and the command stops after 20 s with that explanation: quit that window and run again. A Claude session on the Mini runs this behind its normal permission prompt. The script never handles a password, and it is not headless: it drives the account's own window.
 
    By hand, the same thing is:
 
@@ -224,7 +224,28 @@ window 1830 × 963 (device pixel ratio 1)
 - selected important-dates by a corner click: editor marks it selected = True; size label(s) none (the editor shows none)
 ```
 
-So on the same kind of reused tab where `list` reported both embeds MISSING on 2026-11-02, the `data-url` lookup finds both, at the sizes `resize` left and the live check reports. Scroll-then-select works on a block below the fold. Starting Chrome with `chrome` is still untested on the Mac: the signed-in debug window was left running on purpose.
+So on the same kind of reused tab where `list` reported both embeds MISSING on 2026-11-02, the `data-url` lookup finds both, at the sizes `resize` left and the live check reports. Scroll-then-select works on a block below the fold. Starting Chrome with `chrome` was tested later the same day (below).
+
+**2026-11-06 (afternoon), the Mini: `chrome` starting Chrome.** The signed-in debug Chrome was quit (`tell application "Google Chrome" to quit`, which also left the Mini's ordinary Chrome running), then:
+
+```
+$ python3 tools/sites_editor.py chrome
+/Users/thomasfamilybot/Library/Application Support/Google/Chrome/classpages doesn't exist yet. Starting Chrome there on the Google sign-in page; sign in as classpages@sffriendsschool.org by hand, once, then run this command again. (This script never handles a password.)
+  open -na Google Chrome --args --remote-debugging-port=9222 --user-data-dir=/Users/thomasfamilybot/Library/Application Support/Google/Chrome/classpages --profile-directory=Default --start-maximized --no-first-run --no-default-browser-check https://accounts.google.com/
+exit=1
+```
+
+The message was wrong: the dir existed and was signed in, but the claude CLI on the Mini may not read it (`ls` says "Operation not permitted" on `…/Google/Chrome` and `…/classpages`, both `drwx------` and the user's own; the same without Claude Code's sandbox, so it is macOS, not the tool). `profiles_in` found no profile, and the script took that for "no data dir". Chrome did start, signed in: the sign-in page went straight to `myaccount.google.com`, the port was up a few seconds later, and `list` printed the account and both class-2034 embeds at the sizes of the morning's run (the blank-tab rule in §1 holds: Chrome opened with one tab). Fixed the same day: an unreadable dir now starts Chrome on a blank tab and exits 0 when the port is up. Re-tested by killing that Chrome (`kill -TERM`) and running `chrome` again:
+
+```
+$ python3 tools/sites_editor.py chrome
+can't read /Users/thomasfamilybot/Library/Application Support/Google/Chrome/classpages (Operation not permitted): this process isn't allowed to look at Chrome's data, so who is signed in is unknown. Starting Chrome there anyway, maximised, debug port 9222; `list` prints the account:
+  open -na Google Chrome --args --remote-debugging-port=9222 --user-data-dir=/Users/thomasfamilybot/Library/Application Support/Google/Chrome/classpages --profile-directory=Default --start-maximized --no-first-run --no-default-browser-check about:blank
+Chrome is up: Chrome/156.0.8078.80 at http://localhost:9222. Next: list / resize / publish
+exit=0
+```
+
+`tabs` then showed one `about:blank`. The window came up 1830 × 963 (maximised on the 1920 × 1080 screen). The mock test (`PW_CHROMIUM="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"`) passes on the Mini; it runs on free ports and a temp profile, so it can run beside the live Chrome.
 
 ## 5. What the DOM record holds
 
