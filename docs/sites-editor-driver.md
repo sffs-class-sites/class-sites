@@ -6,7 +6,7 @@ Google Sites has no API (CLAUDE.md §5), so sizing an embed box or publishing a 
 
 ## 1. Set-up on the Mac (once per session, Ahin)
 
-1. Start Chrome for the script. The script can do it (added 2026-11-03, tested on Linux with a fake profile only; **not yet run on the Mac**):
+1. Start Chrome for the script. The script can do it (added 2026-11-03, tested on Linux with a fake profile. On the Mac, 2026-11-06, only the "already running" path has run: it found the debug Chrome on 9222 and started nothing. **Starting Chrome on the Mac is not yet tested**):
 
    ```bash
    python3 tools/sites_editor.py chrome
@@ -75,10 +75,10 @@ Google changes the editor without notice and its class names are obfuscated, so 
 | Who is signed in | `[aria-label^="Google Account"]` in the top bar (the avatar button, which names the account in Google apps) | **confirmed 2026-11-02**: `aria-label="Google Account: SFFS Class Pages (classpages@sffriendsschool.org)"` (a newline before the parenthesis) |
 | The Pages panel | `[role=tree]`; if absent, a `[role=tab]`/button labelled "Pages" is clicked to open it | **confirmed 2026-11-02**: the panel was closed; `[role=tab]` "Pages" opened it; one `[role=tree]` with one `[role=treeitem]` per top-level page (`aria-labelledby` = the page's id, `aria-selected="true"` on the current page). Item labels: "Home page, titled Home.", "Room Info.", "Email Digest.", "Resources. Child pages available." |
 | A page entry | the smallest visible element whose text is exactly the page title (`email-digest` → "Email Digest"), preferring one under `[role=tree]`/`[role=treeitem]`; clicked at its centre, then the editor URL is printed | **confirmed for Home 2026-11-02**: the element found is a role-less `div` inside the treeitem; the click worked. The editor had already opened on Home, so the URL didn't change: moving to a different page is not yet exercised |
-| Our embeds | `div[aria-label="Whole page embed"][data-url]` elements in the editor document whose `data-url` is one of our Pages URLs (`…/class-sites/shared/<id>/…`); the `iframe` inside is the box. Both `list` and `resize` use this since 2026-11-03. Playwright's frame tree is only reported ("our page is / is not in Playwright's frame tree"): on a tab that was open before the script attached it shows the gstatic wrapper frames with an empty URL and nothing below them, which is why `list` reported every embed MISSING on 2026-11-02 evening | **confirmed 2026-11-02** (the `data-url` hook, by `resize`); `list`'s switch to it is tested on the mock only |
-| Box size | the bounding box of that outermost iframe element, in CSS px of the editor window; expected to equal the editor's size label at a ≥1440px window | **measured only at a 1200px window** (2026-11-02): the canvas is scaled, so card embeds measure 701 wide against the registry's 935 (×0.75). The h/w ratios still hold: class-2034 room-parents 0.586, important-dates 0.666; class-2032 important-dates 0.669 (card = 0.668). Re-run at ≥1440 before `resize` |
+| Our embeds | `div[aria-label="Whole page embed"][data-url]` elements in the editor document whose `data-url` is one of our Pages URLs (`…/class-sites/shared/<id>/…`); the `iframe` inside is the box. Both `list` and `resize` use this since 2026-11-03. Playwright's frame tree is only reported ("our page is / is not in Playwright's frame tree"): on a tab that was open before the script attached it shows the gstatic wrapper frames with an empty URL and nothing below them, which is why `list` reported every embed MISSING on 2026-11-02 evening | **confirmed 2026-11-02** (the `data-url` hook, by `resize`) and **2026-11-06** (`list`): on a tab that had been open for days, `list` found both class-2034 embeds by `data-url`, though Playwright's frame tree still didn't show our page |
+| Box size | the bounding box of that outermost iframe element, in CSS px of the editor window; expected to equal the editor's size label at a ≥1440px window | **confirmed at an 1830px window** (2026-11-02 evening and 2026-11-06): card embeds measure 1154 wide, the same as the published desktop frame, and the editor shape matches the live check's (room-parents 0.669 in both). At a 1200px window (2026-11-02) the canvas is scaled to 701 wide (×0.75), but the h/w ratios still hold. The registry's 935 is never the measured width at these windows; the script compares shape (h ÷ w), not width |
 | A block (`resize`) | `div[aria-label="Whole page embed"][data-url]` whose `data-url` is the embed's URL (same id and query as the registry slot); its `iframe` is the box | **confirmed 2026-11-02**: `resize` found class-2034 room-parents this way on a reused tab, where frame URLs failed |
-| Selecting a block | scroll it into view, click the iframe's top-left corner (+2, +2); then `div[role=gridcell][aria-label="IFRAME"]` above it must carry `aria-selected="true"` or the script stops | **confirmed 2026-11-02** (the click and the attribute); the scroll-first version not yet run for real |
+| Selecting a block | scroll it into view, click the iframe's top-left corner (+2, +2); then `div[role=gridcell][aria-label="IFRAME"]` above it must carry `aria-selected="true"` or the script stops | **confirmed 2026-11-02** (the click and the attribute) and **2026-11-06** (scroll first): important-dates, starting at y=2002 in a 963px-tall window, was scrolled to, clicked and marked selected |
 | Size label | none: the real editor shows no `W × H` on a selected embed (2026-11-02). `resize` measures the iframe's bounding box after every drag instead, and aims at the registry box's shape | **confirmed absent 2026-11-02** |
 | Resize handle | by position only: bottom centre of the selected block's iframe, `(x + w/2, y + h)`; the script moves there, presses, moves down in 12 steps, releases, and checks the iframe got taller and no wider | **confirmed 2026-11-02**: one drag of +95px took room-parents from 1154 × 677 to 1154 × 772, width unchanged, no snapping visible |
 | Publish | `[guidedhelpid="at-appbar-publish"]` (fallback: `div[role=button]` with text Publish); then a `[role=dialog]`/`[role=alertdialog]` with exactly one button whose text is Publish, which is clicked; the dialog must close within 10 s | button **found 2026-11-02**; the dialog is **assumed** (never opened) and the script stops with a dump of it if it differs |
@@ -193,7 +193,38 @@ The same happened on a second `list`. The embeds are there. Editor state from th
 - Chrome's own `/json/list` shows both of our frames.
 - The room-parents embed now renders the five room parents in the editor, not the error in §8.
 
-The cause is in the script, not the editor: on a reused tab, Playwright's frame tree has `url == ""` for the gstatic wrapper frames and leaves out the frames below them. See the "Our embeds (`list`)" row above. Until `list` finds blocks by `data-url`, verify by the iframe element's size, or close the editor tab so `list` opens it fresh.
+The cause is in the script, not the editor: on a reused tab, Playwright's frame tree has `url == ""` for the gstatic wrapper frames and leaves out the frames below them. See the "Our embeds (`list`)" row above. Fixed 2026-11-03 (`list` finds blocks by `data-url`) and confirmed on the real editor 2026-11-06 (below).
+
+**2026-11-06, the Mini, Chrome 156.0.8078.80, the same debug Chrome and editor tab as 2026-11-02, window 1830 × 963.** Read-only: the checks the PR #41 after-merge note asked for. Nothing was changed or published.
+
+`python3 tools/sites_editor.py chrome` (exit 0):
+
+```
+Chrome is already listening at http://localhost:9222 (Chrome/156.0.8078.80); nothing to start
+```
+
+`python3 tools/sites_editor.py list --site class-2034 --page home --select --dump` (exit 0):
+
+```
+using the open editor tab https://sites.google.com/d/1vqA_IFOx0oCDUi95RtQ-PPo-3LcD_szY/p/13dwUNzc1KK6w3xcGRqiyBHCDDldaatKq/edit?pli=1
+signed in as: Google Account: SFFS Class Pages (classpages@sffriendsschool.org)
+page 'Home': clicked its entry in the <div role=None>; panel opened via [role=tab]:has-text("Pages"); editor URL unchanged (https://sites.google.com/d/1vqA_IFOx0oCDUi95RtQ-PPo-3LcD_szY/p/13dwUNzc1KK6w3xcGRqiyBHCDDldaatKq/edit?pli=1)
+window 1830 × 963 (device pixel ratio 1)
+- room-parents  https://sffs-class-sites.github.io/class-sites/shared/room-parents/?class=2034
+    box 1154 × 772 (h/w 0.669) at x=205 y=608 in the window; registry box card = 935 × 625 (h/w 0.668)
+    wrapped by https://www.gstatic.com/atari/embeds/9581c1cb067d2cf0b0db63dc0d8422ac/intermediate-frame-minified.ht
+    block: div[aria-label="Whole page embed"][d…] with this data-url; our page is not in Playwright's frame tree
+    iframe ancestors: iframe > div[aria-label='Whole page embed'] > div > div > div > div[role=gridcell][aria-label='IFRAME']
+- important-dates  https://sffs-class-sites.github.io/class-sites/shared/important-dates/
+    box 1154 × 769 (h/w 0.666) at x=205 y=2002 in the window; registry box card = 935 × 625 (h/w 0.668)
+    wrapped by https://www.gstatic.com/atari/embeds/9581c1cb067d2cf0b0db63dc0d8422ac/intermediate-frame-minified.ht
+    block: div[aria-label="Whole page embed"][d…] with this data-url; our page is not in Playwright's frame tree
+    iframe ancestors: iframe > div[aria-label='Whole page embed'] > div > div > div > div[role=gridcell][aria-label='IFRAME']
+- selected room-parents by a corner click: editor marks it selected = True; size label(s) none (the editor shows none)
+- selected important-dates by a corner click: editor marks it selected = True; size label(s) none (the editor shows none)
+```
+
+So on the same kind of reused tab where `list` reported both embeds MISSING on 2026-11-02, the `data-url` lookup finds both, at the sizes `resize` left and the live check reports. Scroll-then-select works on a block below the fold. Starting Chrome with `chrome` is still untested on the Mac: the signed-in debug window was left running on purpose.
 
 ## 5. What the DOM record holds
 
@@ -205,7 +236,7 @@ The cause is in the script, not the editor: on a reused tab, Playwright's frame 
 
 ## 6. The plan the brief sets out
 
-1. `list` (read-only) on both class sites: done, run on the Mac 2026-11-02, §4 filled. A re-run at a ≥1440px window is still needed for absolute box sizes.
+1. `list` (read-only) on both class sites: done, run on the Mac 2026-11-02, §4 filled; re-run on class-2034 at an 1830px window 2026-11-06 with the `data-url` lookup.
 2. `resize`: built 2026-11-03 (there is no size label, so it measures the iframe after each drag and aims at the box's shape). Dry run by default; `--apply` drags; never publishes. **Run for real 2026-11-02 on class-2034 room-parents: 1154 × 677 → 1154 × 772 (0.669); Ahin published it by hand** (§4).
 3. `publish`: built 2026-11-03: click Publish, confirm in the dialog. Separate command so a resize can be inspected in the editor first. **Not yet run on the real editor**; the dialog has never been seen, so the first run may stop and ask for it to be recorded.
 4. Verify with `python3 tests/live_check.py --site class-2034`: the room-parents row should show h ÷ w 0.668 and no drift note; then update that slot's comment in `registry.yaml` and CLAUDE.md §7. Baseline run from a cloud session on 2026-11-03, before any resize: room-parents 1154 × 677 (0.587) on a desktop, 352 × 206 (0.585) on an iPhone, both listed as drift; everything else passed. That container reaches sites.google.com, so the check can run from there as well as from the Mac. **Done 2026-11-03** on the Mac after Ahin published: PASS, room-parents 1154 × 772 (0.669) on a desktop and 352 × 235 (0.668) on an iPhone, no drift note; `registry.yaml` and CLAUDE.md §7 updated.
