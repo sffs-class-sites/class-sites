@@ -76,10 +76,29 @@ jobs:
           pip install pyyaml
           python3 tests/monitor.py
 
+      # Chromium is cached between runs, keyed on the Playwright version (2026-11-06: the
+      # download took 17s all day, then 9.5 minutes for three builds in a row during a slow
+      # evening at GitHub's end). On a hit only the OS packages are installed, a few seconds.
       - name: Install Playwright
+        id: pw
         run: |
           pip install playwright
-          python -m playwright install --with-deps chromium
+          echo "version=$(python -c 'import playwright; print(playwright.__version__)')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Chromium
+        id: pw-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ steps.pw.outputs.version }}
+
+      - name: Install Chromium
+        run: |
+          if [ "${{ steps.pw-cache.outputs.cache-hit }}" = "true" ]; then
+            python -m playwright install-deps chromium
+          else
+            python -m playwright install --with-deps chromium
+          fi
 
       - name: Render check in a Google Sites-style sandbox (desktop, tablet, phone)
         run: python3 tests/render_check.py
