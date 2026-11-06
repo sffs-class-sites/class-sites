@@ -34,7 +34,9 @@ jobs:
         id: pw
         run: |
           pip install playwright
-          echo "version=$(python -c 'import playwright; print(playwright.__version__)')" >> "$GITHUB_OUTPUT"
+          # pip's metadata, not playwright.__version__ (the package does not define it: the first
+          # cached build's key came out as "playwright-chromium-Linux-", 2026-11-06)
+          echo "version=$(pip show playwright | sed -n 's/^Version: //p')" >> "$GITHUB_OUTPUT"
 
       - name: Cache Chromium
         id: pw-cache
