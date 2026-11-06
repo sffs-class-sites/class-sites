@@ -1,0 +1,28 @@
+name: Updates PR
+
+# The extraction routine (docs/extraction-routine.md) pushes its ledger changes to the
+# updates-auto branch. If it could not open the PR itself, this does, as SFQuakerBot
+# (SYNC_BOT_TOKEN, so the required build check runs), with the commit message as title and
+# body. deploy.yml's automerge job merges it once the build check passes.
+on:
+  push:
+    branches: [updates-auto]
+
+permissions:
+  contents: read
+
+jobs:
+  open:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.SYNC_BOT_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Open the PR if none is open
+        run: |
+          if [ -z "$GH_TOKEN" ]; then echo "SYNC_BOT_TOKEN is not set." >> "$GITHUB_STEP_SUMMARY"; exit 0; fi
+          if gh pr view updates-auto --json state -q .state 2>/dev/null | grep -q OPEN; then echo "PR already open." >> "$GITHUB_STEP_SUMMARY"; exit 0; fi
+          git log -1 --format=%s > "$RUNNER_TEMP/title"
+          git log -1 --format=%b > "$RUNNER_TEMP/body"
+          [ -s "$RUNNER_TEMP/body" ] || echo "Ledger changes from the extraction routine (docs/extraction-routine.md)." > "$RUNNER_TEMP/body"
+          gh pr create --head updates-auto --base main --title "$(cat "$RUNNER_TEMP/title")" --body-file "$RUNNER_TEMP/body"
