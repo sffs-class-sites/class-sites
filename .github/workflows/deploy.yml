@@ -48,6 +48,7 @@ jobs:
           python3 tests/test_fetch_school_email.py
           python3 tests/test_pending_emails.py
           python3 tests/test_notify_changes.py
+          python3 tests/test_notify_deploy.py
 
       - name: Build embeds
         run: |
@@ -175,16 +176,20 @@ jobs:
           PR: ${{ github.event.pull_request.number }}
         run: gh pr comment "$PR" --body-file "$RUNNER_TEMP/comment.md" --edit-last --create-if-none
 
-  # Content PRs from the pipeline's bots merge themselves once the required build check passes
-  # (CLAUDE.md §4 "Who merges"): the email-log index (email-log-auto) and the extraction
-  # routine's ledger changes (updates-auto). Decided 2026-11-05. The repo's auto-merge setting
-  # is off, so this merges explicitly, as SFQuakerBot (SYNC_BOT_TOKEN). A failed build never
-  # reaches this job, and a human can still close the PR.
+  # PRs from the pipeline and from Claude merge themselves once the required build check passes
+  # (CLAUDE.md §4 "Who merges"): the email-log index (email-log-auto), the extraction routine's
+  # ledger changes (updates-auto), and since 2026-11-06 any PR opened by SFQuakerBot or carrying
+  # Claude Code's footer, code, workflows and instructions included (Ahin's decision: CI is the
+  # gate, the deploy email is the review, rollback is a revert). Never a PR from a fork. The
+  # repo's auto-merge setting is off, so this merges explicitly, as SFQuakerBot
+  # (SYNC_BOT_TOKEN). A failed build never reaches this job, and a human can still close the PR.
   automerge:
     if: >-
       github.event_name == 'pull_request'
       && github.event.pull_request.head.repo.full_name == github.repository
-      && contains(fromJSON('["email-log-auto", "updates-auto"]'), github.event.pull_request.head.ref)
+      && (contains(fromJSON('["email-log-auto", "updates-auto"]'), github.event.pull_request.head.ref)
+          || github.event.pull_request.user.login == 'SFQuakerBot'
+          || contains(github.event.pull_request.body, 'Generated with [Claude Code]'))
     needs: build
     runs-on: ubuntu-latest
     env:
@@ -244,10 +249,11 @@ jobs:
       - id: deployment
         uses: actions/deploy-pages@v4
 
-  # After a push to main deploys, email Ahin what changed on the Updates page (new or updated
-  # topics, the emails read, links to the full text and to the page). Decided 2026-11-05: this
-  # email is the review of pipeline changes. Sent from the bot's Gmail (BOT_GMAIL_APP_PASSWORD,
-  # SMTP) to the UPDATES_NOTIFY_TO variable. Quiet when neither ledger nor index changed.
+  # After a push to main deploys, email Ahin what changed: on the Updates page (new or updated
+  # topics, the emails read, links to the full text and to the page; build/notify_changes.py)
+  # and, for anything else, the PR's title, summary and files (build/notify_deploy.py). Decided
+  # 2026-11-05/06: these emails are the review. Sent from the bot's Gmail
+  # (BOT_GMAIL_APP_PASSWORD, SMTP) to the UPDATES_NOTIFY_TO variable. Quiet when nothing changed.
   notify:
     if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'
     needs: deploy
@@ -257,16 +263,26 @@ jobs:
       BOT_GMAIL_APP_PASSWORD: ${{ secrets.BOT_GMAIL_APP_PASSWORD }}
       UPDATES_NOTIFY_TO: ${{ vars.UPDATES_NOTIFY_TO }}
       PAGES_URL: ${{ needs.deploy.outputs.page_url }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Email the change summary
+      - name: Email what was deployed (anything but the ledger)
         run: |
           if ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then echo "Previous commit unknown; nothing to compare." >> "$GITHUB_STEP_SUMMARY"; exit 0; fi
+          if [ -z "$BOT_GMAIL_APP_PASSWORD" ] || [ -z "$UPDATES_NOTIFY_TO" ]; then
+            python3 build/notify_deploy.py --before "$BEFORE" --run-url "$RUN_URL" | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            python3 build/notify_deploy.py --before "$BEFORE" --run-url "$RUN_URL" --send | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Email the Updates change summary
+        run: |
+          if ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then exit 0; fi
           if git diff --quiet "$BEFORE" HEAD -- shared/updates/data.json shared/updates/sources.json; then
-            echo "Updates ledger and index unchanged; no email." >> "$GITHUB_STEP_SUMMARY"; exit 0
+            echo "Updates ledger and index unchanged; no ledger email." >> "$GITHUB_STEP_SUMMARY"; exit 0
           fi
           git show "$BEFORE:shared/updates/data.json" > "$RUNNER_TEMP/base-data.json" 2>/dev/null || : > "$RUNNER_TEMP/base-data.json"
           git show "$BEFORE:shared/updates/sources.json" > "$RUNNER_TEMP/base-sources.json" 2>/dev/null || : > "$RUNNER_TEMP/base-sources.json"
