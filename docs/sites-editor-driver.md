@@ -72,12 +72,13 @@ Google changes the editor without notice and its class names are obfuscated, so 
 
 | Script needs | How it looks for it | Status |
 |---|---|---|
+| `chrome` (starting the debug Chrome) | `GET http://localhost:9222/json/version`; if it answers, nothing to start. Otherwise `~/Library/Application Support/Google/Chrome/classpages`: a profile whose `Preferences` names `classpages@` → start Chrome there maximised on a blank tab; unreadable dir → start it anyway, exit 0 when the port is up; missing or not signed in → start on the sign-in page, exit 1 | **confirmed 2026-11-06** (unreadable dir, Chrome started, port up; §4 record) and **2026-11-07** (port already up: "Chrome is already listening … nothing to start", exit 0, nothing opened). The signed-in-profile branch and the sign-in-page branch are still **assumed**: on the Mini the dir is unreadable, so neither has run for real |
 | The editor tab | a tab whose URL starts with `https://sites.google.com/d/<site_id>/`; otherwise opens `…/d/<site_id>/edit` | **confirmed 2026-11-02**: `…/d/<site_id>/edit` redirects to `…/d/<site_id>/p/<page id>/edit` (class-2034 also added `?pli=1`) |
 | Signed-in check | a redirect to `accounts.google.com` means "not signed in", stop | assumed (not exercised: the profile was signed in) |
 | Who is signed in | `[aria-label^="Google Account"]` in the top bar (the avatar button, which names the account in Google apps) | **confirmed 2026-11-02**: `aria-label="Google Account: SFFS Class Pages (classpages@sffriendsschool.org)"` (a newline before the parenthesis) |
 | The Pages panel | `[role=tree]`; if absent, a `[role=tab]`/button labelled "Pages" is clicked to open it | **confirmed 2026-11-02**: the panel was closed; `[role=tab]` "Pages" opened it; one `[role=tree]` with one `[role=treeitem]` per top-level page (`aria-labelledby` = the page's id, `aria-selected="true"` on the current page). Item labels: "Home page, titled Home.", "Room Info.", "Email Digest.", "Resources. Child pages available." |
 | A page entry | the smallest visible element whose text is exactly the page title (`email-digest` → "Email Digest"), preferring one under `[role=tree]`/`[role=treeitem]`; clicked at its centre, then the editor URL is printed | **confirmed for Home 2026-11-02**: the element found is a role-less `div` inside the treeitem; the click worked. The editor had already opened on Home, so the URL didn't change: moving to a different page is not yet exercised |
-| Our embeds | `div[aria-label="Whole page embed"][data-url]` elements in the editor document whose `data-url` is one of our Pages URLs (`…/class-sites/shared/<id>/…`); the `iframe` inside is the box. Both `list` and `resize` use this since 2026-11-03. Playwright's frame tree is only reported ("our page is / is not in Playwright's frame tree"): on a tab that was open before the script attached it shows the gstatic wrapper frames with an empty URL and nothing below them, which is why `list` reported every embed MISSING on 2026-11-02 evening | **confirmed 2026-11-02** (the `data-url` hook, by `resize`) and **2026-11-06** (`list`): on a tab that had been open for days, `list` found both class-2034 embeds by `data-url`, though Playwright's frame tree still didn't show our page |
+| Our embeds | `div[aria-label="Whole page embed"][data-url]` elements in the editor document whose `data-url` is one of our Pages URLs (`…/class-sites/shared/<id>/…`); the `iframe` inside is the box. Both `list` and `resize` use this since 2026-11-03. Playwright's frame tree is only reported ("our page is / is not in Playwright's frame tree"): on a tab that was open before the script attached it shows the gstatic wrapper frames with an empty URL and nothing below them, which is why `list` reported every embed MISSING on 2026-11-02 evening | **confirmed 2026-11-02** (the `data-url` hook, by `resize`), **2026-11-06** (`list`): on a tab that had been open for days, `list` found both class-2034 embeds by `data-url`, though Playwright's frame tree still didn't show our page; and **2026-11-07** (`list`, both sites): the reused class-2034 tab again found both by `data-url` with our page absent from the frame tree, and class-2032, opened fresh by the script, found its embed with our page present in the frame tree, so the frame-tree line is a reused-tab symptom only. The gstatic wrapper path had changed between runs (`…/embeds/9581c1cb…` on 2026-11-02 and 11-06, `…/embeds/197a9c19…` on 11-07); the script never matches on it |
 | Box size | the bounding box of that outermost iframe element, in CSS px of the editor window; expected to equal the editor's size label at a ≥1440px window | **confirmed at an 1830px window** (2026-11-02 evening and 2026-11-06): card embeds measure 1154 wide, the same as the published desktop frame, and the editor shape matches the live check's (room-parents 0.669 in both). At a 1200px window (2026-11-02) the canvas is scaled to 701 wide (×0.75), but the h/w ratios still hold. The registry's 935 is never the measured width at these windows; the script compares shape (h ÷ w), not width |
 | A block (`resize`) | `div[aria-label="Whole page embed"][data-url]` whose `data-url` is the embed's URL (same id and query as the registry slot); its `iframe` is the box | **confirmed 2026-11-02**: `resize` found class-2034 room-parents this way on a reused tab, where frame URLs failed |
 | Selecting a block | scroll it into view, click the iframe's top-left corner (+2, +2); then `div[role=gridcell][aria-label="IFRAME"]` above it must carry `aria-selected="true"` or the script stops | **confirmed 2026-11-02** (the click and the attribute) and **2026-11-06** (scroll first): important-dates, starting at y=2002 in a 963px-tall window, was scrolled to, clicked and marked selected |
@@ -259,6 +260,51 @@ exit=0
 5. `tests/live_check.py --site class-2034`: PASS, room-parents 1154 × 772 (0.669) desktop, 352 × 235 (0.668) iPhone, unchanged. The mock test still passes.
 
 So the rollback works and the publish dialog is known. Not exercised: clicking an enabled Publish, which needs a real change; the first real one will be the next box or page edit. Two things about running this from a Claude session on the Mini: Claude Code's auto-mode classifier refused `resize --apply` once and `restore --apply` twice as writes to a shared resource, though a person had said yes in chat; Ahin had an allow rule added to the Mini's `~/.claude/settings.json` for `python3 /Users/thomasfamilybot/code/sffs/class-sites/tools/sites_editor.py *`, which is why that clone exists at that path. And a run of this script started from a `cd` into another clone isn't covered by that rule.
+
+**2026-11-07, the Mini, Chrome 156.0.8078.80, the same debug Chrome as 2026-11-06, window 1830 × 963.** Read-only: `chrome`, then `list` on both sites' Home pages, run from the `~/Documents/sffs/class-sites` clone by the script's full path (the `~/code/sffs/class-sites` clone was removed the same day after `git status` and the unpushed-commits check both came back empty). Nothing in either Site was changed or published.
+
+`python3 tools/sites_editor.py chrome` (exit 0): the debug Chrome from the day before was still running, so the port-already-up branch ran and the script opened nothing:
+
+```
+Chrome is already listening at http://localhost:9222 (Chrome/156.0.8078.80); nothing to start
+```
+
+`python3 tools/sites_editor.py list --site class-2034 --page home` (exit 0), on the editor tab that had stayed open since 2026-11-06 (its URL had lost the `?pli=1` seen on 11-02 and 11-06):
+
+```
+using the open editor tab https://sites.google.com/d/1vqA_IFOx0oCDUi95RtQ-PPo-3LcD_szY/p/13dwUNzc1KK6w3xcGRqiyBHCDDldaatKq/edit
+signed in as: Google Account: SFFS Class Pages (classpages@sffriendsschool.org)
+page 'Home': clicked its entry in the <div role=None>; editor URL unchanged (https://sites.google.com/d/1vqA_IFOx0oCDUi95RtQ-PPo-3LcD_szY/p/13dwUNzc1KK6w3xcGRqiyBHCDDldaatKq/edit)
+window 1830 × 963 (device pixel ratio 1)
+- room-parents  https://sffs-class-sites.github.io/class-sites/shared/room-parents/?class=2034
+    box 1154 × 772 (h/w 0.669) at x=205 y=608 in the window; registry box card = 935 × 625 (h/w 0.668)
+    wrapped by https://www.gstatic.com/atari/embeds/197a9c195ad050c899a9ec96432b0a19/intermediate-frame-minified.ht
+    block: div[aria-label="Whole page embed"][d…] with this data-url; our page is not in Playwright's frame tree
+    iframe ancestors: iframe > div[aria-label='Whole page embed'] > div > div > div > div[role=gridcell][aria-label='IFRAME']
+- important-dates  https://sffs-class-sites.github.io/class-sites/shared/important-dates/
+    box 1154 × 769 (h/w 0.666) at x=205 y=2002 in the window; registry box card = 935 × 625 (h/w 0.668)
+    wrapped by https://www.gstatic.com/atari/embeds/197a9c195ad050c899a9ec96432b0a19/intermediate-frame-minified.ht
+    block: div[aria-label="Whole page embed"][d…] with this data-url; our page is not in Playwright's frame tree
+    iframe ancestors: iframe > div[aria-label='Whole page embed'] > div > div > div > div[role=gridcell][aria-label='IFRAME']
+```
+
+`python3 tools/sites_editor.py list --site class-2032 --page home` (exit 0). No tab for this site was open, so the script opened the editor itself (the first time `list` has opened a fresh tab since 2026-11-02), and the Pages panel had to be opened:
+
+```
+opening https://sites.google.com/d/1x30kZaz22W2SSzdL3fTxNm0jbSVyKWo9/edit
+signed in as: Google Account: SFFS Class Pages (classpages@sffriendsschool.org)
+page 'Home': clicked its entry in the <div role=None>; panel opened via [role=tab]:has-text("Pages"); editor URL unchanged (https://sites.google.com/d/1x30kZaz22W2SSzdL3fTxNm0jbSVyKWo9/p/1lD9M1-iZL34rVm03vuw-aotRWE5FtwNj/edit)
+window 1830 × 963 (device pixel ratio 1)
+- important-dates  https://sffs-class-sites.github.io/class-sites/shared/important-dates/
+    box 1154 × 772 (h/w 0.669) at x=205 y=448 in the window; registry box card = 935 × 625 (h/w 0.668)
+    wrapped by https://www.gstatic.com/atari/embeds/197a9c195ad050c899a9ec96432b0a19/intermediate-frame-minified.ht
+    block: div[aria-label="Whole page embed"][d…] with this data-url; our page is in Playwright's frame tree
+    iframe ancestors: iframe > div[aria-label='Whole page embed'] > div > div > div > div[role=gridcell][aria-label='IFRAME']
+```
+
+What worked: every step of both commands, with no `STOP`. All three embeds measure the card shape (0.666–0.669) at 1830 wide, the same sizes as 2026-11-06 for class-2034 and the 1830-window equivalent of the 2026-11-02 measurement for class-2032 (701 × 469 then, 1154 × 772 now, 0.669 both times). On the fresh class-2032 tab our page **is** in Playwright's frame tree; on the reused class-2034 tab it is not. The `data-url` lookup found every embed either way.
+
+What didn't, or changed: nothing failed. Two things to know about: the gstatic wrapper hash changed from `9581c1cb…` to `197a9c19…`, so that path is Google's deploy id, not a hook; and the Mini's `~/.claude/settings.json` allow rule still names `python3 /Users/thomasfamilybot/code/sffs/class-sites/tools/sites_editor.py *`, a path that no longer exists, so a `--apply` run from the `~/Documents` clone will meet the auto-mode classifier again until that rule is changed to the new path (CLAUDE.md §5 also names the old path). Read-only `list` ran without a prompt this time.
 
 ## 5. What the DOM record holds
 
