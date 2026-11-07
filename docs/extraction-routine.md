@@ -1,6 +1,6 @@
 # Extraction routine (E1b): turning new school emails into Updates
 
-These are the working instructions for the scheduled Claude routine **"Class sites: email extraction"** (runs hourly at :50, 7am–9pm Pacific, after the :23 fetch, in Claude's cloud; configured at https://claude.ai/code/routines). The routine's stored prompt only says: clone the repo, read this file, follow it. Keeping the instructions here puts them under the same PR and CI gate as everything else (`CLAUDE.md` §4). A person running a session can follow the same steps.
+These are the working instructions for the scheduled Claude routine **"Class sites: email extraction"** (runs hourly at :50, 7am–9pm Pacific, in Claude's cloud, and itself triggers the fetch job; configured at https://claude.ai/code/routines). The routine's stored prompt only says: clone the repo, read this file, follow it. Keeping the instructions here puts them under the same PR and CI gate as everything else (`CLAUDE.md` §4). A person running a session can follow the same steps.
 
 Decided with Ahin 2026-11-05: ledger changes **publish without a review step**. The routine pushes a branch, CI checks it, a bot merges it, the site deploys, and `build/notify_changes.py` emails Ahin a plain-English summary with a link to the page. That email is the review; a mistake is fixed by a follow-up PR (or by replying to the email). Before this date Ahin approved every ledger change in the session that produced it.
 
@@ -8,6 +8,7 @@ Repo-wide rules still win: `CLAUDE.md` (personal data, change control) and `docs
 
 ## Steps
 
+0. **Kick the fetch job**, so new school email is logged even when GitHub's scheduler skips the hour (it ran three times in twenty hours on 2026-11-06/07; this routine fired every hour): `gh workflow run email-log.yml --ref main || gh api -X POST repos/sffs-class-sites/class-sites/actions/workflows/email-log.yml/dispatches -f ref=main || true`. Ignore a failure; do not wait for it. Whatever it logs is indexed within about ten minutes (its PR merges itself) and the next hourly run of this routine reads it. Then carry on with the emails already indexed.
 1. **Start from the latest main, or from the open branch.** Never force-push: the cloud session's permission check refuses `git push -f` (seen on the first run, 2026-11-05), and it is not needed. The `automerge` job deletes `updates-auto` when its PR merges, so the branch normally does not exist. If it does exist, an earlier PR is still open (its build failed, or it is mid-merge): build on it so a plain push fast-forwards.
    ```
    git fetch origin main
