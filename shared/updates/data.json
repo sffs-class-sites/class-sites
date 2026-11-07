@@ -542,6 +542,12 @@
    "stream": "teachers-1",
    "date": "2026-11-06",
    "subject": "1st Grade Field Trip next Thursday 11/12!"
+  },
+  {
+   "id": "sc-1106",
+   "stream": "school",
+   "date": "2026-11-06",
+   "subject": "[SFFS] School Photos Ready for Purchase"
   }
  ],
  "topics": [
@@ -1075,6 +1081,31 @@
      "source": "cb-1015",
      "date": "2026-10-15",
      "note": "Schedule published."
+    }
+   ]
+  },
+  {
+   "id": "school-photo-orders-2026",
+   "kind": "deadline",
+   "audience": "all",
+   "title": "School photos: order online",
+   "summary": "Photos from the October picture days are ready to order on MugsyClicks. You need your child's unique access code to view and buy; the codes, the class-photo code and a free-shipping code are in the email. Early-bird pricing and free shipping on orders over $40 end Nov 25. For an extra discount code, email Violet Borowski (vborowski@sffriendsschool.org).",
+   "deadline": {
+    "date": "2026-11-25",
+    "what": "Order for early-bird pricing"
+   },
+   "action": "Order",
+   "links": [
+    {
+     "label": "MugsyClicks",
+     "url": "https://www.mugsyclicks.com"
+    }
+   ],
+   "updates": [
+    {
+     "source": "sc-1106",
+     "date": "2026-11-06",
+     "note": "Announced: photos ready; early-bird pricing until Nov 25."
     }
    ]
   },
