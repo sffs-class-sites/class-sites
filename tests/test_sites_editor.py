@@ -76,9 +76,23 @@ def editor_page(page_id):
     if page_id == "home":
         blocks = [("important-dates", PAGES + "shared/important-dates/", 935, 625),
                   ("room-parents", PAGES + "shared/room-parents/?class=2034", 935, 549)]
-    else:
+    elif page_id == "digest":
         blocks = [("updates", PAGES + "shared/updates/?class=2034", 935, 875)]
-    canvas = "".join(
+    else:
+        blocks = []
+    pasted = ""
+    if page_id == "basketball":
+        # Pasted-code blocks as the editor might show them: the code in a data-code attribute on the block (as the
+        # published page does), the code only inside the frame, and a block that matches nothing in the registry.
+        pasted = (
+            "<div role='gridcell' aria-label='IFRAME' style='margin:24px auto;width:935px'><div aria-label='Custom embed' "
+            "data-code='&lt;meta name=&quot;sffs-embed&quot; content=&quot;1st-hoops@x&quot;&gt; UID:2027-01-03-super-friends@sffs-1st-hoops'>"
+            "<iframe src='/pasted?t=hoops-attr' style='display:block;width:935px;height:549px;border:0'></iframe></div></div>"
+            "<div role='gridcell' aria-label='IFRAME' style='margin:24px auto;width:935px'><div aria-label='Custom embed'>"
+            "<iframe src='/pasted?t=calendar-frame' style='display:block;width:935px;height:300px;border:0'></iframe></div></div>"
+            "<div role='gridcell' aria-label='IFRAME' style='margin:24px auto;width:935px'><div aria-label='Custom embed'>"
+            "<iframe src='/pasted?t=unknown' style='display:block;width:935px;height:200px;border:0'></iframe></div></div>")
+    canvas = pasted + "".join(
         f"<div role='gridcell' aria-label='IFRAME' aria-selected='false' aria-grabbed='false' tabindex='-1' style='position:relative;margin:24px auto;width:{w}px'><div class='handle' style='display:none;position:absolute;left:50%;bottom:-7px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:#1a73e8;z-index:2'></div>"
         f"<div><div aria-label='Whole page embed' data-url='{u}'>"
         f"<iframe src='/wrap?u={u}' sandbox='allow-scripts allow-same-origin allow-popups allow-forms' "
@@ -100,7 +114,15 @@ def editor_page(page_id):
   <div role='tablist'><div role='tab' aria-label='Pages'>Pages</div></div>
   <div role='tree'>
    <div role='treeitem' aria-selected='{str(page_id == "home").lower()}' onclick="if (!location.pathname.includes('/p/home/')) location.href='/d/{SITE_ID}/p/home/edit'"><div>Home</div></div>
-   <div role='treeitem' aria-selected='{str(page_id != "home").lower()}' onclick="if (!location.pathname.includes('/p/digest/')) location.href='/d/{SITE_ID}/p/digest/edit'"><div>Email Digest</div></div>
+   <div role='treeitem' aria-selected='{str(page_id == "digest").lower()}' onclick="if (!location.pathname.includes('/p/digest/')) location.href='/d/{SITE_ID}/p/digest/edit'"><div>Email Digest</div></div>
+   <div role='treeitem' aria-label='Resources. Child pages available.' aria-expanded='{str(page_id == "basketball").lower()}' aria-selected='{str(page_id == "resources").lower()}'
+        onclick="if (event.target.closest('.expander')) return; if (!location.pathname.includes('/p/resources/')) location.href='/d/{SITE_ID}/p/resources/edit'">
+     <div style='display:flex;gap:6px'><span class='expander' role='button' aria-label='Expand child pages' aria-expanded='{str(page_id == "basketball").lower()}'
+        onclick="const k=this.closest('[role=treeitem]').querySelector('.kids'); const on=k.style.display==='none'; k.style.display=on?'block':'none'; this.setAttribute('aria-expanded', on)">&#9656;</span><div>Resources</div></div>
+     <div class='kids' style='display:{"block" if page_id == "basketball" else "none"};padding-left:18px'>
+      <div role='treeitem' aria-label='Basketball.' aria-selected='{str(page_id == "basketball").lower()}' onclick="event.stopPropagation(); if (!location.pathname.includes('/p/basketball/')) location.href='/d/{SITE_ID}/p/basketball/edit'"><div>Basketball</div></div>
+     </div>
+   </div>
   </div>
  </aside>
 </div>
@@ -121,6 +143,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             body = editor_page(u.path.split("/")[4])
         elif u.path == "/wrap":
             body = wrapper(parse_qs(u.query)["u"][0])
+        elif u.path == "/pasted":
+            kind = parse_qs(u.query)["t"][0]
+            inner = {"hoops-attr": "<p>Super Friends schedule (code also in the attribute)</p>",
+                     "calendar-frame": "<p>Important Dates pasted copy</p><script>var ICS='UID:x@sffs-calendar';</script>",
+                     "unknown": "<p>School hours 8:15 to 3:00</p>"}[kind]
+            body = f"<!doctype html><html><body>{inner}</body></html>"
         else:
             self.send_error(404); return
         data = body.encode()
@@ -180,6 +208,17 @@ def main():
             problems.append("list home: updates (on the other page) was listed")
         run(["list", "--site", "class-2034", "--page", "email-digest"], 0,
             "using the open editor tab", "935 × 875 (h/w 0.936)", "registry box page")
+        # A child page: the parent is collapsed, so the script has to expand it, then click the child.
+        run(["list", "--site", "class-2034", "--page", "resources/basketball"], 0,
+            "page 'Resources': clicked its entry in the pages tree",
+            "page 'Basketball': clicked its entry in the pages tree (after clicking the expander 'Expand child pages' on 'Resources')",
+            "/p/basketball/edit", "other blocks on the page (not URL embeds of ours): 3",
+            "hoops-2034-2027-winter (registered on this page, status code); identified by attribute",
+            "important-dates (in registry, but not as a slot on this page); identified by frame content",
+            "not in registry.yaml; identified by unidentified", "starts: 'School hours 8:15 to 3:00'",
+            "ancestors: iframe > div[aria-label='Custom embed'] > div[role='gridcell'][aria-label='IFRAME']")
+        run(["list", "--site", "class-2034", "--page", "resources/nope"], 1,
+            "no entry titled 'Nope'", "segment 2 of 2", "Resources. Child pages available. [aria-expanded=")
         # resize: dry run reads and plans; --apply drags until the shape is right; a second run has nothing to do.
         run(["resize", "--site", "class-2034", "--page", "home", "--embed", "room-parents", "--box", "card"], 0,
             "before: 935 × 549 (h/w 0.587)", "by +76px", "dry run only")
