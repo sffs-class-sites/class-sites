@@ -119,7 +119,8 @@ def slot_query(slot):
 
 
 def page_title(slug):
-    """Registry page slug -> the title shown in the editor's Pages panel ("email-digest" -> "Email Digest")."""
+    """One registry page-slug segment -> the title shown in the editor's Pages panel ("email-digest" -> "Email Digest").
+    A child page's slug is "parent/child" (registry `page: resources/basketball`); callers split on "/" first."""
     return " ".join(w.capitalize() for w in slug.split("-"))
 
 
@@ -218,6 +219,33 @@ PAGE_ITEM_JS = """
 """
 
 
+TREE_LABELS_JS = """
+() => [...document.querySelectorAll('[role=treeitem]')].map(t => ({
+  label: (t.getAttribute('aria-label') || t.innerText || '').replace(/\\s+/g, ' ').trim().slice(0, 80),
+  expanded: t.getAttribute('aria-expanded'),
+  visible: t.getBoundingClientRect().height > 0}))
+"""
+
+EXPAND_JS = """
+(title) => {
+  // Open the child list under the Pages-panel entry for `title`: click its expander if it has one,
+  // else report that the entry needs the keyboard (focus + ArrowRight, done by the caller).
+  const want = title.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const items = [...document.querySelectorAll('[role=treeitem]')].filter(t => {
+    const l = (t.getAttribute('aria-label') || t.innerText || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    return l === want || l.startsWith(want + ' ');
+  });
+  if (!items.length) return {found: false};
+  const t = items[0];
+  const toggle = t.querySelector('[aria-expanded="false"], [aria-label*="xpand" i], [aria-label*="hild pages" i], [aria-label*="ubpages" i]');
+  if (toggle && toggle !== t) { toggle.click(); return {found: true, clicked: toggle.getAttribute('aria-label') || toggle.tagName.toLowerCase()}; }
+  t.scrollIntoView({block: 'center', behavior: 'instant'});
+  const r = t.getBoundingClientRect();
+  return {found: true, clicked: null, expanded: t.getAttribute('aria-expanded'), x: r.x, y: r.y, w: r.width, h: r.height};
+}
+"""
+
+
 def open_pages_panel(page):
     """Make sure the right-hand Pages panel is showing. Returns what it clicked, or None if it was already open."""
     if page.evaluate("() => !!document.querySelector('[role=tree]')"):
@@ -233,20 +261,40 @@ def open_pages_panel(page):
 
 
 def go_to_page(page, slug):
-    """Select the page in the Pages panel. Returns (title, editor URL after the click, how it was found)."""
-    title = page_title(slug)
+    """Select the page in the Pages panel. A child page (`resources/basketball`) is reached segment by segment:
+    click the parent, expand it if its children aren't shown, click the child. Returns (title, editor URL, how)."""
     clicked = open_pages_panel(page)
-    pick = page.evaluate(PAGE_ITEM_JS, title)
-    if not pick:
-        raise Stop(f"no entry titled '{title}' in the editor's Pages panel (registry page `{slug}`). "
-                   f"Either the page is named differently or the panel isn't where this script looks")
     before = page.url
-    page.mouse.click(pick["x"] + pick["w"] / 2, pick["y"] + pick["h"] / 2)
-    pace(page)
-    where = "pages tree" if pick["in_tree"] else f"<{pick['tag']} role={pick['role']}>"
-    print(f"page '{title}': clicked its entry in the {where}"
-          + (f"; panel opened via {clicked}" if clicked else "")
-          + (f"; editor URL {before} -> {page.url}" if page.url != before else f"; editor URL unchanged ({page.url})"))
+    segments = slug.strip("/").split("/")
+    title = where = None
+    for i, seg in enumerate(segments):
+        title = page_title(seg)
+        pick = page.evaluate(PAGE_ITEM_JS, title)
+        how = ""
+        if not pick and i > 0:
+            parent = page_title(segments[i - 1])
+            ex = page.evaluate(EXPAND_JS, parent)
+            if ex.get("found") and ex.get("clicked"):
+                how = f" (after clicking the expander '{ex['clicked']}' on '{parent}')"
+            elif ex.get("found"):
+                page.mouse.click(ex["x"] + ex["w"] / 2, ex["y"] + ex["h"] / 2)
+                page.keyboard.press("ArrowRight")
+                how = f" (after focusing '{parent}' and pressing ArrowRight; it had aria-expanded={ex.get('expanded')})"
+            pace(page, 700)
+            pick = page.evaluate(PAGE_ITEM_JS, title) if ex.get("found") else None
+        if not pick:
+            tree = page.evaluate(TREE_LABELS_JS)
+            shown = "; ".join(f"{t['label']}" + (f" [aria-expanded={t['expanded']}]" if t["expanded"] else "")
+                              + ("" if t["visible"] else " [hidden]") for t in tree) or "no [role=treeitem] at all"
+            raise Stop(f"no entry titled '{title}' in the editor's Pages panel (registry page `{slug}`, segment {i + 1} of "
+                       f"{len(segments)}). Tree entries seen: {shown}. Either the page is named differently or its parent "
+                       f"didn't expand; record what the panel shows in docs/sites-editor-driver.md §4")
+        page.mouse.click(pick["x"] + pick["w"] / 2, pick["y"] + pick["h"] / 2)
+        pace(page)
+        where = ("pages tree" if pick["in_tree"] else f"<{pick['tag']} role={pick['role']}>") + how
+        print(f"page '{title}': clicked its entry in the {where}"
+              + (f"; panel opened via {clicked}" if clicked and i == 0 else ""))
+    print(f"editor URL {before} -> {page.url}" if page.url != before else f"editor URL unchanged ({page.url})")
     return title, page.url, where
 
 
@@ -295,6 +343,68 @@ MEASURE_JS = """
   return {x: r.x, y: r.y, w: r.width, h: r.height, layout_w: el.offsetWidth, layout_h: el.offsetHeight};
 }
 """
+
+
+OTHER_FRAMES_JS = """
+([blockSel, matches]) => {
+  // Every visible iframe on the canvas that isn't inside a URL-embed block: a pasted-code ("Embed code") block
+  // or some other Sites block. For each, its src, size, ancestor hooks, and which registry `match` strings occur
+  // in any attribute of the iframe or its ancestors (Sites keeps pasted code in a data-code attribute on the
+  // published page; whether the editor does too is checked here, not assumed).
+  const out = [];
+  for (const f of document.querySelectorAll('iframe')) {
+    if (f.closest(blockSel)) continue;
+    const r = f.getBoundingClientRect();
+    if (r.width < 40 || r.height < 40) continue;
+    const anc = [];
+    const hits = new Set();
+    let p = f;
+    while (p && p !== document.body && anc.length < 10) {
+      const attrs = {};
+      for (const a of p.attributes) {
+        if (/^(role|aria-.*|data-.*|guidedhelpid)$/.test(a.name)) attrs[a.name] = a.value.length > 60 ? a.value.slice(0, 57) + '...' : a.value;
+        for (const [eid, m] of matches) if (m && a.value.includes(m)) hits.add(eid);
+      }
+      anc.push({tag: p.tagName.toLowerCase(), attrs});
+      p = p.parentElement;
+    }
+    out.push({src: f.src || '', x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height),
+              ancestors: anc, attr_hits: [...hits]});
+  }
+  return out;
+}
+"""
+
+
+def code_embeds(reg):
+    """[(embed id, match text)] for registry embeds that live as pasted code (type: code, or any with a match)."""
+    return [(eid, e.get("match")) for eid, e in reg["embeds"].items() if e.get("match")]
+
+
+def describe_other_blocks(page, reg):
+    """Blocks on the canvas that aren't URL embeds of ours, identified where possible by registry `match` text found
+    in the block's attributes or, failing that, in the frame's own HTML (readable only when Playwright's frame tree
+    has the frame; on a reused tab it may not)."""
+    matches = code_embeds(reg)
+    rows = page.evaluate(OTHER_FRAMES_JS, [BLOCK_SEL, matches])
+    frames = {f.url: f for f in page.frames if f.url}
+    for r in rows:
+        r["frame_hits"], r["frame_text"] = [], None
+        fr = frames.get(r["src"])
+        if fr:
+            try:
+                html_ = fr.content()
+                r["frame_hits"] = [eid for eid, m in matches if m and m in html_]
+                r["frame_text"] = " ".join(fr.evaluate("() => document.body ? document.body.innerText : ''").split())[:80]
+            except PlaywrightError:
+                pass
+        hits = list(dict.fromkeys(r["attr_hits"] + r["frame_hits"]))
+        r["embed"] = hits[0] if len(hits) == 1 else None
+        r["ambiguous"] = hits if len(hits) > 1 else []
+        r["how"] = ("attribute" if r["attr_hits"] else "frame content" if r["frame_hits"] else
+                    "unidentified" + ("" if fr else "; frame not in Playwright's tree, so its content couldn't be read"))
+    rows.sort(key=lambda r: (r["y"], r["x"]))
+    return rows
 
 
 def describe_embeds(page, reg, slots):
@@ -581,8 +691,32 @@ def show_rows(reg, site, slug, rows, vp):
                            for p in r["ancestors"][:6])
         print(f"    iframe ancestors: {chain}")
     for s in slots:
-        if not any(r["embed"] == s["embed"] for r in rows):
+        if s.get("status", "url") == "url" and not any(r["embed"] == s["embed"] for r in rows):
             print(f"- MISSING: registry lists {s['embed']} on this page but no URL-embed block carries its URL")
+
+
+def show_other_blocks(reg, site, slug, others):
+    """Pasted-code and other non-URL blocks: what they are, and whether the registry knows them (ROADMAP C4)."""
+    slots = [s for s in slots_on(site, slug) if s.get("status") == "code"]
+    if not others and not slots:
+        return
+    print(f"other blocks on the page (not URL embeds of ours): {len(others)}")
+    for r in others:
+        host = urllib.parse.urlsplit(r["src"]).netloc or (r["src"][:40] if r["src"] else "no src")
+        known = next((s for s in slots if s["embed"] == r["embed"]), None) if r["embed"] else None
+        what = (f"{r['embed']} (registered on this page, status code)" if known else
+                f"{r['embed']} (in registry, but not as a slot on this page)" if r["embed"] else
+                f"ambiguous: matches {r['ambiguous']}" if r["ambiguous"] else "not in registry.yaml")
+        print(f"- {what}; identified by {r['how']}")
+        print(f"    iframe {r['w']} × {r['h']} at x={r['x']} y={r['y']}, src host {host}")
+        if r["frame_text"]:
+            print(f"    starts: {r['frame_text']!r}")
+        chain = " > ".join(f"{p['tag']}" + "".join(f"[{k}={v!r}]" for k, v in p["attrs"].items() if k in ("role", "aria-label") or k.startswith("data-"))
+                           for p in r["ancestors"][:5])
+        print(f"    ancestors: {chain}")
+    for s in slots:
+        if not any(r["embed"] == s["embed"] for r in others):
+            print(f"- MISSING: registry lists pasted-code embed {s['embed']} on this page but no block here carries its match text")
 
 
 def cmd_list(a, reg):
@@ -595,6 +729,7 @@ def cmd_list(a, reg):
         go_to_page(page, a.page)
         rows = describe_embeds(page, reg, slots_on(site, a.page))
         show_rows(reg, site, a.page, rows, viewport(page))
+        show_other_blocks(reg, site, a.page, describe_other_blocks(page, reg))
         if a.select:
             for r in rows:
                 try:
