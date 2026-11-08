@@ -81,10 +81,10 @@ sites:
         box: page             # the only thing on its page; 352 x 329 on an iPhone shows the first card's title/date/summary/action (placed by Ahin, measured 2026-11-02)
         status: url
       - page: home
-        embed: school-hours   # still the pasted copy (ROADMAP C4 inventory 2026-11-07); swap to the URL embed with ?class=2034 at box card
+        embed: school-hours   # swapped from the pasted copy 2026-11-08; re-placed by Ahin the same afternoon, then tools/sites_editor.py resize (1154 x 677 -> 1154 x 772, one drag) and publish; live check PASS: 1154 x 772 desktop, 352 x 235 iPhone
         query: {class: 2034}
-        status: pasted-code
-        hash: 5d656010830c    # sha256 of the pasted code, first 12 hex (2026-11-07)
+        box: card
+        status: url
       - page: home
         embed: room-parents   # under the welcome text; replaced the pasted glitter list 2026-10-31
         query: {class: 2034}
