@@ -78,7 +78,9 @@ def editor_page(page_id):
         blocks = [("important-dates", PAGES + "shared/important-dates/", 935, 625),
                   ("room-parents", PAGES + "shared/room-parents/?class=2034", 935, 549)]
     elif page_id == "digest":
-        blocks = [("updates", PAGES + "shared/updates/?class=2034", 935, 875)]
+        # Short, and the last thing on a page with little below it (footer below): resize has to drag in steps,
+        # each by the room the window has, the way the real editor forced it on 2026-11-08.
+        blocks = [("updates", PAGES + "shared/updates/?class=2034", 935, 500)]
     else:
         blocks = []
     pasted = ""
@@ -89,7 +91,7 @@ def editor_page(page_id):
         # data-tile-id and data-in-editor, and the block iframe has aria-label="Custom embed". First block: the real
         # hoops code from the repo, so its hash equals the registry slot's. Then one identified by match text in the
         # frame only, one unknown. The editor's own account-bar iframe (no aria-label) must be ignored.
-        real = html.escape((ROOT / "teams/class-2034/hoops-2027-winter/1st-hoops-embed.html").read_text(), quote=True)
+        real = html.escape((ROOT / "tests/fixtures/hoops-2034-2027-winter/pasted-embed.html").read_text(), quote=True)
         pasted = (
             "<iframe src='/pasted?t=accountbar' style='width:148px;height:148px;border:0'></iframe>"
             f"<div role='gridcell' aria-label='IFRAME' style='margin:24px auto;width:935px'><div data-url='https://x-atari-embeds.googleusercontent.com/embeds/1/' data-code='{real}' data-tile-id='t1' data-in-editor='true'>"
@@ -115,7 +117,7 @@ def editor_page(page_id):
  <div role='button' onclick='confirmPublish()'>Publish</div>
 </div>
 <div style='display:flex'>
- <main style='flex:1'>{canvas}<footer style='height:900px'>footer (the real editor has one too, so the canvas can scroll past the last block)</footer></main>
+ <main style='flex:1'>{canvas}<footer style='height:{160 if page_id == "digest" else 900}px'>footer (the real editor has one too, so the canvas can scroll past the last block)</footer></main>
  <aside style='width:260px'>
   <div role='tablist'><div role='tab' aria-label='Pages'>Pages</div></div>
   <div role='tree'>
@@ -213,14 +215,16 @@ def main():
         if "updates" in out.split("signed in as")[1]:
             problems.append("list home: updates (on the other page) was listed")
         run(["list", "--site", "class-2034", "--page", "email-digest"], 0,
-            "using the open editor tab", "935 × 875 (h/w 0.936)", "registry box page")
+            "using the open editor tab", "935 × 500 (h/w 0.535)", "registry box page")
         # A child page: the parent is collapsed, so the script has to expand it, then click the child.
         run(["list", "--site", "class-2034", "--page", "resources/basketball"], 0,
             "page 'Resources': clicked its entry in the pages tree",
             "page 'Basketball': clicked its entry in the pages tree (after clicking the expander 'Expand child pages' on 'Resources')",
             "/p/basketball/edit", "pasted-code blocks on the page (iframe[aria-label=\"Custom embed\"]): 3",
-            "hoops-2034-2027-winter (registered on this page, status code); identified by hash (equals the registry slot's)",
-            "hash b627556d43b0 = registry",
+            # Since #71 the basketball slot is the team-schedule URL embed, which the mock doesn't render, and the old
+            # pasted hoops code is registered nowhere: `list` notes the missing URL embed and lists the pasted code as unknown.
+            "MISSING: registry lists team-schedule on this page but no URL-embed block carries its URL",
+            "not in registry.yaml; identified by unidentified", "hash b627556d43b0",
             "important-dates (in registry, but not as a slot on this page); identified by match text in the frame",
             "starts: 'Important Dates pasted copy'",
             "not in registry.yaml; identified by unidentified; no data-code on the block", "starts: 'School hours 8:15 to 3:00'",
@@ -246,6 +250,13 @@ def main():
             state = pg.evaluate("() => document.getElementById('published').textContent")
             if state != "published 624px":
                 problems.append(f"mock state after publish: {state!r}, expected 'published 624px'")
+        # A block at the bottom of its page: one drag can't fit the window, so resize drags by the room it has and repeats.
+        run(["resize", "--site", "class-2034", "--page", "email-digest", "--embed", "updates", "--box", "page"], 0,
+            "before: 935 × 500 (h/w 0.535)", "by +375px", "dry run only")
+        out = run(["resize", "--site", "class-2034", "--page", "email-digest", "--embed", "updates", "--box", "page", "--apply"], 0,
+                  "wanted; the window had room for", "drag 2:", "after: 935 × 872 (h/w 0.933)", "not published")
+        if "STOP" in out:
+            problems.append("resize at the bottom of a page stopped instead of dragging in steps")
         run(["list", "--site", "nope"], 1, "no site `nope`")
     finally:
         proc.terminate()
