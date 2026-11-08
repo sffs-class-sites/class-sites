@@ -41,10 +41,10 @@ embeds:
     path: shared/school-hours/   # placed with ?class=YYYY: the viewer's grade row is flagged THIS CLASS. Replaces the pasted copies on both homes (ROADMAP C4); data: shared/school-hours/data.json (Family Handbook §4)
     owner: platform
     match: "SFFS School Hours"   # text inside the old pasted copies, so the monitor sees them until they are swapped
-  hoops-2034-2027-winter:
-    type: code                   # pasted by design until ROADMAP C5 makes a URL team-schedule embed; source and build: teams/class-2034/hoops-2027-winter/
+  team-schedule:
+    type: url
+    path: shared/team-schedule/  # placed with ?team=<id>; one data file per team in shared/team-schedule/teams/ (ROADMAP C5 step 2, built 2026-11-08). First team: hoops-2034-2027-winter, live on the 1st-grade Basketball page since 2026-11-08
     owner: platform
-    match: "@sffs-1st-hoops"     # the .ics UID domain inside the pasted code
 
 sites:
   class-2032:            # 3rd grade in 2026–27
@@ -71,9 +71,10 @@ sites:
         box: card             # resized to the standard 935 x 625 and measured 2026-10-31: 4 dates visible on an iPhone
         status: url           # swapped 2026-10-30
       - page: resources/basketball
-        embed: hoops-2034-2027-winter   # Super Friends winter 2027 schedule, pasted by Ahin 2026-10-29; the monitor goes amber if the pasted code is edited
-        status: code
-        hash: b627556d43b0    # sha256 of the pasted code, first 12 hex; equals teams/class-2034/hoops-2027-winter/1st-hoops-embed.html (checked 2026-11-03)
+        embed: team-schedule  # Super Friends winter 2027 basketball; Ahin swapped the pasted copy (pasted 2026-10-29) for the URL embed 2026-11-08
+        query: {team: hoops-2034-2027-winter}
+        box: card             # live box was placed at the old shape (1154 x 677, h/w 0.587, measured 2026-11-08): the daily check lists the drift until tools/sites_editor.py resize brings it to card
+        status: url           # swapped 2026-11-08
       - page: email-digest
         embed: updates
         query: {class: 2034}

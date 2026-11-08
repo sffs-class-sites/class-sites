@@ -56,6 +56,7 @@ jobs:
           python3 build/build_room_parents.py
           python3 build/build_updates.py
           python3 build/build_school_hours.py
+          python3 build/build_team_schedule.py
 
       # Pattern A (CLAUDE.md §3): personal data is fetched at deploy time and never committed.
       # Writes nothing unless the Site Map marks room-parents publishable. An invalid Live tab
@@ -114,6 +115,9 @@ jobs:
 
       - name: School hours check (data file, grade row highlight, phone first view)
         run: python3 tests/school_hours_check.py
+
+      - name: Team schedule check (frozen UIDs, next game first, calendar adds, phone first view)
+        run: python3 tests/team_schedule_check.py
 
       - name: Live check self-test (fake Site built from this build; the real Sites are checked daily)
         run: python3 tests/live_check.py --mock
