@@ -2,7 +2,7 @@
 """Checks for the Team Schedule embed (shared/team-schedule/, built by build/build_team_schedule.py).
 
 1. The team data files: schema, UIDs present, unique and never changed for a game that was
-   already published (every UID in the pasted embed kept in teams/class-2034/hoops-2027-winter/
+   already published (every UID in the pasted embed kept in tests/fixtures/hoops-2034-2027-winter/
    is still in the data), games in date order, no personal data.
 2. The embed, inside an iframe with Sites' sandbox, at the standard `card` box on a desktop
    (1154 x 770), a tablet, an iPhone 13 (352 x 235) and the narrowest phones (315 x 210), on
@@ -32,7 +32,7 @@ from playwright.sync_api import sync_playwright
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SITE = ROOT / "_site"
 TEAMS = ROOT / "shared" / "team-schedule" / "teams"
-PASTED = ROOT / "teams" / "class-2034" / "hoops-2027-winter" / "1st-hoops-embed.html"
+PASTED = ROOT / "tests" / "fixtures" / "hoops-2034-2027-winter" / "pasted-embed.html"   # the code that was pasted on the Site until 2026-11-08
 sys.path.insert(0, str(ROOT / "tests"))
 from render_check import SANDBOX  # noqa: E402
 
