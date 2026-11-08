@@ -57,10 +57,10 @@ sites:
         box: card             # resized to the standard 935 x 625 and measured 2026-10-31: 4 dates visible on an iPhone
         status: url           # swapped 2026-10-30
       - page: home
-        embed: school-hours   # still the pasted copy (ROADMAP C4 inventory 2026-11-07); swap to the URL embed with ?class=2032 at box card
+        embed: school-hours   # Ahin swapped the pasted copy (hash fd7690d8c3e5) for the URL embed 2026-11-08; tools/sites_editor.py set the card shape (1154 x 677 -> 1154 x 772); live check the same day
         query: {class: 2032}
-        status: pasted-code
-        hash: fd7690d8c3e5    # sha256 of the pasted code, first 12 hex (2026-11-07)
+        box: card
+        status: url
   class-2034:            # 1st grade in 2026–27
     name: 1st Grade Class Page
     site_id: 1vqA_IFOx0oCDUi95RtQ-PPo-3LcD_szY
