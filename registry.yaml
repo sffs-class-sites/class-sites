@@ -36,6 +36,11 @@ embeds:
     type: url
     path: shared/updates/        # placed with ?class=YYYY; on the 1st-grade site since 2026-11-02 (docs/updates-pipeline.md)
     owner: platform
+  school-hours:
+    type: url
+    path: shared/school-hours/   # placed with ?class=YYYY: the viewer's grade row is flagged THIS CLASS. Replaces the pasted copies on both homes (ROADMAP C4); data: shared/school-hours/data.json (Family Handbook §4)
+    owner: platform
+    match: "SFFS School Hours"   # text inside the old pasted copies, so the monitor sees them until they are swapped
   hoops-2034-2027-winter:
     type: code                   # pasted by design until ROADMAP C5 makes a URL team-schedule embed; source and build: teams/class-2034/hoops-2027-winter/
     owner: platform
@@ -51,6 +56,11 @@ sites:
         embed: important-dates
         box: card             # resized to the standard 935 x 625 and measured 2026-10-31: 4 dates visible on an iPhone
         status: url           # swapped 2026-10-30
+      - page: home
+        embed: school-hours   # still the pasted copy (ROADMAP C4 inventory 2026-11-07); swap to the URL embed with ?class=2032 at box card
+        query: {class: 2032}
+        status: pasted-code
+        hash: fd7690d8c3e5    # sha256 of the pasted code, first 12 hex (2026-11-07)
   class-2034:            # 1st grade in 2026–27
     name: 1st Grade Class Page
     site_id: 1vqA_IFOx0oCDUi95RtQ-PPo-3LcD_szY
@@ -69,6 +79,11 @@ sites:
         query: {class: 2034}
         box: page             # the only thing on its page; 352 x 329 on an iPhone shows the first card's title/date/summary/action (placed by Ahin, measured 2026-11-02)
         status: url
+      - page: home
+        embed: school-hours   # still the pasted copy (ROADMAP C4 inventory 2026-11-07); swap to the URL embed with ?class=2034 at box card
+        query: {class: 2034}
+        status: pasted-code
+        hash: 5d656010830c    # sha256 of the pasted code, first 12 hex (2026-11-07)
       - page: home
         embed: room-parents   # under the welcome text; replaced the pasted glitter list 2026-10-31
         query: {class: 2034}

@@ -21,6 +21,7 @@ Every shared embed passes CI at the `card` phone size (352 × 235 and 315 × 210
 |---|---|---|---|
 | Home | Important Dates | `card` | `https://sffs-class-sites.github.io/class-sites/shared/important-dates/` (gets `?class=YYYY` when per-class dates exist, ROADMAP D3) |
 | Home | Room parents | `card` | `https://sffs-class-sites.github.io/class-sites/shared/room-parents/?class=YYYY` |
+| Home | School hours | `card` | `https://sffs-class-sites.github.io/class-sites/shared/school-hours/?class=YYYY` (built 2026-11-08; not yet placed on a live site, the pasted copies are still there) |
 | Email Digest | Updates | `page` | `https://sffs-class-sites.github.io/class-sites/shared/updates/?class=YYYY` |
 
 ## 1. Build the template Site once (Ahin, in the editor, ~20 minutes)

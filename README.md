@@ -18,3 +18,4 @@ Every change runs through `.github/workflows/deploy.yml`: validate data against 
 |---|---|
 | Important Dates | https://sffs-class-sites.github.io/class-sites/shared/important-dates/ |
 | Room Parents (not live yet) | https://sffs-class-sites.github.io/class-sites/shared/room-parents/?class=2034 (use the class's graduation year). Says "not published yet" until the school approves the list. |
+| School Hours (not placed yet) | https://sffs-class-sites.github.io/class-sites/shared/school-hours/?class=2034 (use the class's graduation year; the viewer's grade row is flagged THIS CLASS). From the Family Handbook §4; replaces the pasted copies on the home pages. |
