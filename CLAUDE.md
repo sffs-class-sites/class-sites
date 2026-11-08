@@ -7,6 +7,19 @@ Shared content for the San Francisco Friends School (SFFS) K–8 class Google Si
 
 Working style: one item at a time. Don't anchor on a vendor or a design without checking alternatives. Say what was tested versus assumed.
 
+**Instructions to Ahin name the place, the account and the link.** Ahin works from two machines and several accounts, and a step that doesn't say which is a step that stalls. Every instruction a session gives (in chat, a PR body, a doc) says: **where** (the Air, where Ahin types and browses; the Mini, where Claude sessions and the signed-in Chrome run; or "any browser"), **as whom** (the account from the §3 table, by name), and **the URL** to open, as a full link. For a Claude session on the Mini say so and give the exact prompt to paste. The usual places:
+
+| Place | Machine / account | URL |
+|---|---|---|
+| Start a Claude session that runs on the Mini | Air, claude.ai; pick environment **Thomas Family Mini** (shown as **workspace** until its rename applies), never **Default** | https://claude.ai/code |
+| 1st-grade Site editor | any browser signed in as `classpages@sffriendsschool.org`; or the Mini's debug Chrome, already signed in | https://sites.google.com/d/1vqA_IFOx0oCDUi95RtQ-PPo-3LcD_szY/edit |
+| 3rd-grade Site editor | same | https://sites.google.com/d/1x30kZaz22W2SSzdL3fTxNm0jbSVyKWo9/edit |
+| Published Sites | any browser, no sign-in | https://sites.google.com/sffriendsschool.org/sffs-1st-class-page · https://sites.google.com/sffriendsschool.org/sffs-3rd-class-page |
+| Status page | any browser | https://sffs-class-sites.github.io/class-sites/status/ |
+| Pull requests, Actions, Branches, Collaborators | browser signed in as `Ahin-SFFS` (collaborators and settings need it; viewing doesn't) | https://github.com/sffs-class-sites/class-sites/pulls · …/actions · …/branches · …/settings/access |
+| Site Map sheet, room-parents master sheet | browser signed in as `ahinthomas@gmail.com` | https://docs.google.com/spreadsheets/d/15Cw5tJqa4GH354adRNQ_Q4PCwv7LLZ22cbxko_P1UJ8 · https://docs.google.com/spreadsheets/d/1no4dA_ot7Hg3KTQLN1uFsUUn3IH6H3EIatn7arrZxNs |
+| The Mini's repo clone | Mini, `/Users/thomasfamilybot/Documents/sffs/class-sites` (sessions `cd` there first) | — |
+
 ---
 
 ## 0. Related docs and precedence — READ THIS BEFORE ANYTHING ELSE
