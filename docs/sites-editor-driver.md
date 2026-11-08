@@ -78,8 +78,8 @@ Google changes the editor without notice and its class names are obfuscated, so 
 | Who is signed in | `[aria-label^="Google Account"]` in the top bar (the avatar button, which names the account in Google apps) | **confirmed 2026-11-02**: `aria-label="Google Account: SFFS Class Pages (classpages@sffriendsschool.org)"` (a newline before the parenthesis) |
 | The Pages panel | `[role=tree]`; if absent, a `[role=tab]`/button labelled "Pages" is clicked to open it | **confirmed 2026-11-02**: the panel was closed; `[role=tab]` "Pages" opened it; one `[role=tree]` with one `[role=treeitem]` per top-level page (`aria-labelledby` = the page's id, `aria-selected="true"` on the current page). Item labels: "Home page, titled Home.", "Room Info.", "Email Digest.", "Resources. Child pages available." |
 | A page entry | the smallest visible element whose text is exactly the page title (`email-digest` → "Email Digest"), preferring one under `[role=tree]`/`[role=treeitem]`; clicked at its centre, then the editor URL is printed | **confirmed for Home 2026-11-02**: the element found is a role-less `div` inside the treeitem; the click worked. The editor had already opened on Home, so the URL didn't change: moving to a different page is not yet exercised |
-| A child page | the slug's segments in turn: click the parent's entry; if the child's title isn't shown, click an expander inside the parent's `[role=treeitem]` (`[aria-expanded="false"]`, or an aria-label containing "xpand", "hild pages" or "ubpages"), else focus the parent and press ArrowRight; then click the child. On failure the STOP line lists every treeitem's label, `aria-expanded` and visibility | **assumed** (added 2026-11-07 after `list --page resources/basketball` stopped on the real editor looking for "Resources/basketball"; the real tree's parent entry reads "Resources. Child pages available."; what its expander looks like is not yet recorded) |
-| Pasted-code blocks | every visible `iframe` on the canvas not inside a URL-embed block; identified by a registry embed's `match` text appearing in an attribute of the iframe or its ancestors (the published page keeps pasted code in `data-code`; whether the editor does is checked, not assumed), else in the frame's own HTML when Playwright's frame tree has it; else reported unidentified with its first text | **assumed** (added 2026-11-07; mock only) |
+| A child page | the slug's segments in turn: click the parent's entry; if the child's title isn't shown, click an expander inside the parent's `[role=treeitem]` (`[aria-expanded="false"]`, or an aria-label containing "xpand", "hild pages" or "ubpages"), else focus the parent and press ArrowRight; then click the child. On failure the STOP line lists every treeitem's label, `aria-expanded` and visibility | **confirmed 2026-11-08** (`list --site class-2034 --page resources/basketball`): the parent "Resources" was clicked as an `<a role=link>` (not the role-less `div` the other entries are), then "Basketball" was found at once and clicked as a `div role=None`, and the editor URL moved to the child's page id (`…/p/1NRzBnIB1XKJNeOWkWwnVys6q-sUBigC5/edit`). The child's title was already visible after the parent click, so the expander and ArrowRight branches did **not** run and stay **assumed**; what the expander looks like is still unrecorded |
+| Pasted-code blocks | every visible `iframe` on the canvas not inside a URL-embed block; identified by a registry embed's `match` text appearing in an attribute of the iframe or its ancestors (the published page keeps pasted code in `data-code`; whether the editor does is checked, not assumed), else in the frame's own HTML when Playwright's frame tree has it; else reported unidentified with its first text | **confirmed in part 2026-11-08** (`list` on class-2034 `resources/basketball` and `home`). What held: the editor keeps the pasted code on the block: each pasted block is `iframe[aria-label='Custom embed']` whose parent is `div[data-code='<the pasted code>'][data-url='https://<n>-atari-embeds.googleusercontent.com/embe…'][data-tile-id][data-in-editor='true']`, so the `match` text is found **by attribute** (hoops on `resources/basketball`, `data-code` starting `<!DOCTYPE html>`). Blocks without a registry `match` (the birthdays roster, `data-code` starting `<style>\n  .sffs-roster-wrap`, 562 × 638; school hours, 661 × 808, both on `home`) are reported "not in registry.yaml; identified by unidentified" with **no** `starts:` text, so the fall-back to the frame's own text did not deliver. Pasted blocks are narrower than URL embeds (hoops 760 × 999 at x=403; URL embeds 1154 wide). What differed: (a) three non-block iframes are listed on every page: a 148 × 148 one with no src at y=−1584, a 424 × 210 `iframe[role='presentation']` with src `about:blank` inside `header[role='none'] > div[data-ogsr-up]` (the Google account bar) at x=1406 y=57, and a 1445 × 867 one with no src at x=193 y=72 under `div[data-exclude-global-shortcuts]`; (b) the frame-content step pairs frames by URL, and the pasted embed's inner frame is `about:blank`, so the header iframe was credited with the pasted page's text ("identified by frame content", `starts: 'Super Friends …'` on basketball, `'SFFS School Hours …'` on home) while the real block got none. So `data-code` is the hook to use and hash from; the frame-content path and the iframe filter need fixing (§4 record 2026-11-08) |
 | Our embeds | `div[aria-label="Whole page embed"][data-url]` elements in the editor document whose `data-url` is one of our Pages URLs (`…/class-sites/shared/<id>/…`); the `iframe` inside is the box. Both `list` and `resize` use this since 2026-11-03. Playwright's frame tree is only reported ("our page is / is not in Playwright's frame tree"): on a tab that was open before the script attached it shows the gstatic wrapper frames with an empty URL and nothing below them, which is why `list` reported every embed MISSING on 2026-11-02 evening | **confirmed 2026-11-02** (the `data-url` hook, by `resize`), **2026-11-06** (`list`): on a tab that had been open for days, `list` found both class-2034 embeds by `data-url`, though Playwright's frame tree still didn't show our page; and **2026-11-07** (`list`, both sites): the reused class-2034 tab again found both by `data-url` with our page absent from the frame tree, and class-2032, opened fresh by the script, found its embed with our page present in the frame tree, so the frame-tree line is a reused-tab symptom only. The gstatic wrapper path had changed between runs (`…/embeds/9581c1cb…` on 2026-11-02 and 11-06, `…/embeds/197a9c19…` on 11-07); the script never matches on it |
 | Box size | the bounding box of that outermost iframe element, in CSS px of the editor window; expected to equal the editor's size label at a ≥1440px window | **confirmed at an 1830px window** (2026-11-02 evening and 2026-11-06): card embeds measure 1154 wide, the same as the published desktop frame, and the editor shape matches the live check's (room-parents 0.669 in both). At a 1200px window (2026-11-02) the canvas is scaled to 701 wide (×0.75), but the h/w ratios still hold. The registry's 935 is never the measured width at these windows; the script compares shape (h ÷ w), not width |
 | A block (`resize`) | `div[aria-label="Whole page embed"][data-url]` whose `data-url` is the embed's URL (same id and query as the registry slot); its `iframe` is the box | **confirmed 2026-11-02**: `resize` found class-2034 room-parents this way on a reused tab, where frame URLs failed |
@@ -307,6 +307,69 @@ window 1830 × 963 (device pixel ratio 1)
 What worked: every step of both commands, with no `STOP`. All three embeds measure the card shape (0.666–0.669) at 1830 wide, the same sizes as 2026-11-06 for class-2034 and the 1830-window equivalent of the 2026-11-02 measurement for class-2032 (701 × 469 then, 1154 × 772 now, 0.669 both times). On the fresh class-2032 tab our page **is** in Playwright's frame tree; on the reused class-2034 tab it is not. The `data-url` lookup found every embed either way.
 
 What didn't, or changed: nothing failed. Two things to know about: the gstatic wrapper hash changed from `9581c1cb…` to `197a9c19…`, so that path is Google's deploy id, not a hook; and the Mini's `~/.claude/settings.json` allow rule still names `python3 /Users/thomasfamilybot/code/sffs/class-sites/tools/sites_editor.py *`, a path that no longer exists, so a `--apply` run from the `~/Documents` clone will meet the auto-mode classifier again until that rule is changed to the new path (CLAUDE.md §5 also names the old path). Read-only `list` ran without a prompt this time.
+
+**2026-11-08, the Mini, Chrome 156.0.8078.80, the same debug Chrome and class-2034 editor tab as 2026-11-07, window 1830 × 963.** Read-only: the first real run of `list` after PR #64 (child pages, other blocks). Run from `~/Documents/sffs/class-sites` by full path. Nothing in either Site was changed or published. `chrome` printed "Chrome is already listening … nothing to start" (exit 0).
+
+`python3 tools/sites_editor.py list --site class-2034 --page resources/basketball` (exit 0):
+
+```
+using the open editor tab https://sites.google.com/d/1vqA_IFOx0oCDUi95RtQ-PPo-3LcD_szY/p/17k7BfcaLK3QojPHbvp5Nctotwvbjel2J/edit
+signed in as: Google Account: SFFS Class Pages (classpages@sffriendsschool.org)
+page 'Resources': clicked its entry in the <a role=link>
+page 'Basketball': clicked its entry in the <div role=None>
+editor URL https://sites.google.com/d/1vqA_IFOx0oCDUi95RtQ-PPo-3LcD_szY/p/17k7BfcaLK3QojPHbvp5Nctotwvbjel2J/edit -> https://sites.google.com/d/1vqA_IFOx0oCDUi95RtQ-PPo-3LcD_szY/p/1NRzBnIB1XKJNeOWkWwnVys6q-sUBigC5/edit
+window 1830 × 963 (device pixel ratio 1)
+no embed of ours on this page (no div[aria-label="Whole page embed"][data-url] whose data-url starts with https://sffs-class-sites.github.io/class-sites/shared/...)
+other blocks on the page (not URL embeds of ours): 4
+- not in registry.yaml; identified by unidentified; frame not in Playwright's tree, so its content couldn't be read
+    iframe 148 × 148 at x=0 y=-1584, src host no src
+    ancestors: iframe
+- hoops-2034-2027-winter (registered on this page, status code); identified by frame content
+    iframe 424 × 210 at x=1406 y=57, src host about:blank
+    starts: 'Super Friends · 1st Grade Basketball · Winter 2027 Every game is at St. Stephen '
+    ancestors: iframe[role='presentation'] > div > div[data-ogsr-up=''] > header[role='none'] > div
+- not in registry.yaml; identified by unidentified; frame not in Playwright's tree, so its content couldn't be read
+    iframe 1445 × 867 at x=193 y=72, src host no src
+    ancestors: iframe > span > div > div > div[data-exclude-global-shortcuts='']
+- hoops-2034-2027-winter (registered on this page, status code); identified by attribute
+    iframe 760 × 999 at x=403 y=448, src host www.gstatic.com
+    ancestors: iframe[aria-label='Custom embed'] > div[data-enable-interaction='false'][data-url='https://692785319-atari-embeds.googleusercontent.com/embe...'][data-code='<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="ut...'][data-tile-id='561aee0d90206948_0'][data-enable-html-sites-gen-ai='false'][data-is-liquid-artifact='false'][data-enable-liquid-apps-vertical-scrolling='false'][data-in-editor='true'] > div > div > div[data-id='561aee0d90206948_0']
+```
+
+`python3 tools/sites_editor.py list --site class-2034 --page home` (exit 0); the two URL-embed rows are as on 2026-11-07 (room-parents 1154 × 772, important-dates 1154 × 769, both found by `data-url`, and this time our page **was** in Playwright's frame tree on the reused tab), then:
+
+```
+other blocks on the page (not URL embeds of ours): 5
+- not in registry.yaml; identified by unidentified; frame not in Playwright's tree, so its content couldn't be read
+    iframe 148 × 148 at x=0 y=-1584, src host no src
+    ancestors: iframe
+- not in registry.yaml; identified by unidentified
+    iframe 424 × 210 at x=1406 y=57, src host about:blank
+    starts: 'SFFS School Hours & Early Dismissal From the SFFS Family Handbook 2026–27, Secti'
+    ancestors: iframe[role='presentation'] > div > div[data-ogsr-up=''] > header[role='none'] > div
+- not in registry.yaml; identified by unidentified; frame not in Playwright's tree, so its content couldn't be read
+    iframe 1445 × 867 at x=193 y=72, src host no src
+    ancestors: iframe > span > div > div > div[data-exclude-global-shortcuts='']
+- not in registry.yaml; identified by unidentified
+    iframe 562 × 638 at x=501 y=3001, src host www.gstatic.com
+    ancestors: iframe[aria-label='Custom embed'] > div[data-enable-interaction='false'][data-url='https://692785319-atari-embeds.googleusercontent.com/embe...'][data-code='<style>\n  .sffs-roster-wrap {\n    font-family: Arial, Hel...'][data-tile-id='5806beb90a400101_0'][data-enable-html-sites-gen-ai='false'][data-is-liquid-artifact='false'][data-enable-liquid-apps-vertical-scrolling='false'][data-in-editor='true'] > div > div > div[data-id='5806beb90a400101_0']
+- not in registry.yaml; identified by unidentified
+    iframe 661 × 808 at x=403 y=3687, src host www.gstatic.com
+    ancestors: iframe[aria-label='Custom embed'] > div[data-enable-interaction='false'][data-url='https://692785319-atari-embeds.googleusercontent.com/embe...'][data-code='<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UT...'][data-tile-id='5806beb90a400101_34'][data-enable-html-sites-gen-ai='false'][data-is-liquid-artifact='false'][data-enable-liquid-apps-vertical-scrolling='false'][data-in-editor='true'] > div > div > div[data-id='5806beb90a400101_34']
+```
+
+What worked:
+
+- The child page. "Resources" then "Basketball", two clicks, the URL moved to the child's page id, no STOP. The parent entry is an `<a role=link>`, unlike the role-less `div` of the other entries; the child's title was visible straight after the parent click, so neither expander branch ran.
+- The editor keeps the pasted code: every pasted block is `iframe[aria-label='Custom embed']` under a `div[data-code=…][data-url=https://<n>-atari-embeds.googleusercontent.com/…][data-tile-id=…][data-in-editor='true']`. The registered hoops block was identified **by attribute** (its `match` text is inside `data-code`). That is the hook for ROADMAP C4: the editor's `data-code` can be hashed exactly as `tests/monitor.py` hashes the published page's, so a registry hash can be checked from the editor too.
+- The two unregistered home-page blocks (the birthdays roster and school hours, ROADMAP C4) are listed as blocks, with their `data-code` starts and sizes (562 × 638 at y=3001 and 661 × 808 at y=3687; pasted blocks are narrower than the 1154px URL embeds).
+
+What differed from the assumption, to fix in the script:
+
+- Three iframes that are not blocks are listed on every page: a 148 × 148 one with no src at y=−1584 (off-canvas), the 424 × 210 `iframe[role='presentation']` with src `about:blank` inside `header[role='none'] > div[data-ogsr-up]` (the Google account bar, top right), and a 1445 × 867 one with no src at x=193 y=72 under `div[data-exclude-global-shortcuts]`. Only iframes with `aria-label='Custom embed'` (or a `data-code` ancestor) should count as pasted blocks.
+- The frame-content step pairs a block with a Playwright frame by URL. The pasted block's wrapper iframe has a gstatic src, and its inner frame (the one with the pasted page) is `about:blank`, so `frames.get("about:blank")` landed on the header iframe's row: it was credited with "identified by frame content" and the pasted page's text (hoops on basketball, school hours on home), while the real blocks got no `starts:` line. Match on `data-code` only, and for the first-text fall-back read the frame nested inside the block's wrapper rather than keying by URL.
+- Otherwise the unidentified rows are right: those two blocks have no registry `match` text yet.
+
 
 ## 5. What the DOM record holds
 
