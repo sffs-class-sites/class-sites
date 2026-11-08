@@ -1,0 +1,29 @@
+{
+  "_comment": "School hours and Wednesday early dismissal by grade, transcribed from the SFFS Family Handbook (source below). Non-personal (CLAUDE.md section 3), so it lives in git. One file per school year: when the handbook for the next year is out, update the rows and `source`, and the build's version changes with it. `grades` lists the grades a row covers (kindergarten = 0); every grade 0-8 must appear exactly once (tests/school_hours_check.py). Times are the handbook's own wording.",
+  "schema": 1,
+  "source": {
+    "title": "SFFS Family Handbook 2026–27",
+    "section": "Section 4: Building & School Hours",
+    "page": 9,
+    "updated": "August 2026",
+    "updated_iso": "2026-08",
+    "url": "https://drive.google.com/file/d/1GqCKf_zSJTa1ERzJnlUUmeaqLjhmXCNK/view?usp=sharing",
+    "school_year_end": 2027
+  },
+  "building": [
+    {"label": "Open", "text": "7:45 a.m. – 6:00 p.m., Monday–Friday"},
+    {"label": "Drop-off", "text": "starting at 8:00 a.m. — students may not be dropped off before 7:45 a.m. (exceptions for sports practice or early departures for field study programs)"},
+    {"label": "Morning childcare", "text": "available 7:45–8:00 a.m. for an additional charge (see the Handbook's Extended Day section)"}
+  ],
+  "rows": [
+    {"label": "Kindergarten",     "grades": [0],          "regular": {"start": "8:30 a.m.", "end": "2:30 p.m."}, "wednesday": {"start": "8:30 a.m.", "end": "1:30 p.m."}},
+    {"label": "1st Grade",        "grades": [1],          "regular": {"start": "8:30 a.m.", "end": "2:45 p.m."}, "wednesday": {"start": "8:30 a.m.", "end": "1:45 p.m."}},
+    {"label": "2nd–3rd Grade",    "grades": [2, 3],       "regular": {"start": "8:30 a.m.", "end": "3:00 p.m."}, "wednesday": {"start": "8:30 a.m.", "end": "2:00 p.m."}},
+    {"label": "4th Grade",        "grades": [4],          "regular": {"start": "8:20 a.m.", "end": "3:00 p.m."}, "wednesday": {"start": "8:20 a.m.", "end": "2:00 p.m."}},
+    {"label": "5th–8th Grades",   "grades": [5, 6, 7, 8], "regular": {"start": "8:20 a.m.", "end": "3:15 p.m."}, "wednesday": {"start": "8:20 a.m.", "end": "2:05 p.m."}}
+  ],
+  "notes": [
+    "Wednesdays are early dismissal every week, not just on the dates marked in the Important Dates calendar.",
+    "Hours are subject to change. Always confirm against the current Family Handbook."
+  ]
+}
