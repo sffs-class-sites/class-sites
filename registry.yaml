@@ -41,8 +41,12 @@ embeds:
     path: shared/school-hours/   # placed with ?class=YYYY: the viewer's grade row is flagged THIS CLASS. Replaces the pasted copies on both homes (ROADMAP C4); data: shared/school-hours/data.json (Family Handbook §4)
     owner: platform
     match: "SFFS School Hours"   # text inside the old pasted copies, so the monitor sees them until they are swapped
+  team-schedule:
+    type: url
+    path: shared/team-schedule/  # placed with ?team=<id>; one data file per team in shared/team-schedule/teams/ (ROADMAP C5 step 2, built 2026-11-08). First team: hoops-2034-2027-winter
+    owner: platform
   hoops-2034-2027-winter:
-    type: code                   # pasted by design until ROADMAP C5 makes a URL team-schedule embed; source and build: teams/class-2034/hoops-2027-winter/
+    type: code                   # the pasted copy on the 1st-grade Basketball page; superseded by team-schedule?team=hoops-2034-2027-winter (C5 step 2), stays until Ahin swaps it. Record of what is live: teams/class-2034/hoops-2027-winter/
     owner: platform
     match: "@sffs-1st-hoops"     # the .ics UID domain inside the pasted code
 
@@ -71,7 +75,7 @@ sites:
         box: card             # resized to the standard 935 x 625 and measured 2026-10-31: 4 dates visible on an iPhone
         status: url           # swapped 2026-10-30
       - page: resources/basketball
-        embed: hoops-2034-2027-winter   # Super Friends winter 2027 schedule, pasted by Ahin 2026-10-29; the monitor goes amber if the pasted code is edited
+        embed: hoops-2034-2027-winter   # Super Friends winter 2027 schedule, pasted by Ahin 2026-10-29; the monitor goes amber if the pasted code is edited. To swap (C5): replace with By URL …/shared/team-schedule/?team=hoops-2034-2027-winter at box card, then make this slot embed: team-schedule, query: {team: hoops-2034-2027-winter}, status: url
         status: code
         hash: b627556d43b0    # sha256 of the pasted code, first 12 hex; equals teams/class-2034/hoops-2027-winter/1st-hoops-embed.html (checked 2026-11-03)
       - page: email-digest
