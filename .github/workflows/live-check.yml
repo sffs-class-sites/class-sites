@@ -21,43 +21,15 @@ jobs:
     env:
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: ./.github/actions/setup   # Python 3.12, requirements.txt, Chromium (all cached)
         with:
-          python-version: "3.12"
-
-      # Chromium is cached between runs, keyed on the Playwright version (2026-11-06: the
-      # download took 17s all day, then 9.5 minutes for three builds in a row during a slow
-      # evening at GitHub's end). On a hit only the OS packages are installed, a few seconds.
-      - name: Install Playwright
-        id: pw
-        run: |
-          pip install playwright
-          # pip's metadata, not playwright.__version__ (the package does not define it: the first
-          # cached build's key came out as "playwright-chromium-Linux-", 2026-11-06)
-          echo "version=$(pip show playwright | sed -n 's/^Version: //p')" >> "$GITHUB_OUTPUT"
-
-      - name: Cache Chromium
-        id: pw-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-chromium-${{ runner.os }}-${{ steps.pw.outputs.version }}
-
-      - name: Install Chromium
-        run: |
-          if [ "${{ steps.pw-cache.outputs.cache-hit }}" = "true" ]; then
-            python -m playwright install-deps chromium
-          else
-            python -m playwright install --with-deps chromium
-          fi
+          chromium: "true"
 
       - name: Measure every registered slot on the published Sites
         id: check
-        run: |
-          pip install pyyaml
-          python3 tests/live_check.py
+        run: python3 tests/live_check.py
 
       - name: Report
         if: always()

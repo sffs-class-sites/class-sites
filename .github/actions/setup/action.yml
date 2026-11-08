@@ -1,0 +1,51 @@
+name: Python, requirements, Chromium
+description: >-
+  Python 3.12 with requirements.txt installed from the pip cache, and, with chromium "true",
+  Playwright's Chromium from a cache keyed on the pinned Playwright version. Every workflow uses
+  this, so a version is bumped in one place (requirements.txt) and the cache key stays in step.
+inputs:
+  chromium:
+    description: '"true" also installs Playwright''s Chromium (the browser checks and the live check)'
+    required: false
+    default: "false"
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v7
+      with:
+        python-version: "3.12"
+        cache: pip   # keyed on requirements.txt
+
+    - name: Install requirements
+      shell: bash
+      run: pip install -r requirements.txt
+
+    # Chromium is cached between runs, keyed on the Playwright version (2026-11-06: the download
+    # took 17s all day, then 9.5 minutes for three builds in a row during a slow evening at
+    # GitHub's end). On a hit only the OS packages are installed, a few seconds. The version is
+    # pip's metadata, not playwright.__version__ (the package does not define it: the first cached
+    # build's key came out as "playwright-chromium-Linux-", 2026-11-06).
+    - name: Playwright version
+      if: inputs.chromium == 'true'
+      id: pw
+      shell: bash
+      run: |
+        echo "version=$(pip show playwright | sed -n 's/^Version: //p')" >> "$GITHUB_OUTPUT"
+
+    - name: Cache Chromium
+      if: inputs.chromium == 'true'
+      id: pw-cache
+      uses: actions/cache@v6
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-chromium-${{ runner.os }}-${{ steps.pw.outputs.version }}
+
+    - name: Install Chromium
+      if: inputs.chromium == 'true'
+      shell: bash
+      run: |
+        if [ "${{ steps.pw-cache.outputs.cache-hit }}" = "true" ]; then
+          python -m playwright install-deps chromium
+        else
+          python -m playwright install --with-deps chromium
+        fi

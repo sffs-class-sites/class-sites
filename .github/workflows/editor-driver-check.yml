@@ -1,0 +1,35 @@
+name: Editor driver check
+
+# Runs tests/test_sites_editor.py: tools/sites_editor.py (list, resize, publish, restore) against a
+# fake Google Sites editor served locally, in a Chromium started with --remote-debugging-port the
+# way the Mini's Chrome is (docs/sites-editor-driver.md). About two minutes, and it loads the live
+# Pages embeds, so it runs only when the driver or its test change, not in every build.
+on:
+  pull_request:
+    paths:
+      - tools/sites_editor.py
+      - tests/test_sites_editor.py
+      - .github/actions/setup/action.yml
+      - .github/workflows/editor-driver-check.yml
+  push:
+    branches: [main]
+    paths:
+      - tools/sites_editor.py
+      - tests/test_sites_editor.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  driver:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/setup   # Python 3.12, requirements.txt, Chromium (all cached)
+        with:
+          chromium: "true"
+
+      - name: Drive the fake editor (list, resize, publish, restore)
+        run: python3 tests/test_sites_editor.py

@@ -32,21 +32,17 @@ jobs:
             echo "ready=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: steps.cfg.outputs.ready == 'true'
         with:
           token: ${{ secrets.SYNC_BOT_TOKEN }}
 
-      - uses: actions/setup-python@v5
+      - uses: ./.github/actions/setup   # Python 3.12 and requirements.txt, from the pip cache
         if: steps.cfg.outputs.ready == 'true'
-        with:
-          python-version: "3.12"
 
       - name: Read the Site Map
         if: steps.cfg.outputs.ready == 'true'
-        run: |
-          pip install pyyaml google-auth requests
-          python3 build/sync_site_map.py --sheet "$SHEET"
+        run: python3 build/sync_site_map.py --sheet "$SHEET"
 
       - name: Open or update the PR
         if: steps.cfg.outputs.ready == 'true'
