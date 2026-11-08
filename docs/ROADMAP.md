@@ -14,7 +14,7 @@ Written 2026-10-30 from the committed repo (`main`), the project files, and the 
 
 **Open right now (2026-10-30, after section A)**
 - Section A housekeeping is done; section B (credentials) is done. Next is **C1** (phone layout for Important Dates) and **C2** (room parents go live), which needs the school's OK first.
-- The scratch Site still exists; it goes when the live check points at a real site (A5 / C3).
+- ~~The scratch Site still exists; it goes when the live check points at a real site (A5 / C3).~~ Deleted 2026-11-08.
 
 ---
 
@@ -28,7 +28,7 @@ Written 2026-10-30 from the committed repo (`main`), the project files, and the 
 
 **A4. ~~Mark §8 step 0 done or drop it~~ (done 2026-10-30: struck, with a two-paragraph memo in place).** The reconciliation memo never happened as a memo, but conflict #1 is resolved (ratio rule, recorded in `registry.yaml`) and the rest were settled in passing. Either write the two-paragraph memo for the record or strike the step.
 
-**A5. Delete the scratch Site** once the live check is pointed at a real site instead (see C3). Until then it earns its keep.
+**A5. ~~Delete the scratch Site~~ (done 2026-11-08: Ahin deleted the Site and its `scratch` entry left `registry.yaml` in the same change; `monitor.py` and `live_check.py --mock` pass without it).** Original note: once the live check is pointed at a real site instead (see C3). Until then it earns its keep.
 
 ---
 
@@ -52,7 +52,7 @@ Everything in Site Map sync and room parents is waiting on three things. None of
 
 **C2. ~~Room parents go live~~ (done 2026-10-31 for 1st grade; see CLAUDE.md §7 for what is left: `Code.gs` install, 3rd grade).** Original note: School's OK on publishing names/emails (given 2026-10-31) → install `apps-script/room-parents/Code.gs` on the master sheet (in the bot's Drive) and fill `PUBLISHERS` → mark the Site Map row approved → place the embed by URL with `?class=2034` on the 1st-grade site. Then replace the pasted "glitter" room-parent list on that site, which is currently uncheckable by the monitor.
 
-**C3. ~~Point the live check at a real site~~ (done 2026-11-02: `tests/live_check.py` now reads `registry.yaml` and checks every site and slot, both class sites included; the scratch Site is just one more entry).** Left for Ahin: delete the scratch Site (A5) and remove its `scratch` entry from `registry.yaml` in the same PR, or the next daily run reports it missing.
+**C3. ~~Point the live check at a real site~~ (done 2026-11-02: `tests/live_check.py` now reads `registry.yaml` and checks every site and slot, both class sites included; the scratch Site is just one more entry).** The scratch Site was deleted and its `scratch` entry removed from `registry.yaml` on 2026-11-08 (A5), so the daily runs check the two class Sites only.
 
 **C4. The remaining pasted embeds.** The 1st and 3rd homepages still carry pasted-code embeds the monitor can't check — school hours, the birthdays roster, the glitter list. Each becomes either a shared URL embed in the repo or an explicit registry entry marked `type: code` with a hash, so the status page stops being blind to them. The birthdays roster holds children's data and must follow §3 (pattern A extract, never committed).
 
