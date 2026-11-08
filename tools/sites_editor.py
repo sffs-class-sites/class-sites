@@ -63,7 +63,9 @@ PACE_MS = 1500          # pause after anything that changes what the editor show
 LOAD_WAIT = 40          # × 500 ms to wait for the editor to lay its embeds out
 MIN_WINDOW_W = 1440     # registry boxes were measured in the editor at this width; narrower scales the canvas
 SHAPE_TOL = 0.005       # a resized box is done when |h/w - target| is within this (≈3px at 700px wide)
-MAX_DRAGS = 6           # resize gives up after this many drags that don't reach the target
+MAX_DRAGS = 12          # resize gives up after this many drags that don't reach the target (a block at the bottom of a
+                        # page gets only the window's spare room per drag, so a big change takes several)
+MIN_DRAG = 8            # px: less room than this and a drag is pointless (the editor snaps to a grid)
 DRAG_STEPS = 12         # mouse moves per drag, so the editor sees a human-like drag
 
 # Hooks confirmed on the real editor 2026-11-02 (docs/sites-editor-driver.md §4).
@@ -542,13 +544,26 @@ def select_block(page, block):
 
 
 def drag_bottom_handle(page, block, delta_px):
-    """Drag the bottom-centre resize handle of the selected block by delta_px (positive = taller)."""
+    """Drag the bottom-centre resize handle of the selected block towards delta_px (positive = taller), as far as
+    the window allows in one go. Returns the distance actually dragged; the caller re-measures and repeats.
+
+    The mouse can only act inside the viewport. For a block at the bottom of a page the canvas can't scroll far
+    enough to make room for a big drag (2026-11-08: two School Hours boxes needed +500 and +95 px with 212 and 94 px
+    of room), so the drag is cut to the room there is rather than refused; only a handle that is itself off-screen,
+    or room too small for the editor's grid, stops the command."""
     m = bring_into_view(page, block, bottom_room=max(delta_px, 0))
     x, y = m["x"] + m["w"] / 2, m["y"] + m["h"]
     vp = viewport(page)
-    if not (20 < y < vp["h"] - 20 and 20 < y + delta_px < vp["h"] - 20):
-        raise Stop(f"the bottom handle (y={round(y)}) or where it has to go (y={round(y + delta_px)}) is outside the "
-                   f"window ({vp['w']} × {vp['h']}); make the Chrome window taller and run again")
+    lo, hi = 20, vp["h"] - 20
+    if not (lo < y < hi):
+        raise Stop(f"the bottom handle (y={round(y)}) is outside the window ({vp['w']} × {vp['h']}) even after scrolling; "
+                   f"make the Chrome window taller and run again")
+    room = (hi - 1 - y) if delta_px > 0 else (y - lo - 1)
+    if room < MIN_DRAG:
+        raise Stop(f"only {round(room)}px of room {'below' if delta_px > 0 else 'above'} the bottom handle (y={round(y)}) in a "
+                   f"{vp['w']} × {vp['h']} window; make the Chrome window taller and run again")
+    if abs(delta_px) > room:
+        delta_px = room if delta_px > 0 else -room
     page.mouse.move(x, y)
     page.wait_for_timeout(300)
     page.mouse.down()
@@ -559,6 +574,7 @@ def drag_bottom_handle(page, block, delta_px):
     page.wait_for_timeout(300)
     page.mouse.up()
     pace(page)
+    return delta_px
 
 
 def fmt(m):
@@ -811,10 +827,11 @@ def cmd_resize(a, reg):
         cur = before
         for i in range(1, MAX_DRAGS + 1):
             delta = cur["w"] * want_shape - cur["h"]
-            drag_bottom_handle(page, block, delta)
+            done = drag_bottom_handle(page, block, delta)
             block = find_block(page, reg, a.embed, slot_query(slot))   # the editor may re-render the block
             new = measure(block)
-            print(f"drag {i}: by {round(delta):+d}px -> {fmt(new)}")
+            part = "" if abs(done - delta) < 1 else f" (of {round(delta):+d} wanted; the window had room for {round(done):+d})"
+            print(f"drag {i}: by {round(done):+d}px{part} -> {fmt(new)}")
             if abs(new["w"] - cur["w"]) > 1:
                 raise HalfDone(f"the width changed ({round(cur['w'])} -> {round(new['w'])}) although only the bottom handle "
                                f"should have moved. Check the block in the editor; Undo (⌘Z) or Version history puts it back")
