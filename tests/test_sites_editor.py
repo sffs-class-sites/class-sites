@@ -15,6 +15,7 @@ publish dialog) and nothing about the real editor; that is recorded in the doc.
     PW_CHROMIUM=/path/to/chrome python3 tests/test_sites_editor.py     # needs network for the Pages embeds
 """
 import contextlib
+import html
 import http.server
 import io
 import os
@@ -84,14 +85,19 @@ def editor_page(page_id):
     if page_id == "basketball":
         # Pasted-code blocks as the editor might show them: the code in a data-code attribute on the block (as the
         # published page does), the code only inside the frame, and a block that matches nothing in the registry.
+        # As recorded on the real editor 2026-11-08: the block's parent div carries data-code (the pasted code itself),
+        # data-tile-id and data-in-editor, and the block iframe has aria-label="Custom embed". First block: the real
+        # hoops code from the repo, so its hash equals the registry slot's. Then one identified by match text in the
+        # frame only, one unknown. The editor's own account-bar iframe (no aria-label) must be ignored.
+        real = html.escape((ROOT / "teams/class-2034/hoops-2027-winter/1st-hoops-embed.html").read_text(), quote=True)
         pasted = (
-            "<div role='gridcell' aria-label='IFRAME' style='margin:24px auto;width:935px'><div aria-label='Custom embed' "
-            "data-code='&lt;meta name=&quot;sffs-embed&quot; content=&quot;1st-hoops@x&quot;&gt; UID:2027-01-03-super-friends@sffs-1st-hoops'>"
-            "<iframe src='/pasted?t=hoops-attr' style='display:block;width:935px;height:549px;border:0'></iframe></div></div>"
-            "<div role='gridcell' aria-label='IFRAME' style='margin:24px auto;width:935px'><div aria-label='Custom embed'>"
-            "<iframe src='/pasted?t=calendar-frame' style='display:block;width:935px;height:300px;border:0'></iframe></div></div>"
-            "<div role='gridcell' aria-label='IFRAME' style='margin:24px auto;width:935px'><div aria-label='Custom embed'>"
-            "<iframe src='/pasted?t=unknown' style='display:block;width:935px;height:200px;border:0'></iframe></div></div>")
+            "<iframe src='/pasted?t=accountbar' style='width:148px;height:148px;border:0'></iframe>"
+            f"<div role='gridcell' aria-label='IFRAME' style='margin:24px auto;width:935px'><div data-url='https://x-atari-embeds.googleusercontent.com/embeds/1/' data-code='{real}' data-tile-id='t1' data-in-editor='true'>"
+            "<iframe aria-label='Custom embed' src='about:blank' style='display:block;width:935px;height:549px;border:0'></iframe></div></div>"
+            "<div role='gridcell' aria-label='IFRAME' style='margin:24px auto;width:935px'><div data-tile-id='t2' data-in-editor='true'>"
+            "<iframe aria-label='Custom embed' src='/pasted?t=calendar-frame' style='display:block;width:935px;height:300px;border:0'></iframe></div></div>"
+            "<div role='gridcell' aria-label='IFRAME' style='margin:24px auto;width:935px'><div data-tile-id='t3' data-in-editor='true'>"
+            "<iframe aria-label='Custom embed' src='/pasted?t=unknown' style='display:block;width:935px;height:200px;border:0'></iframe></div></div>")
     canvas = pasted + "".join(
         f"<div role='gridcell' aria-label='IFRAME' aria-selected='false' aria-grabbed='false' tabindex='-1' style='position:relative;margin:24px auto;width:{w}px'><div class='handle' style='display:none;position:absolute;left:50%;bottom:-7px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:#1a73e8;z-index:2'></div>"
         f"<div><div aria-label='Whole page embed' data-url='{u}'>"
@@ -145,7 +151,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             body = wrapper(parse_qs(u.query)["u"][0])
         elif u.path == "/pasted":
             kind = parse_qs(u.query)["t"][0]
-            inner = {"hoops-attr": "<p>Super Friends schedule (code also in the attribute)</p>",
+            inner = {"accountbar": "<p>Google Account</p>",
                      "calendar-frame": "<p>Important Dates pasted copy</p><script>var ICS='UID:x@sffs-calendar';</script>",
                      "unknown": "<p>School hours 8:15 to 3:00</p>"}[kind]
             body = f"<!doctype html><html><body>{inner}</body></html>"
@@ -212,11 +218,13 @@ def main():
         run(["list", "--site", "class-2034", "--page", "resources/basketball"], 0,
             "page 'Resources': clicked its entry in the pages tree",
             "page 'Basketball': clicked its entry in the pages tree (after clicking the expander 'Expand child pages' on 'Resources')",
-            "/p/basketball/edit", "other blocks on the page (not URL embeds of ours): 3",
-            "hoops-2034-2027-winter (registered on this page, status code); identified by attribute",
-            "important-dates (in registry, but not as a slot on this page); identified by frame content",
-            "not in registry.yaml; identified by unidentified", "starts: 'School hours 8:15 to 3:00'",
-            "ancestors: iframe > div[aria-label='Custom embed'] > div[role='gridcell'][aria-label='IFRAME']")
+            "/p/basketball/edit", "pasted-code blocks on the page (iframe[aria-label=\"Custom embed\"]): 3",
+            "hoops-2034-2027-winter (registered on this page, status code); identified by hash (equals the registry slot's)",
+            "hash b627556d43b0 = registry",
+            "important-dates (in registry, but not as a slot on this page); identified by match text in the frame",
+            "starts: 'Important Dates pasted copy'",
+            "not in registry.yaml; identified by unidentified; no data-code on the block", "starts: 'School hours 8:15 to 3:00'",
+            "ancestors: iframe[aria-label='Custom embed'] > div[data-code=")
         run(["list", "--site", "class-2034", "--page", "resources/nope"], 1,
             "no entry titled 'Nope'", "segment 2 of 2", "Resources. Child pages available. [aria-expanded=")
         # resize: dry run reads and plans; --apply drags until the shape is right; a second run has nothing to do.
