@@ -13,13 +13,13 @@ A human task, about 10 minutes per site (CLAUDE.md §8 step 4). Do the 3rd grade
 ## 1. Swap the embed
 
 1. Open the site in the Sites editor and go to **Home**.
-2. Click the Important Dates box, then the pencil (Edit). *Untested:* the dialog has **Embed code** and **By URL** tabs.
+2. Click the Important Dates box, then the pencil (Edit). **Checked 2026-11-08 on a pasted block:** its Edit dialog has **no By URL tab**, only the HTML textarea (Cancel / Next), so for a pasted block go straight to the fallback in step 5: insert the URL embed in place, then remove the old block.
 3. Choose **By URL** and paste:
    `https://sffs-class-sites.github.io/class-sites/shared/important-dates/`
 4. Choose **Whole page**, then **Insert** (or **Update**).
 5. **Keep the box the same size.** Only its shape matters (CLAUDE.md §5). Both live pages use 935 × 625 in the editor (since 2026-10-31), which publishes at 1154 × 770 on a desktop and 352 × 235 on an iPhone.
    - **Height ÷ width must be at least 0.67** (since 2026-10-31; it was 0.95 before the compact phone layout), or phones show fewer than three upcoming dates before scrolling. The recommended box is **935 × 625** (0.67 with a little margin): 1154 × 770 published, 352 × 235 on an iPhone.
-   - If the dialog won't switch to By URL, delete the box, use **Insert → Embed → By URL → Whole page**, and drag the new box to the full column width and the same height as the old one.
+   - If the dialog won't switch to By URL (it doesn't for a pasted block): **double-click the empty canvas of the old block's section**, beside the block, and the in-place menu appears (Images, Embed, Text, Upload, From Drive). Choose **Embed → By URL**, paste the URL, wait for **Whole page** to appear, **Insert**. The new block lands beside the old one in the same section (checked 2026-11-08: 464 px wide). Then click the old block and its trash can (**Remove**); the new block takes the old one's place. Drag the new block's right-middle handle to the column edge for full width, then set the height with the script (`resize … --box card --apply`), or by hand. Inserting from the **Insert** panel instead would append a new section at the bottom of the page.
 6. **Check the shape again before you publish.** On 2026-10-30 the swap changed the box's shape on both sites (3rd grade to 0.59, 1st grade to 0.78), so phones showed one or two dates. Drag the bottom edge until the box is at least two-thirds as tall as it is wide, then publish.
 7. **Publish.**
 
