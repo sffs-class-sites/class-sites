@@ -59,20 +59,17 @@ jobs:
             echo "ready=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: steps.cfg.outputs.ready == 'true'
         with:
           token: ${{ secrets.SYNC_BOT_TOKEN || github.token }}
 
-      - uses: actions/setup-python@v5
+      - uses: ./.github/actions/setup   # Python 3.12 and requirements.txt, from the pip cache
         if: steps.cfg.outputs.ready == 'true'
-        with:
-          python-version: "3.12"
 
       - name: Fetch and log
         if: steps.cfg.outputs.ready == 'true'
         run: |
-          pip install google-auth requests
           # An index PR from an earlier run may still be open: start from its index so those
           # emails are not logged into the Docs a second time.
           if gh pr view email-log-auto --json state -q .state 2>/dev/null | grep -q OPEN && git fetch origin email-log-auto 2>/dev/null; then

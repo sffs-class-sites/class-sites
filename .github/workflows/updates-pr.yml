@@ -17,7 +17,7 @@ jobs:
     env:
       GH_TOKEN: ${{ secrets.SYNC_BOT_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Open the PR if none is open
         run: |
           if [ -z "$GH_TOKEN" ]; then echo "SYNC_BOT_TOKEN is not set." >> "$GITHUB_STEP_SUMMARY"; exit 0; fi

@@ -11,9 +11,14 @@ on:
 permissions:
   contents: read
 
+# Pull requests run in their own group each (a new push cancels that PR's older run). Pushes to
+# main and the daily run share one group, so Pages deployments stay in order. Before 2026-11-08
+# every run shared one group: a PR's build waited behind main's deploy, and a queued PR build was
+# cancelled whenever another run joined the queue (GitHub keeps one pending run per group), which
+# left that PR without its required check.
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'main' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -28,11 +33,11 @@ jobs:
       shot-phone: ${{ steps.shot-phone.outputs.artifact-url }}
       shot-phone-tall: ${{ steps.shot-phone-tall.outputs.artifact-url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: ./.github/actions/setup   # Python 3.12, requirements.txt, Chromium (all cached)
         with:
-          python-version: "3.12"
+          chromium: "true"
 
       - name: Validate data against source calendar
         run: python3 tests/validate_important_dates.py
@@ -40,9 +45,8 @@ jobs:
       - name: Validate the Updates ledger (shape, dates, no personal data)
         run: python3 tests/validate_updates.py
 
-      - name: Site Map sync fails closed
+      - name: Unit tests (Site Map fails closed, class model, email fetch, pending emails, deploy emails)
         run: |
-          pip install pyyaml
           python3 tests/test_site_map.py
           python3 tests/test_classinfo.py
           python3 tests/test_fetch_school_email.py
@@ -65,44 +69,14 @@ jobs:
         if: github.event_name != 'pull_request' && env.HAS_DRIVE_KEY == 'true'
         env:
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
-        run: |
-          pip install pyyaml google-auth requests
-          python3 build/extract_room_parents.py --sheet
+        run: python3 build/extract_room_parents.py --sheet
 
       # Status page at /status/. Checks the live Sites, not this change, so it never blocks a deploy.
       - name: Monitor live sites
         id: monitor
         if: github.event_name != 'pull_request'
         continue-on-error: true
-        run: |
-          pip install pyyaml
-          python3 tests/monitor.py
-
-      # Chromium is cached between runs, keyed on the Playwright version (2026-11-06: the
-      # download took 17s all day, then 9.5 minutes for three builds in a row during a slow
-      # evening at GitHub's end). On a hit only the OS packages are installed, a few seconds.
-      - name: Install Playwright
-        id: pw
-        run: |
-          pip install playwright
-          # pip's metadata, not playwright.__version__ (the package does not define it: the first
-          # cached build's key came out as "playwright-chromium-Linux-", 2026-11-06)
-          echo "version=$(pip show playwright | sed -n 's/^Version: //p')" >> "$GITHUB_OUTPUT"
-
-      - name: Cache Chromium
-        id: pw-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-chromium-${{ runner.os }}-${{ steps.pw.outputs.version }}
-
-      - name: Install Chromium
-        run: |
-          if [ "${{ steps.pw-cache.outputs.cache-hit }}" = "true" ]; then
-            python -m playwright install-deps chromium
-          else
-            python -m playwright install --with-deps chromium
-          fi
+        run: python3 tests/monitor.py
 
       - name: Render check in a Google Sites-style sandbox (desktop, tablet, phone)
         run: python3 tests/render_check.py
@@ -124,7 +98,7 @@ jobs:
 
       - name: Upload screenshots
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: render-screenshots
           path: _harness/*.png
@@ -168,7 +142,7 @@ jobs:
 
       - name: Upload Pages artifact
         if: github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: _site
 
@@ -182,7 +156,7 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 2   # HEAD is the PR merged into its base; HEAD^1 is the base
 
@@ -253,7 +227,7 @@ jobs:
       BROKEN: ${{ needs.build.outputs.monitor-broken }}
       GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Alert
         run: |
           if [ "$STATUS" = red ]; then result=fail; msg="Broken: $BROKEN"
@@ -276,7 +250,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
   # After a push to main deploys, email Ahin what changed: on the Updates page (new or updated
   # topics, the emails read, links to the full text and to the page; build/notify_changes.py)
@@ -294,7 +268,7 @@ jobs:
       PAGES_URL: ${{ needs.deploy.outputs.page_url }}
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 

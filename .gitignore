@@ -4,8 +4,12 @@ __pycache__/
 _live/
 _editor/
 
-# Claude Code personal settings (permission rules for this machine)
+# Claude Code personal settings (permission rules for this machine) and its worktrees
 .claude/settings.local.json
+.claude/worktrees/
+
+# Local working notes, e.g. the last pasted embed kept for rollback: never committed (repo is public)
+notes/
 
 # written by tests/test_classinfo.py, read by tests/render_check.py
 tests/classinfo_table.json

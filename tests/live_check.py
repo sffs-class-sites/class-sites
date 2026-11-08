@@ -48,6 +48,10 @@ PHONE = ("iphone", 390, 844, True)
 EXTRA_WIDTHS = [("1024", 1024, 768, False), ("1280", 1280, 800, False), ("1920", 1920, 1080, False)]
 SHAPE_TOL = 0.02   # measured h ÷ w may differ from the registry box by this much before it counts as drift
 LAYOUT_WAIT = 40   # × 500ms: Sites lays embeds out late
+SETTLE_MS = 2500   # after scrolling a frame into view, before measuring it: Sites resizes late too
+# The mock Site is static, so --mock waits a fraction of that (its missing slot alone cost 2 × 20s;
+# the whole self-test took 134s in CI on 2026-11-08). The live run keeps the full waits.
+MOCK_LAYOUT_WAIT, MOCK_SETTLE_MS = 8, 500
 
 
 def fetch(url):
@@ -98,8 +102,9 @@ def host(url):
 
 
 class Checker:
-    def __init__(self, reg, pages, chromium=None, gcal_stub=False):
+    def __init__(self, reg, pages, chromium=None, gcal_stub=False, layout_wait=LAYOUT_WAIT, settle_ms=SETTLE_MS):
         self.reg, self.pages, self.chromium, self.gcal_stub = reg, pages, chromium, gcal_stub
+        self.layout_wait, self.settle_ms = layout_wait, settle_ms
         self.failures, self.attention, self.rows, self.extras, self.widths = [], [], [], [], []
         self.versions = deployed_versions(reg, pages)
 
@@ -137,9 +142,9 @@ class Checker:
             self.check(False, f"{tag}: page loads ({e.__class__.__name__})")
             ctx.close()
             return
-        # Wait until every slot's embed is present, or give up after LAYOUT_WAIT.
+        # Wait until every slot's embed is present, or give up after layout_wait × 500ms.
         wanted = [(s["embed"], slot_query(s)) for s in slots]
-        for _ in range(LAYOUT_WAIT):
+        for _ in range(self.layout_wait):
             ours = our_frames(page, self.reg, self.pages)
             if all(any(e == eid and url_query(f.url) == q for e, f in ours) for eid, q in wanted):
                 break
@@ -188,7 +193,7 @@ class Checker:
         frame.wait_for_load_state("load")
         el = frame.frame_element()
         el.evaluate("e => e.scrollIntoView({block: 'center'})")
-        page.wait_for_timeout(2500)
+        page.wait_for_timeout(self.settle_ms)
         box = el.bounding_box()
         fw, fh = round(box["width"]), round(box["height"])
         shape = round(fh / fw, 3) if fw else None
@@ -370,7 +375,7 @@ def mock(chromium):
     http.server.SimpleHTTPRequestHandler.extensions_map[""] = "text/html"
     s1, s2 = serve(ROOT / "_site", 8701), serve(root, 8702)
     try:
-        c = Checker(reg, pages, chromium, gcal_stub=True)
+        c = Checker(reg, pages, chromium, gcal_stub=True, layout_wait=MOCK_LAYOUT_WAIT, settle_ms=MOCK_SETTLE_MS)
         c.run()
     finally:
         s1.shutdown()
