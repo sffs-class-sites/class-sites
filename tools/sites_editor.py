@@ -28,6 +28,7 @@ and nothing was guessed), 2 a write stopped half-way (the message says what to c
 """
 import argparse
 import datetime as dt
+import hashlib
 import json
 import os
 import pathlib
@@ -345,31 +346,30 @@ MEASURE_JS = """
 """
 
 
+PASTED_SEL = 'iframe[aria-label="Custom embed"]'   # a pasted-code ("Embed code") block's iframe; confirmed 2026-11-08
+
 OTHER_FRAMES_JS = """
-([blockSel, matches]) => {
-  // Every visible iframe on the canvas that isn't inside a URL-embed block: a pasted-code ("Embed code") block
-  // or some other Sites block. For each, its src, size, ancestor hooks, and which registry `match` strings occur
-  // in any attribute of the iframe or its ancestors (Sites keeps pasted code in a data-code attribute on the
-  // published page; whether the editor does too is checked here, not assumed).
+([pastedSel, blockSel]) => {
+  // Pasted-code blocks on the canvas. The editor keeps the pasted code in a data-code attribute on the block's
+  // parent div (confirmed 2026-11-08), so the code can be hashed here the way tests/monitor.py hashes the published
+  // page. The editor's own iframes (account bar, canvas chrome) carry no aria-label and are left out.
   const out = [];
-  for (const f of document.querySelectorAll('iframe')) {
+  for (const f of document.querySelectorAll(pastedSel)) {
     if (f.closest(blockSel)) continue;
     const r = f.getBoundingClientRect();
-    if (r.width < 40 || r.height < 40) continue;
     const anc = [];
-    const hits = new Set();
-    let p = f;
+    let code = null, p = f;
     while (p && p !== document.body && anc.length < 10) {
       const attrs = {};
       for (const a of p.attributes) {
+        if (a.name === 'data-code' && code === null) code = a.value;
         if (/^(role|aria-.*|data-.*|guidedhelpid)$/.test(a.name)) attrs[a.name] = a.value.length > 60 ? a.value.slice(0, 57) + '...' : a.value;
-        for (const [eid, m] of matches) if (m && a.value.includes(m)) hits.add(eid);
       }
       anc.push({tag: p.tagName.toLowerCase(), attrs});
       p = p.parentElement;
     }
     out.push({src: f.src || '', x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height),
-              ancestors: anc, attr_hits: [...hits]});
+              ancestors: anc, code});
   }
   return out;
 }
@@ -381,28 +381,54 @@ def code_embeds(reg):
     return [(eid, e.get("match")) for eid, e in reg["embeds"].items() if e.get("match")]
 
 
-def describe_other_blocks(page, reg):
-    """Blocks on the canvas that aren't URL embeds of ours, identified where possible by registry `match` text found
-    in the block's attributes or, failing that, in the frame's own HTML (readable only when Playwright's frame tree
-    has the frame; on a reused tab it may not)."""
+def code_hash(code):
+    """tests/monitor.py's hash of pasted code: sha256 of the code, first 12 hex."""
+    return hashlib.sha256(code.encode()).hexdigest()[:12]
+
+
+def frame_of(page, el):
+    """The Playwright frame whose <iframe> element is `el`, matched by identity (not URL: a pasted block's inner
+    frame is about:blank, and the editor has several frames with no URL at all). None if the tree lacks it."""
+    for f in page.frames:
+        try:
+            fe = f.frame_element()
+        except PlaywrightError:
+            continue
+        if el.evaluate("(a, b) => a === b", fe):
+            return f
+    return None
+
+
+def describe_other_blocks(page, reg, site, slug):
+    """Pasted-code blocks on the canvas (PASTED_SEL), identified by the registry: the block's data-code hash equal to
+    a slot's recorded hash, else a registry embed's `match` text in the code, else in the frame's own text."""
     matches = code_embeds(reg)
-    rows = page.evaluate(OTHER_FRAMES_JS, [BLOCK_SEL, matches])
-    frames = {f.url: f for f in page.frames if f.url}
-    for r in rows:
-        r["frame_hits"], r["frame_text"] = [], None
-        fr = frames.get(r["src"])
+    slot_hashes = {s_["hash"]: s_["embed"] for s_ in slots_on(site, slug) if s_.get("hash")}
+    rows = page.evaluate(OTHER_FRAMES_JS, [PASTED_SEL, BLOCK_SEL])
+    els = page.query_selector_all(PASTED_SEL)
+    els = [e for e in els if not e.evaluate(f"e => !!e.closest('{BLOCK_SEL}')")]
+    for r, el in zip(rows, els):
+        code = r.pop("code")
+        r["hash"] = code_hash(code) if code else None
+        r["code_hits"] = [eid for eid, m in matches if code and m and m in code]
+        r["frame_text"], r["frame_hits"] = None, []
+        fr = frame_of(page, el)
         if fr:
             try:
+                r["frame_text"] = " ".join(fr.evaluate("() => document.body ? document.body.innerText : ''").split())[:80]
                 html_ = fr.content()
                 r["frame_hits"] = [eid for eid, m in matches if m and m in html_]
-                r["frame_text"] = " ".join(fr.evaluate("() => document.body ? document.body.innerText : ''").split())[:80]
             except PlaywrightError:
                 pass
-        hits = list(dict.fromkeys(r["attr_hits"] + r["frame_hits"]))
-        r["embed"] = hits[0] if len(hits) == 1 else None
-        r["ambiguous"] = hits if len(hits) > 1 else []
-        r["how"] = ("attribute" if r["attr_hits"] else "frame content" if r["frame_hits"] else
-                    "unidentified" + ("" if fr else "; frame not in Playwright's tree, so its content couldn't be read"))
+        if r["hash"] in slot_hashes:
+            r["embed"], r["how"] = slot_hashes[r["hash"]], "hash (equals the registry slot's)"
+        else:
+            hits = list(dict.fromkeys(r["code_hits"] + r["frame_hits"]))
+            r["embed"] = hits[0] if len(hits) == 1 else None
+            r["ambiguous"] = hits if len(hits) > 1 else []
+            r["how"] = ("match text in data-code" if r["code_hits"] else "match text in the frame" if r["frame_hits"] else
+                        "unidentified" + ("" if code else "; no data-code on the block") + ("" if fr else "; frame not in Playwright's tree"))
+        r.setdefault("ambiguous", [])
     rows.sort(key=lambda r: (r["y"], r["x"]))
     return rows
 
@@ -696,27 +722,30 @@ def show_rows(reg, site, slug, rows, vp):
 
 
 def show_other_blocks(reg, site, slug, others):
-    """Pasted-code and other non-URL blocks: what they are, and whether the registry knows them (ROADMAP C4)."""
-    slots = [s for s in slots_on(site, slug) if s.get("status") == "code"]
+    """Pasted-code blocks: what they are, their data-code hash against the registry (ROADMAP C4)."""
+    slots = [s_ for s_ in slots_on(site, slug) if s_.get("status") == "code"]
     if not others and not slots:
         return
-    print(f"other blocks on the page (not URL embeds of ours): {len(others)}")
+    print(f"pasted-code blocks on the page ({PASTED_SEL}): {len(others)}")
     for r in others:
-        host = urllib.parse.urlsplit(r["src"]).netloc or (r["src"][:40] if r["src"] else "no src")
-        known = next((s for s in slots if s["embed"] == r["embed"]), None) if r["embed"] else None
+        known = next((s_ for s_ in slots if s_["embed"] == r["embed"]), None) if r["embed"] else None
         what = (f"{r['embed']} (registered on this page, status code)" if known else
                 f"{r['embed']} (in registry, but not as a slot on this page)" if r["embed"] else
                 f"ambiguous: matches {r['ambiguous']}" if r["ambiguous"] else "not in registry.yaml")
         print(f"- {what}; identified by {r['how']}")
-        print(f"    iframe {r['w']} × {r['h']} at x={r['x']} y={r['y']}, src host {host}")
+        hash_note = (f"hash {r['hash']}" + (f" = registry" if known and known.get("hash") == r["hash"] else
+                     f" ≠ registry {known['hash']} (pasted code edited since it was recorded)" if known and known.get("hash") else "")
+                     if r["hash"] else "no data-code to hash")
+        print(f"    iframe {r['w']} × {r['h']} at x={r['x']} y={r['y']}; {hash_note}")
         if r["frame_text"]:
             print(f"    starts: {r['frame_text']!r}")
-        chain = " > ".join(f"{p['tag']}" + "".join(f"[{k}={v!r}]" for k, v in p["attrs"].items() if k in ("role", "aria-label") or k.startswith("data-"))
-                           for p in r["ancestors"][:5])
+        chain = " > ".join(f"{p['tag']}" + "".join(f"[{k}={v!r}]" for k, v in p["attrs"].items()
+                           if k in ("role", "aria-label", "data-tile-id", "data-in-editor") or k == "data-code")
+                           for p in r["ancestors"][:4])
         print(f"    ancestors: {chain}")
-    for s in slots:
-        if not any(r["embed"] == s["embed"] for r in others):
-            print(f"- MISSING: registry lists pasted-code embed {s['embed']} on this page but no block here carries its match text")
+    for s_ in slots:
+        if not any(r["embed"] == s_["embed"] for r in others):
+            print(f"- MISSING: registry lists pasted-code embed {s_['embed']} on this page but no block here carries its hash or match text")
 
 
 def cmd_list(a, reg):
@@ -729,7 +758,7 @@ def cmd_list(a, reg):
         go_to_page(page, a.page)
         rows = describe_embeds(page, reg, slots_on(site, a.page))
         show_rows(reg, site, a.page, rows, viewport(page))
-        show_other_blocks(reg, site, a.page, describe_other_blocks(page, reg))
+        show_other_blocks(reg, site, a.page, describe_other_blocks(page, reg, site, a.page))
         if a.select:
             for r in rows:
                 try:
