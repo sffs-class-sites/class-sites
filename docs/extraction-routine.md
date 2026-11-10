@@ -8,7 +8,22 @@ Repo-wide rules still win: `CLAUDE.md` (personal data, change control) and `docs
 
 ## Steps
 
-0. **Kick the fetch job**, so new school email is logged even when GitHub's scheduler skips the hour (it ran three times in twenty hours on 2026-11-06/07; this routine fired every hour): `gh workflow run email-log.yml --ref main || gh api -X POST repos/sffs-class-sites/class-sites/actions/workflows/email-log.yml/dispatches -f ref=main || true`. Ignore a failure; do not wait for it. Whatever it logs is indexed within about ten minutes (its PR merges itself) and the next hourly run of this routine reads it. Then carry on with the emails already indexed.
+0. **Kick the fetch job, and wait for it.** New school email must be logged even when GitHub's scheduler skips the hour (it ran three times in twenty hours on 2026-11-06/07; this routine fired every hour), and the run this routine starts must have finished and merged its index **before** step 2 looks for pending emails. Without the wait, an email that arrived since the last scheduled fetch is logged a minute after this routine has already said "No pending emails" and sits for an hour until the next run (seen 2026-11-10: "[SFFS] Family Math Mornings" arrived 10:05, GitHub skipped the 10:23 fetch, the 10:50 routine kicked the fetch and read the old index in the same breath). With new mail the fetch run takes about 40 seconds and its `email-log-auto` PR merges about four minutes later; with none, the run finishes in under a minute and opens no PR. Give up after eight minutes and carry on with whatever is indexed: a stuck fetch is the fetch job's problem, not this routine's, and the next run tries again.
+   ```
+   before=$(gh run list --workflow email-log.yml --limit 1 --json databaseId --jq '.[0].databaseId' 2>/dev/null)
+   if gh workflow run email-log.yml --ref main || gh api -X POST repos/sffs-class-sites/class-sites/actions/workflows/email-log.yml/dispatches -f ref=main; then
+     for i in $(seq 1 24); do   # 24 × 20 s = 8 minutes at most
+       sleep 20
+       latest=$(gh run list --workflow email-log.yml --limit 1 --json databaseId,status --jq '.[0] | "\(.databaseId) \(.status)"' 2>/dev/null)
+       open=$(gh pr list --head email-log-auto --state open --json number --jq length 2>/dev/null)
+       case "$latest" in
+         "$before "*) continue ;;                                   # our run has not appeared yet
+         *" completed") [ "${open:-0}" = 0 ] && break ;;            # run done and its PR merged (or there was none)
+       esac
+     done
+   fi
+   ```
+   If the dispatch itself fails (no `gh`, no token), skip the wait: `gh` is also what step 6 needs, so say so in your reply. Report in your final line whether the dispatch was accepted and whether the wait finished or timed out.
 1. **Start from the latest main, or from the open branch.** Never force-push: the cloud session's permission check refuses `git push -f` (seen on the first run, 2026-11-05), and it is not needed. The `automerge` job deletes `updates-auto` when its PR merges, so the branch normally does not exist. If it does exist, an earlier PR is still open (its build failed, or it is mid-merge): build on it so a plain push fast-forwards.
    ```
    git fetch origin main
