@@ -9,7 +9,7 @@
   "last_day": "2027-06-09",
   "end_year": 2027
  },
- "built_through": "2026-11-06",
+ "built_through": "2026-11-10",
  "log": {
   "note": "Full text of every email lives in Google Docs in the bot's Drive, one document per stream per school year. Each email is a dated heading; the pipeline fills doc_url and the per-source anchor once the documents exist.",
   "docs": {
@@ -548,6 +548,12 @@
    "stream": "school",
    "date": "2026-11-06",
    "subject": "[SFFS] School Photos Ready for Purchase"
+  },
+  {
+   "id": "sc-1110",
+   "stream": "school",
+   "date": "2026-11-10",
+   "subject": "[SFFS] Family Math Mornings"
   }
  ],
  "topics": [
@@ -3607,6 +3613,95 @@
      "source": "sp-0925",
      "date": "2026-09-25",
      "note": "From the Specialists Newsletter."
+    }
+   ]
+  },
+  {
+   "id": "family-math-morning-k-2026",
+   "kind": "event",
+   "audience": [
+    "K"
+   ],
+   "title": "Kindergarten Family Math Morning, Thu Dec 10",
+   "summary": "Thursday Dec 10, 8:40–9:20, starting in the Meeting Room and moving to classrooms. Families are invited to do math alongside their child: a short talk on how SFFS teaches math (math talks, games, collaborative problem-solving, learning from mistakes), then hands-on activities. RSVP with the school's form.",
+   "when": {
+    "date": "2026-12-10",
+    "start_time": "08:40",
+    "end_time": "09:20",
+    "location": "Meeting Room, then classrooms"
+   },
+   "action": "RSVP",
+   "links": [
+    {
+     "label": "RSVP: Family Math Morning",
+     "url": "https://docs.google.com/forms/d/e/1FAIpQLScZRbn_jAzaf-Vzh34NkYMSskwwhvnC5me1W0WrodJA_ESaQA/viewform"
+    }
+   ],
+   "updates": [
+    {
+     "source": "sc-1110",
+     "date": "2026-11-10",
+     "note": "Announced, with RSVP form."
+    }
+   ]
+  },
+  {
+   "id": "family-math-morning-1-2-2026",
+   "kind": "event",
+   "audience": [
+    "1",
+    "2"
+   ],
+   "title": "1st and 2nd grade Family Math Morning, Thu Dec 3",
+   "summary": "Thursday Dec 3, 8:40–9:20, starting in the Meeting Room and moving to classrooms. Families are invited to do math alongside their child: a short talk on how SFFS teaches math (math talks, games, collaborative problem-solving, learning from mistakes), then hands-on activities. RSVP with the school's form.",
+   "when": {
+    "date": "2026-12-03",
+    "start_time": "08:40",
+    "end_time": "09:20",
+    "location": "Meeting Room, then classrooms"
+   },
+   "action": "RSVP",
+   "links": [
+    {
+     "label": "RSVP: Family Math Morning",
+     "url": "https://docs.google.com/forms/d/e/1FAIpQLScZRbn_jAzaf-Vzh34NkYMSskwwhvnC5me1W0WrodJA_ESaQA/viewform"
+    }
+   ],
+   "updates": [
+    {
+     "source": "sc-1110",
+     "date": "2026-11-10",
+     "note": "Announced, with RSVP form."
+    }
+   ]
+  },
+  {
+   "id": "family-math-morning-3-4-2026",
+   "kind": "event",
+   "audience": [
+    "3",
+    "4"
+   ],
+   "title": "3rd and 4th grade Family Math Morning, Mon Dec 7",
+   "summary": "Monday Dec 7, 8:45–9:30, in the classrooms. Families are invited to do math alongside their child: a short talk on how SFFS teaches math (math talks, games, collaborative problem-solving, learning from mistakes), then hands-on activities. RSVP with the school's form.",
+   "when": {
+    "date": "2026-12-07",
+    "start_time": "08:45",
+    "end_time": "09:30",
+    "location": "Classrooms"
+   },
+   "action": "RSVP",
+   "links": [
+    {
+     "label": "RSVP: Family Math Morning",
+     "url": "https://docs.google.com/forms/d/e/1FAIpQLScZRbn_jAzaf-Vzh34NkYMSskwwhvnC5me1W0WrodJA_ESaQA/viewform"
+    }
+   ],
+   "updates": [
+    {
+     "source": "sc-1110",
+     "date": "2026-11-10",
+     "note": "Announced, with RSVP form."
     }
    ]
   }
