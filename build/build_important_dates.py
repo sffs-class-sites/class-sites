@@ -198,6 +198,10 @@ body{overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Rob
 .wrap{height:100%;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;border:2px solid #d6dff5;border-radius:12px;padding:16px 16px 16px}
 header{margin-bottom:10px}
 h1{font-size:1.35rem;margin:0 0 4px}
+.title-row{display:flex;align-items:center;gap:8px}
+.title-row h1{flex:1 1 auto}
+.btn.tiny{padding:5px 9px;font-size:.74rem}
+#hdr-toggle[hidden],#hdr-more[hidden]{display:none}
 .subtitle{margin:0 0 10px;color:var(--sub);font-size:.9rem}
 .subtitle .src{color:var(--accent);font-weight:600;text-decoration:none}
 .subtitle .src:hover{text-decoration:underline}
@@ -257,7 +261,9 @@ footer p{margin:4px 0}
   .toolbar .row+.row{margin-top:0;padding-left:6px;border-left:1px solid var(--line)}
   .chip{padding:6px 10px;font-size:.78rem}
   .toggle{margin-left:0;padding-right:4px}
-  h1{font-size:1.15rem}
+  h1{font-size:1.15rem;margin:0}
+  header{margin-bottom:6px}  /* one line: title and the Options button; the rest folds under it (Ahin, 2026-11-11) */
+  #hdr-more:not([hidden]){margin-top:6px}
   table,tbody,tr,td{display:block;width:100%}
   table{margin-top:0}
   /* Month headings repeat the card dates, so collapse them; they stay in place as month-jump targets. */
@@ -287,11 +293,14 @@ footer p{margin:4px 0}
    its badge and details. Measured in tests/render_check.py (THREE_UP_FRAME). */
 @media (max-width:400px){
   .toolbar{padding:5px 12px}
+  h1{font-size:1rem;line-height:1.2}
+  .btn.tiny{padding:4px 8px;font-size:.7rem}
+  header{margin-bottom:4px}
   .chip{padding:6px 9px}
-  tr.ev{grid-template-columns:auto 1fr auto;column-gap:6px;row-gap:3px;padding:4px 6px 4px 7px;margin:2px 0;border-left-width:4px;border-left-color:var(--info);cursor:pointer}
+  tr.ev{grid-template-columns:auto 1fr auto;column-gap:6px;row-gap:3px;padding:3px 6px 3px 7px;margin:2px 0;border-left-width:4px;border-left-color:var(--info);cursor:pointer}
   tr.ev[data-cat="noschool"]{border-left-color:var(--noschool)}tr.ev[data-cat="break"]{border-left-color:var(--break)}
   tr.ev[data-cat="early"]{border-left-color:var(--early)}tr.ev[data-cat="event"]{border-left-color:var(--event)}
-  tr.ev td{font-size:.84rem;line-height:1.2}
+  tr.ev td{font-size:.84rem;line-height:1.15}
   .date-cell{grid-column:1;grid-row:1;align-self:start;padding-top:1px}
   .what-cell{grid-column:2;grid-row:1;align-self:center}
   .action-cell{grid-column:3;grid-row:1;align-self:start}
@@ -300,7 +309,7 @@ footer p{margin:4px 0}
   tr.ev.open .badge-cell{display:block;grid-column:1/4;grid-row:2}
   tr.ev.open .event-details{display:block;margin-top:2px}
   tr.ev.open .event-details::before{content:none}
-  .add{padding:5px 6px;min-height:24px}
+  .add{padding:4px 6px;min-height:24px}
   .add .add-label{display:none}
   .add::after{content:" Add"}
   .date-cell .next-flag{display:block;width:max-content;margin:3px 0 0;font-size:.7rem;padding:2px 5px}
@@ -312,7 +321,8 @@ footer p{margin:4px 0}
 <body>
 <div class="wrap" id="wrap">
   <header>
-    <h1>{{TITLE}}</h1>
+    <div class="title-row"><h1>{{TITLE}}</h1><button type="button" class="btn tiny" id="hdr-toggle" aria-expanded="false" aria-controls="hdr-more" hidden>Options</button></div>
+    <div id="hdr-more">
     <p class="class-line" id="class-line" hidden></p>
     <p class="subtitle"><a class="src" href="{{SOURCE_URL}}" target="_blank" rel="noopener noreferrer">Taken from the school's PDF ↗</a> {{SUBTITLE}}</p>
     <div class="header-actions">
@@ -328,6 +338,7 @@ footer p{margin:4px 0}
         <button type="button" class="chip pref" data-pref="apple" aria-pressed="false">Apple Calendar</button>
       </div>
       <span class="pref-hint">Remembers your choice next time you visit this page.</span>
+    </div>
     </div>
   </header>
   <nav class="toolbar" id="toolbar" aria-label="Filter dates">
@@ -492,18 +503,13 @@ footer p{margin:4px 0}
 
   apply();
 
-  /* Open with the filter bar at the top. Sites lays the frame out late, so retry; stop if the reader acts first. */
-  var done = false, touched = false;
-  ['wheel','touchstart','keydown','mousedown'].forEach(function(ev){ window.addEventListener(ev, function(){ touched = true; }, {passive: true}); });
-  function start(){
-    if (done || touched) return;
-    if (w.clientHeight < 40 || w.scrollHeight <= w.clientHeight + 8) return;
-    var top = bar.getBoundingClientRect().top - w.getBoundingClientRect().top - w.clientTop + w.scrollTop; if (top <= 0) { done = true; return; }
-    w.scrollTop = top; if (w.scrollTop > 0) done = true;
-  }
-  [0,120,350,700,1200,2000,3000].forEach(function(ms){ setTimeout(start, ms); });
-  window.addEventListener('load', start);
-  if (window.ResizeObserver) new ResizeObserver(start).observe(w);
+  /* Opens at the top, title first, at every width (Ahin, 2026-11-11; it used to scroll to the filter bar on
+     load, which hid the header). Phones (<=560px) fold the subhead, PDF link, add-all and calendar choice
+     behind an Options button so the next three dates still show in the standard box. */
+  var hdrToggle = document.getElementById('hdr-toggle'), hdrMore = document.getElementById('hdr-more');
+  function setHdr(open){ hdrMore.hidden = !open; hdrToggle.setAttribute('aria-expanded', open); hdrToggle.textContent = open ? 'Done' : 'Options'; hint(); }
+  hdrToggle.addEventListener('click', function(){ setHdr(hdrMore.hidden); });
+  if (window.innerWidth <= 560) { hdrToggle.hidden = false; setHdr(false); }
 })();
 </script>
 </body>

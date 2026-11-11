@@ -246,6 +246,8 @@ class Checker:
                    f"{stag}: month jump to {target} lands under the filter bar (gap {gap}px{', scrolled to the end' if bottom else ''})")
 
         # Add buttons: Google opens a new tab to Google Calendar; Apple downloads a one-event .ics.
+        # On a phone the calendar chooser is behind the header's Options button.
+        frame.evaluate("() => { const t = document.getElementById('hdr-toggle'); if (t && !t.hidden && document.getElementById('hdr-more').hidden) t.click(); }")
         frame.locator('.chip.pref[data-pref="google"]').click(force=True, timeout=10000)
         a = frame.locator("tr.ev:not([hidden]) .cal-btn").first
         href, tgt = a.get_attribute("href") or "", a.get_attribute("target")
