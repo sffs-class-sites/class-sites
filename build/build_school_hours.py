@@ -97,7 +97,7 @@ a.src:focus-visible{outline:3px solid #f0a055;outline-offset:2px}
 </head>
 <body>
 <div class="wrap" id="wrap">
-  <h1 id="title">School hours &amp; early dismissal</h1>
+  <h1 id="title">School Hours &amp; Early Dismissal</h1>
   <p class="sub" id="sub"></p>
   <div class="lead" id="lead" hidden></div>
   <h2 id="table-h">Regular hours &amp; Wednesday early dismissal, by grade</h2>

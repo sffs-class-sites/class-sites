@@ -199,6 +199,8 @@ body{overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Rob
 header{margin-bottom:10px}
 h1{font-size:1.35rem;margin:0 0 4px}
 .subtitle{margin:0 0 10px;color:var(--sub);font-size:.9rem}
+.subtitle .src{color:var(--accent);font-weight:600;text-decoration:none}
+.subtitle .src:hover{text-decoration:underline}
 .class-line{display:inline-block;margin:0 0 8px;padding:4px 10px;border-radius:999px;background:var(--accent-light);color:var(--accent);font-weight:700;font-size:.82rem}
 .class-line[hidden]{display:none}
 .header-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
@@ -312,7 +314,7 @@ footer p{margin:4px 0}
   <header>
     <h1>{{TITLE}}</h1>
     <p class="class-line" id="class-line" hidden></p>
-    <p class="subtitle">{{SUBTITLE}}</p>
+    <p class="subtitle"><a class="src" href="{{SOURCE_URL}}" target="_blank" rel="noopener noreferrer">Taken from the school's PDF ↗</a> {{SUBTITLE}}</p>
     <div class="header-actions">
       <a class="source-link" href="{{SOURCE_URL}}" target="_blank" rel="noopener noreferrer">{{SOURCE_LABEL}} ↗</a>
       <button type="button" class="btn" id="addall">Add all dates to my calendar</button>
