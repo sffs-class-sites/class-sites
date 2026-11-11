@@ -554,6 +554,12 @@
    "stream": "school",
    "date": "2026-11-10",
    "subject": "[SFFS] Family Math Mornings"
+  },
+  {
+   "id": "sc-1110b",
+   "stream": "school",
+   "date": "2026-11-10",
+   "subject": "[SFFS] RSVP by Nov 16 for GrandFriends Day!"
   }
  ],
  "topics": [
@@ -1213,14 +1219,19 @@
    "kind": "event",
    "audience": "all",
    "title": "GrandFriends Day",
-   "summary": "Grandparents and special friends visit classrooms. Light refreshments in the Gym, program at 10:00. Register your child's GrandFriend. Added later: Nov 20 is an early dismissal day for all students at 11:30; ED/A3 available, bring a lunch (no ChoiceLunch). Parents can volunteer for the day through a form.",
+   "summary": "Grandparents and special friends visit on Fri Nov 20: welcome reception and student performances in the Gym at 10:00, then classroom visits, wrapping up at 11:30. RSVP by Mon Nov 16, up to four GrandFriends per student. Nov 20 is an early dismissal day for all students at 11:30; ED/A3 available, bring a lunch (no ChoiceLunch). Fill in the dismissal form so the school knows how your child gets home. Parents can volunteer for the day through a form.",
    "when": {
     "date": "2026-11-20",
     "start_time": "10:00",
-    "location": "Gym and classrooms"
+    "location": "Gym and classrooms",
+    "end_time": "11:30"
    },
-   "action": "Register your GrandFriend",
+   "action": "RSVP",
    "links": [
+    {
+     "label": "RSVP",
+     "url": "https://www.boostmyschool.com/orgs/sffriendsschool/events/grandfriends"
+    },
     {
      "label": "Register",
      "url": "https://www.boostmyschool.com/orgs/sffriendsschool/events/grandfriends/register/step-1"
@@ -1228,6 +1239,14 @@
     {
      "label": "Parent volunteer form",
      "url": "https://docs.google.com/forms/d/e/1FAIpQLSctFtIVNrzAd_ZYd6HwV8aTjB8dGIihlZmTJMmpWSWVxsqD1g/viewform"
+    },
+    {
+     "label": "Dismissal form",
+     "url": "https://forms.gle/UoaBiZRiBnhizJP66"
+    },
+    {
+     "label": "FAQ",
+     "url": "https://www.boostmyschool.com/orgs/sffriendsschool/events/grandfriends/faq"
     }
    ],
    "updates": [
@@ -1250,8 +1269,18 @@
      "source": "cb-1105",
      "date": "2026-11-05",
      "note": "Parent volunteer form added."
+    },
+    {
+     "source": "sc-1110b",
+     "date": "2026-11-10",
+     "note": "RSVP by Nov 16, up to four GrandFriends per student; dismissal form and FAQ added; ends 11:30."
     }
-   ]
+   ],
+   "deadline": {
+    "date": "2026-11-16",
+    "what": "RSVP for your child's GrandFriends"
+   },
+   "official": true
   },
   {
    "id": "fall-break-2026",
