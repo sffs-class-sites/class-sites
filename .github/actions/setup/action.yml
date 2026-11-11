@@ -40,12 +40,16 @@ runs:
         path: ~/.cache/ms-playwright
         key: playwright-chromium-${{ runner.os }}-${{ steps.pw.outputs.version }}
 
+    # The OS packages come from Ubuntu's mirrors, which the runners could not resolve for over an
+    # hour on 2026-11-11 (four builds in a row, 11 minutes of apt retries each). The runner image
+    # already carries Chrome's libraries, so a failed package install is a warning, capped at three
+    # minutes, and the browser checks prove whether Chromium runs.
     - name: Install Chromium
       if: inputs.chromium == 'true'
       shell: bash
       run: |
-        if [ "${{ steps.pw-cache.outputs.cache-hit }}" = "true" ]; then
-          python -m playwright install-deps chromium
-        else
-          python -m playwright install --with-deps chromium
+        if [ "${{ steps.pw-cache.outputs.cache-hit }}" != "true" ]; then
+          python -m playwright install chromium
         fi
+        timeout 180 python -m playwright install-deps chromium \
+          || echo "::warning::Could not install Chromium's OS packages (apt failed or timed out); using the libraries already on the runner image"
