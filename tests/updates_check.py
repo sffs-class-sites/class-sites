@@ -66,7 +66,7 @@ def main():
             url0 = fr.url
             page.screenshot(path=str(harness / f"updates-{label}.png"))  # first view, before any clicks
 
-            m = fr.evaluate("""() => {
+            MEASURE = """() => {
               const w = document.getElementById('wrap'), bar = document.getElementById('toolbar');
               const wr = w.getBoundingClientRect(), top = Math.max(wr.top, bar.getBoundingClientRect().bottom);
               const hint = document.querySelector('.sffs-hint'), lim = hint.hidden ? wr.bottom : hint.getBoundingClientRect().top;
@@ -87,9 +87,29 @@ def main():
                       subtitle: document.getElementById('subtitle').textContent,
                       showing: document.getElementById('showing').textContent,
                       tabLabels: [...document.querySelectorAll('.chip.tab')].map(b => b.firstChild.textContent.trim()),
-                      overflow: [...document.querySelectorAll('.card, .chip, .lnk')].filter(e => e.getBoundingClientRect().right > innerWidth + 1 && !e.closest('.row')).length }
-            }""")
+                      overflow: [...document.querySelectorAll('.card, .chip, .lnk')].filter(e => e.getBoundingClientRect().right > innerWidth + 1 && !e.closest('.row')).length,
+                      panelOpen: !document.getElementById('grades').hidden, toggleText: document.getElementById('gradesToggle').textContent,
+                      toggleShown: !document.getElementById('gradesToggle').hidden,
+                      chipRows: new Set([...document.querySelectorAll('.chip.g')].map(c => Math.round(c.getBoundingClientRect().top))).size,
+                      labelRows: new Set([document.querySelector('.grades .lbl'), document.querySelector('.chip.g')].map(e => Math.round(e.getBoundingClientRect().top))).size,
+                      prefsShown: getComputedStyle(document.getElementById('prefs')).display !== 'none',
+                      mixOption: !!document.getElementById('mixDates') }
+            }"""
+            m = fr.evaluate(MEASURE)
             check(not errors, f"no JS errors {errors[:1]}")
+            check(not m["mixOption"], "no 'Include Important Dates' option: the official calendar is always mixed in")
+            if fw > 560:
+                check(m["panelOpen"] and not m["toggleShown"], "wide frame: grade filters always open, no Options button")
+            else:
+                # First visit on a phone (nothing chosen yet): the panel starts open so parents see the grade filters,
+                # "Grade Filters:" sits on its own line and the nine grade chips share the next one; Done closes it.
+                check(m["panelOpen"] and m["toggleShown"] and m["toggleText"] == "Done", f"phone first visit: Options panel starts open ({m['toggleText']!r})")
+                check(m["labelRows"] == 2 and m["chipRows"] == 1, f"phone: 'Grade Filters:' on its own line, all nine grades on one row ({m['chipRows']} rows)")
+                check(m["prefsShown"], "phone: the calendar choice shows inside the open panel")
+                fr.locator('#gradesToggle').click()
+                page.wait_for_timeout(200)
+                m = fr.evaluate(MEASURE)
+                check(not m["panelOpen"] and m["toggleText"] == "Options", f"Done collapses the panel behind an 'Options' button ({m['toggleText']!r})")
             check(m["marker"] and m["marker"].startswith("updates@"), f"version marker present ({m['marker']})")
             check(m["hashLinks"] == 0, "no href=\"#...\" links")
             check(m["badLinks"] == 0, "every link opens a new tab with rel=noopener")
@@ -106,14 +126,14 @@ def main():
                 # The standard `card` box gives an iPhone 352 × 235: one header line, the tabs, then the first card's
                 # title, date line and summary readable without scrolling (its action may sit just below the pill).
                 check(m["firstCoreVisible"], f"phone: first card's title, date and summary visible without scrolling (bar bottom {m['barBottom']}, limit {m['lim']}, first card {m['firstCardH']}px)")
-                check(m["headerLines"] == 1, f"phone: title, disclaimer and Grade Filters share one line ({m['headerLines']})")
+                check(m["headerLines"] == 1, f"phone: title, disclaimer and Options share one line ({m['headerLines']})")
             if label == "phone-page":
                 # The `page` box (what the Email Digest page uses): the first card's action button fits too.
                 check(m["firstKeyVisible"], f"phone-page: first card's title, date, summary and action visible without scrolling (bar bottom {m['barBottom']}, limit {m['lim']}, first card {m['firstCardH']}px)")
             if label == "phone-narrow":
                 # 315 × 210: the title and date line of the first card still show; the summary may be below the fold.
                 check(m["firstTitleDateVisible"], f"phone-narrow: first card's title and date visible without scrolling (bar bottom {m['barBottom']}, limit {m['lim']})")
-                check(m["headerLines"] == 1, f"phone-narrow: title, disclaimer and Grade Filters share one line ({m['headerLines']})")
+                check(m["headerLines"] == 1, f"phone-narrow: title, disclaimer and Options share one line ({m['headerLines']})")
             if label == "phone-tall":
                 check(m["fullyVisible"] >= 1, f"phone-tall: at least one whole card visible under the tab bar ({m['fullyVisible']}; first card {m['firstCardH']}px)")
 
@@ -147,23 +167,20 @@ def main():
             check(g["secs"] == ["Volunteer Opportunities", "Events", "Notices"], f"Good to know is grouped ({g['secs']})")
             check(g["first"] == "Annual Fund", f"pinned Annual Fund leads the Notices ({g['first']!r})")
 
-            # Important Dates tab: official calendar with a calendar button each; the toggle mixes them into Coming up
+            # Important Dates tab: official calendar with a calendar button each; they are always mixed into Coming up
             fr.locator('.chip.tab[data-tab="dates"]').click()
             page.wait_for_timeout(300)
             dm = fr.evaluate("""() => ({n: document.querySelectorAll('.card').length, badges: document.querySelectorAll('.card .badge.dates').length,
                                       cal: [...document.querySelectorAll('.card .lnk.cal')].map(a => a.textContent), hist: document.querySelectorAll('.card details').length})""")
             check(dm["n"] >= 10 and dm["badges"] == dm["n"] and dm["hist"] == 0, f"Important Dates tab lists the official calendar ({dm['n']} dates)")
             check(dm["cal"] and all(c == "Add to Google Calendar" for c in dm["cal"]), "each official date has a calendar button for the default calendar")
-            before = counts["coming"]
+            fr.locator('.chip.tab[data-tab="coming"]').click()
+            page.wait_for_timeout(120)
+            cm = fr.evaluate("() => ({n: document.querySelectorAll('.card').length, official: document.querySelectorAll('.card .badge.dates').length})")
+            check(0 < cm["official"] < cm["n"], f"Coming up always includes the official calendar alongside the email topics ({cm['official']} of {cm['n']})")
+            fr.locator('.chip.tab[data-tab="dates"]').click()
+            page.wait_for_timeout(120)
             if label == "desktop":
-                fr.locator('#mixDates').check()
-                page.wait_for_timeout(120)
-                fr.locator('.chip.tab[data-tab="coming"]').click()
-                page.wait_for_timeout(120)
-                after = fr.evaluate("() => document.querySelectorAll('.card').length")
-                check(after > before, f"'Include Important Dates' adds official dates to Coming up ({before} -> {after})")
-                fr.locator('#mixDates').uncheck()
-
                 # Calendar preference: one button per card, matching the chosen calendar; shared with Important Dates
                 fr.locator('.chip.pref[data-pref="outlook"]').click()
                 page.wait_for_timeout(120)
@@ -190,6 +207,8 @@ def main():
             fr.wait_for_load_state("load")
             page.wait_for_timeout(400)
             check(fr.evaluate("() => !!document.querySelector('.card.stub')"), "a hidden card stays hidden after a reload")
+            if fw <= 560:
+                check(fr.evaluate("() => document.getElementById('grades').hidden"), "phone: after Done, the next visit starts with the panel collapsed")
             fr.locator('.card.stub .lnk').first.click()
             page.wait_for_timeout(120)
             check(fr.evaluate("() => !document.querySelector('.card.stub') && document.getElementById('hiddenbar').hidden") and
@@ -203,7 +222,7 @@ def main():
             page.wait_for_timeout(120)
             check(fr.evaluate("() => [...document.querySelectorAll('.card')].some(c => c.textContent.includes('3rd grade'))"),
                   "ticking 3rd grade shows 3rd grade items too")
-            check(fr.evaluate("() => getComputedStyle(document.getElementById('prefs')).display !== 'none'"), "calendar choice is reachable with the Grade Filters open")
+            check(fr.evaluate("() => getComputedStyle(document.getElementById('prefs')).display !== 'none'"), "calendar choice is reachable with the Options panel open")
             page.reload()
             fr = next(f for f in page.frames if "shared/updates" in f.url)
             fr.wait_for_load_state("load")
