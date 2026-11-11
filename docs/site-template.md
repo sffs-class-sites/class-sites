@@ -20,8 +20,9 @@ Every shared embed passes CI at the `card` phone size (352 × 235 and 315 × 210
 | Page | Embed | Box | URL |
 |---|---|---|---|
 | Home | Important Dates | `card` | `https://sffs-class-sites.github.io/class-sites/shared/important-dates/` (gets `?class=YYYY` when per-class dates exist, ROADMAP D3) |
-| Home | Room parents | `card` | `https://sffs-class-sites.github.io/class-sites/shared/room-parents/?class=YYYY` |
-| Home | School hours | `card` | `https://sffs-class-sites.github.io/class-sites/shared/school-hours/?class=YYYY` (built 2026-11-08; not yet placed on a live site, the pasted copies are still there) |
+| Home | School hours | `card` | `https://sffs-class-sites.github.io/class-sites/shared/school-hours/?class=YYYY` (live on both sites since 2026-11-08) |
+
+Not core, and not on any site since 2026-11-11: the Room parents embed (`shared/room-parents/`), dormant because no personal data goes on a public Site (CLAUDE.md §3); contact lists live in each grade's Class Sheet, linked by hand where the room parents want it.
 
 Not core, per site as needed: a team or club season is `https://sffs-class-sites.github.io/class-sites/shared/team-schedule/?team=<id>` at `card` on a page of the site's choosing (the 1st-grade Basketball page today), where `<id>` is a data file in `shared/team-schedule/teams/`.
 | Email Digest | Updates | `page` | `https://sffs-class-sites.github.io/class-sites/shared/updates/?class=YYYY` |

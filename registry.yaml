@@ -30,7 +30,7 @@ embeds:
     match: "@sffs-calendar"
   room-parents:
     type: url
-    path: shared/room-parents/   # placed with ?class=YYYY (pattern A: names come from the master sheet's Live tab at deploy time)
+    path: shared/room-parents/   # placed with ?class=YYYY (pattern A: names come from the master sheet's Live tab at deploy time). DORMANT: removed from the 1st-grade Home 2026-11-11 (no personal data on the sites, CLAUDE.md §3); no site lists it
     owner: platform
   updates:
     type: url
@@ -84,9 +84,4 @@ sites:
         embed: school-hours   # swapped from the pasted copy 2026-11-08; re-placed by Ahin the same afternoon, then tools/sites_editor.py resize (1154 x 677 -> 1154 x 772, one drag) and publish; live check PASS: 1154 x 772 desktop, 352 x 235 iPhone
         query: {class: 2034}
         box: card
-        status: url
-      - page: home
-        embed: room-parents   # under the welcome text; replaced the pasted glitter list 2026-10-31. To be removed (ROADMAP F7, Ahin 2026-11-11: no personal data on the sites; a hand-typed Class Sheet link takes its place); still live until then
-        query: {class: 2034}
-        box: card             # at card since 2026-11-02: tools/sites_editor.py resize took it from h/w 0.586 to 0.669, Ahin published; live 1154 x 772 desktop, 352 x 235 iPhone (live check 2026-11-03, no drift)
         status: url
