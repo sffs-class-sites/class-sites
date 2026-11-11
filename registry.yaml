@@ -86,7 +86,7 @@ sites:
         box: card
         status: url
       - page: home
-        embed: room-parents   # under the welcome text; replaced the pasted glitter list 2026-10-31
+        embed: room-parents   # under the welcome text; replaced the pasted glitter list 2026-10-31. To be replaced by class-links (ROADMAP F7, Ahin 2026-11-11: no personal data on the sites); still live until then
         query: {class: 2034}
         box: card             # at card since 2026-11-02: tools/sites_editor.py resize took it from h/w 0.586 to 0.669, Ahin published; live 1154 x 772 desktop, 352 x 235 iPhone (live check 2026-11-03, no drift)
         status: url

@@ -15,6 +15,7 @@ Written 2026-10-30 from the committed repo (`main`), the project files, and the 
 **Open right now (2026-10-30, after section A)**
 - Section A housekeeping is done; section B (credentials) is done. Next is **C1** (phone layout for Important Dates) and **C2** (room parents go live), which needs the school's OK first.
 - ~~The scratch Site still exists; it goes when the live check points at a real site (A5 / C3).~~ Deleted 2026-11-08.
+- **2026-11-11:** the 1st-grade site is being reworked as the template for K–8. First change: personal data off the sites (F7), then the per-grade rollout instructions (F8).
 
 ---
 
@@ -124,6 +125,10 @@ Build in this order, each step useful on its own:
 **F4. Alerts that reach someone other than Ahin.** Today red monitor and failed live checks open an issue assigned to `Ahin-SFFS`; failed deploys and pending approvals alert nobody. Define who hears what, through what channel (email is simplest), per role.
 
 **F5. Roles and access written down**: who holds the org, who holds the bot identity, who is Sites owner per site, what rotates yearly, and what happens at hand-off. `SFQuakerBot` was demoted to org Member with write on 2026-10-31 (§9 item 11, done).
+
+**F7. Personal data off the public sites (Ahin, 2026-11-11).** Decided: school approval or not, no names or contact details on a Site. Done the same day: the restricted **admin sheet** and folder in `sfquakerbot@gmail.com`'s Drive (CLAUDE.md §3; Classes tab with one row per class 2027–2035, Setup inventory of everything on non-school accounts, Log), shared with Ahin, the Sheets connector's account and the service account. Left, in order: (1) Ahin fills the 1st- and 3rd-grade rows (Class Sheet URL and the tabs to show, WhatsApp invite, room-parent contacts); (2) build `shared/class-links/` — pattern A like room parents: a deploy-time extract of the Classes tab's public columns (Class Sheet tab names and links only, never the WhatsApp or contact columns) that the embed reads with `?class=YYYY`, CI check at `card` on a phone, registry entry; (3) place it on the 1st-grade Home in the Room Parents slot (remove that embed; Ahin or the editor driver), then take the plain-text room-parent names off the 3rd-grade site; (4) update `docs/site-template.md`'s core slots (Room parents → Class links) and `registry.yaml`. The room-parents pipeline stays dormant for pattern B.
+
+**F8. Rollout instructions for the other grades.** One page per grade's room parents, written once F7's embed exists: what we need from them (Class Sheet link and which tabs, WhatsApp invite link, room-parent contacts, who edits their Site), the formatting their shared tabs must follow, and what we do with it (admin sheet row, registry entry, embeds placed from the template, F1). Collected answers go in the admin sheet, never in this repo.
 
 **F6. Content standards**: accessibility checks in CI; Handbook accuracy with citations; search-engine indexing turned off on any site showing personal data.
 
