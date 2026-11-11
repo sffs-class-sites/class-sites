@@ -29,12 +29,14 @@ SANDBOX = ("allow-scripts allow-popups allow-forms allow-same-origin allow-popup
 FRAMES = [("desktop", 1154, 1154), ("tablet", 700, 672), ("phone", 315, 210), ("phone-tall", 315, 560)]
 TODAY = "2026-09-16"
 
-# Phone: the next three dates must be fully visible on first load, below the sticky filter bar and
-# above the scroll pill, on every day of the year (the upcoming set changes as dates pass).
-# 315 x 210 (h / w = 0.667) is the shape the embed is designed for: an editor box of about 935 x 625,
-# which publishes at 1154 x 770 and 352 x 235 on an iPhone 13. Below 400px the embed switches to one
-# line per date (the compact layout); this frame is the floor that layout must keep clearing.
-THREE_UP_FRAME = (315, 210)
+# Phone: the embed opens at the top with its title line, and the next three dates must be fully visible
+# below the sticky filter bar and above the scroll pill, on every day of the year (the upcoming set
+# changes as dates pass), at the standard `card` box as an iPhone 13 shows it (352 x 235, h / w 0.667;
+# an editor box of about 935 x 625, 1154 x 770 on a desktop). On the narrowest phones (315 x 210) the
+# title line costs one date on the busiest days, so that frame must show at least two. Below 400px the
+# embed switches to one line per date (the compact layout).
+THREE_UP_FRAME = (352, 235)   # the standard box on an iPhone 13; newer phones are wider
+NARROW_FRAME = (315, 210)     # the narrowest phones: the title line costs one date on the busiest days, so at least two
 PHONE_MAX = 400  # the compact layout's breakpoint, in the embed's CSS
 UPCOMING_JS = """() => {
   const w = document.getElementById('wrap'), bar = document.getElementById('toolbar');
@@ -94,7 +96,7 @@ def main():
             frame = page.frame_locator("#f")
             fr = next(f for f in page.frames if "important-dates" in f.url)
             fr.wait_for_load_state("load")
-            page.wait_for_timeout(3300)  # let the on-load scroll retries finish
+            page.wait_for_timeout(800)
             url0 = fr.url
 
             m = fr.evaluate("""() => {
@@ -108,7 +110,11 @@ def main():
                       visibleRows: [...document.querySelectorAll('tr.ev')].filter(r => !r.hidden).length,
                       totalRows: document.querySelectorAll('tr.ev').length,
                       pastVisible: [...document.querySelectorAll('tr.ev')].filter(r => !r.hidden && (r.dataset.dateEnd||r.dataset.date) < '2026-09-16').length,
-                      overflowCells: [...document.querySelectorAll('td, .chip, .btn, .add')].filter(e => e.getBoundingClientRect().right > innerWidth + 1 && !e.closest('.row')).length }
+                      overflowCells: [...document.querySelectorAll('td, .chip, .btn, .add')].filter(e => e.getBoundingClientRect().right > innerWidth + 1 && !e.closest('.row')).length,
+                      titleTop: Math.round(document.querySelector('h1').getBoundingClientRect().top - w.getBoundingClientRect().top),
+                      hdrToggle: document.getElementById('hdr-toggle').hidden ? null : document.getElementById('hdr-toggle').textContent,
+                      hdrMoreHidden: document.getElementById('hdr-more').hidden,
+                      titleOneLine: Math.abs(document.getElementById('hdr-toggle').getBoundingClientRect().top - document.querySelector('h1').getBoundingClientRect().top) < 8 }
             }""")
             check(not errors, f"no JS errors {errors[:1]}")
             check(m["marker"] and m["marker"].startswith("important-dates@"), f"version marker present ({m['marker']})")
@@ -119,7 +125,11 @@ def main():
             check(m["overflowCells"] == 0, "no cell or button pokes past the right edge")
             check(m["docSH"] <= m["docCH"], "page itself never scrolls (one scroll region)")
             check(m["pastVisible"] == 0 and m["visibleRows"] < m["totalRows"], f"past dates hidden ({m['visibleRows']}/{m['totalRows']} shown)")
-            check(m["scrollTop"] > 0 or m["wrapSH"] <= m["wrapCH"] + 8, f"opens scrolled to the filter bar (scrollTop {m['scrollTop']})")
+            check(m["scrollTop"] == 0 and 0 <= m["titleTop"] < 40, f"opens at the top with the title first (scrollTop {m['scrollTop']}, title at {m['titleTop']}px)")
+            if fw <= 560:
+                check(m["hdrToggle"] == "Options" and m["hdrMoreHidden"] and m["titleOneLine"], f"phone: title and an Options button on one line, the rest of the header folded ({m['hdrToggle']!r})")
+            else:
+                check(m["hdrToggle"] is None and not m["hdrMoreHidden"], "wide frame: full header, no Options button")
 
             # Category filter stays in place
             popups = []
@@ -198,7 +208,11 @@ def main():
             frame.locator("#showpast").check()  # back to the state the next checks expect
             page.wait_for_timeout(150)
 
-            # Calendar preference: Google (default) -> link in new tab
+            # Calendar preference: Google (default) -> link in new tab. On a phone the chooser is behind Options.
+            if fw <= 560:
+                frame.locator("#hdr-toggle").click()
+                page.wait_for_timeout(150)
+                check(fr.evaluate("() => !document.getElementById('hdr-more').hidden && document.getElementById('hdr-toggle').textContent === 'Done'"), "phone: Options opens the subhead, PDF link, add-all and calendar chooser")
             n_btn = fr.evaluate("() => [...document.querySelectorAll('tr.ev')].filter(r => r.querySelectorAll('.cal-btn').length === 1).length")
             check(n_btn == m["totalRows"], f"exactly one add button per date ({n_btn})")
             with ctx.expect_page(timeout=5000) as newp:
@@ -261,24 +275,24 @@ def main():
         check(page.evaluate("() => document.getElementById('class-line').textContent") == "3rd grade · Class of 2034 (preview)", "?grade=3 previews another grade")
         ctx.close()
 
-        fw, fh = THREE_UP_FRAME
-        print(f"[phone {fw}x{fh}: three upcoming dates without scrolling, every day of the year]")
-        short = []
-        ctx = browser.new_context(viewport={"width": 390, "height": fh + 40})
-        for day in upcoming_days():
-            (harness_dir / "index.html").write_text(
-                f'<!doctype html><body style="margin:0"><iframe id="f" sandbox="{SANDBOX}" '
-                f'src="http://127.0.0.1:8701/shared/important-dates/?today={day}" style="border:0;width:{fw}px;height:{fh}px"></iframe></body>')
-            page = ctx.new_page()
-            page.goto("http://127.0.0.1:8702/index.html")
-            page.wait_for_timeout(1300)  # on-load scroll to the filter bar
-            fr = next(f for f in page.frames if "important-dates" in f.url)
-            n = fr.evaluate(UPCOMING_JS)
-            if n < 3:
-                short.append(f"{day}: {n}")
-            page.close()
-        ctx.close()
-        check(not short, f"3 upcoming dates fully visible on load ({len(upcoming_days())} days checked; short: {short[:5]})")
+        for (fw, fh), need in ((THREE_UP_FRAME, 3), (NARROW_FRAME, 2)):
+            print(f"[phone {fw}x{fh}: {need} upcoming dates without scrolling, every day of the year]")
+            short = []
+            ctx = browser.new_context(viewport={"width": 390, "height": fh + 40})
+            for day in upcoming_days():
+                (harness_dir / "index.html").write_text(
+                    f'<!doctype html><body style="margin:0"><iframe id="f" sandbox="{SANDBOX}" '
+                    f'src="http://127.0.0.1:8701/shared/important-dates/?today={day}" style="border:0;width:{fw}px;height:{fh}px"></iframe></body>')
+                page = ctx.new_page()
+                page.goto("http://127.0.0.1:8702/index.html")
+                page.wait_for_timeout(600)
+                fr = next(f for f in page.frames if "important-dates" in f.url)
+                n = fr.evaluate(UPCOMING_JS)
+                if n < need:
+                    short.append(f"{day}: {n}")
+                page.close()
+            ctx.close()
+            check(not short, f"{need} upcoming dates fully visible on load at {fw}x{fh} ({len(upcoming_days())} days checked; short: {short[:5]})")
         print("[translation notice]")
         from lang_check import check_lang
         check_lang(browser, "http://127.0.0.1:8701/shared/important-dates/?class=2034&today=2026-10-31", check)
