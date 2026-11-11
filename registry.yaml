@@ -73,12 +73,17 @@ sites:
       - page: resources/basketball
         embed: team-schedule  # Super Friends winter 2027 basketball; Ahin swapped the pasted copy (pasted 2026-10-29) for the URL embed 2026-11-08
         query: {team: hoops-2034-2027-winter}
-        box: card             # live box was placed at the old shape (1154 x 677, h/w 0.587, measured 2026-11-08): the daily check lists the drift until tools/sites_editor.py resize brings it to card
+        box: card             # at card since 2026-11-11 (live check: 1154 x 772, h/w 0.669; it was placed at 0.587 on 2026-11-08)
         status: url           # swapped 2026-11-08
       - page: email-digest
         embed: updates
         query: {class: 2034}
         box: page             # the only thing on its page; 352 x 329 on an iPhone shows the first card's title/date/summary/action (placed by Ahin, measured 2026-11-02)
+        status: url
+      - page: home
+        embed: updates        # Ahin moved Updates onto Home 2026-11-11 (the Email Digest copy is still published; its fate is Ahin's call)
+        query: {class: 2034}
+        box: card
         status: url
       - page: home
         embed: school-hours   # swapped from the pasted copy 2026-11-08; re-placed by Ahin the same afternoon, then tools/sites_editor.py resize (1154 x 677 -> 1154 x 772, one drag) and publish; live check PASS: 1154 x 772 desktop, 352 x 235 iPhone
