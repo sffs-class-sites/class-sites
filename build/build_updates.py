@@ -130,8 +130,6 @@ h1{font-size:1.35rem;margin:0 0 2px}
 .prefs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.8rem;color:var(--sub);margin-top:6px}
 .prefs .lbl{margin-right:2px}
 .chip.pref{padding:6px 9px;font-size:.76rem}
-.opt{display:inline-flex;align-items:center;gap:5px;font-size:.8rem;color:var(--sub);margin-left:6px;cursor:pointer}
-.opt input{margin:0}
 .card{position:relative}
 .hide{position:absolute;top:8px;right:8px;font-family:inherit;font-size:.72rem;font-weight:600;color:var(--sub);background:transparent;border:1px solid transparent;border-radius:999px;padding:4px 7px;cursor:pointer}
 .hide:hover{background:var(--panel);border-color:var(--line);color:var(--ink)}
@@ -196,8 +194,9 @@ footer p{margin:4px 0}
   .subtitle{display:none}
   .showing{font-size:.76rem}
   .showing .short{display:inline}
-  .prefs{display:none}  /* on a phone the calendar choice lives inside the Grade Filters panel */
+  .prefs{display:none}  /* on a phone the calendar choice lives inside the Options panel */
   .grades:not([hidden]) ~ .prefs{display:flex}
+  .grades .lbl{flex-basis:100%}  /* the label on its own line, so the nine grade chips share the next one */
   header{margin-bottom:3px}
   .intro{display:none}  /* the tab name says it; the phone needs the room */
   .chip{padding:6px 10px;font-size:.78rem}
@@ -216,7 +215,7 @@ footer p{margin:4px 0}
   .sffs-hint{bottom:6px;padding:5px 11px;font-size:11px}
 }
 /* Sites gives a phone 352px and the standard box (h ÷ w 0.67) 235px of height: one header line, then the tabs.
-   The Displaying line is hidden (the ticked chips in Grade Filters say the same); "Not sanctioned" stays beside the title. */
+   The Displaying line is hidden (the ticked chips under Options say the same); "Not sanctioned" stays beside the title. */
 @media (max-width:400px){
   header{display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;margin-bottom:2px}
   h1{font-size:.98rem;line-height:1.2}
@@ -229,12 +228,14 @@ footer p{margin:4px 0}
   .chip.tab{padding:5px 9px;font-size:.76rem}
   .card{padding:7px 9px;margin:4px 0}
   .sum{-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
+  .badge.due{white-space:normal;line-height:1.25}  /* a long "Due …: what" pill wraps instead of poking past the edge (San Francisco is wider than CI's fonts) */
 }
 @media (max-width:340px){  /* the narrowest phones: keep the title, the disclaimer and the toggle on one line */
   header{gap:2px 4px}
   h1{font-size:.85rem}
   .showing .short{font-size:.66rem}
   .showing #gradesToggle{padding:4px 6px;font-size:.66rem}
+  .chip.g{padding:6px 7px}  /* nine grade chips still fit one row at 315px */
 }
 @media print{html,body{height:auto}body{overflow:visible}.wrap{height:auto;overflow:visible;border:0}.toolbar,.sffs-fade,.sffs-hint{display:none}}
 </style>
@@ -244,13 +245,12 @@ footer p{margin:4px 0}
   <header>
     <h1>{{TITLE}}</h1>
     <p class="subtitle" id="subtitle"><strong>NOT SANCTIONED.</strong> {{SUBTITLE_REST}} <span id="supported"></span></p>
-    <div class="showing"><span id="showing"></span><span class="short">&nbsp;· Not sanctioned</span> <button type="button" class="chip tiny" id="gradesToggle" aria-expanded="false" aria-controls="grades">Grade Filters</button></div>
+    <div class="showing"><span id="showing"></span><span class="short">&nbsp;· Not sanctioned</span> <button type="button" class="chip tiny" id="gradesToggle" aria-expanded="false" aria-controls="grades">Options</button></div>
     <div class="grades" id="grades" role="group" aria-label="Grade Filters" hidden><span class="lbl">Grade Filters:</span></div>
     <div class="prefs" id="prefs" role="group" aria-label="Your calendar"><span class="lbl">Your calendar:</span>
       <button type="button" class="chip pref" data-pref="google" aria-pressed="false">Google</button>
       <button type="button" class="chip pref" data-pref="outlook" aria-pressed="false">Outlook</button>
       <button type="button" class="chip pref" data-pref="apple" aria-pressed="false">Apple</button>
-      <label class="opt" id="mixOpt" hidden><input type="checkbox" id="mixDates"> Include Important Dates in This week and Coming up</label>
     </div>
   </header>
   <nav class="toolbar" id="toolbar" aria-label="Sections">
@@ -277,7 +277,7 @@ footer p{margin:4px 0}
   var LOWER = ['K','1','2','3','4'], MIDDLE = ['5','6','7','8'];
   var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  var KEY = 'sffsUpdatesGrades', HKEY = 'sffsUpdatesHidden', PKEY = 'sffsCalendarPref', MKEY = 'sffsUpdatesMixDates';
+  var KEY = 'sffsUpdatesGrades', HKEY = 'sffsUpdatesHidden', PKEY = 'sffsCalendarPref';
   var CAL_LABEL = {google: 'Google Calendar', outlook: 'Outlook', apple: 'Apple Calendar'};
   function safeGet(k){ try { return localStorage.getItem(k); } catch(e) { return null; } }
   function safeSet(k, v){ try { localStorage.setItem(k, v); } catch(e) {} }
@@ -305,7 +305,6 @@ footer p{margin:4px 0}
   function isHidden(t){ return hidden.indexOf(t.id) >= 0; }
   function setHidden(id, on){ var i = hidden.indexOf(id); if (on && i < 0) hidden.push(id); if (!on && i >= 0) hidden.splice(i, 1); safeSet(HKEY, hidden.join(',')); }
   var pref = (function(){ var p = safeGet(PKEY); return CAL_LABEL[p] ? p : 'google'; })();
-  var mixDates = safeGet(MKEY) === '1';
   var OFFICIAL = [], officialState = 'loading';  // Important Dates, fetched at view time from the calendar embed's data
   function audienceLabel(a){
     if (a === 'all') return 'Schoolwide'; if (a === 'lower') return 'Lower School (K–4)'; if (a === 'middle') return 'Middle School (5–8)';
@@ -451,7 +450,7 @@ footer p{margin:4px 0}
   function pool(id){  // the ledger, plus the official calendar where it belongs
     var ledger = DATA.topics; id = id || tab;
     if (id === 'dates') return ledger.concat(OFFICIAL);
-    if (mixDates && (id === 'week' || id === 'coming')) {
+    if (id === 'week' || id === 'coming') {  // the official calendar always shows here (Ahin, 2026-11-11)
       var onDays = {}; ledger.forEach(function(t){ if (t.official && t.when && t.when.date) onDays[t.when.date] = true; });
       return ledger.concat(OFFICIAL.filter(function(o){ return !onDays[o.when.date]; }));
     }
@@ -501,10 +500,13 @@ footer p{margin:4px 0}
   });
 
   var toggle = document.getElementById('gradesToggle');
-  function setGrades(open){ gradesEl.hidden = !open; toggle.setAttribute('aria-expanded', open); toggle.textContent = open ? 'Done' : 'Grade Filters'; }
-  toggle.addEventListener('click', function(){ setGrades(gradesEl.hidden); hint(); });
-  var wide = window.innerWidth > 560;
-  setGrades(wide); toggle.hidden = wide;  // wide frames: picker always open, no toggle; phones: behind the button
+  function setGrades(open){ gradesEl.hidden = !open; toggle.setAttribute('aria-expanded', open); toggle.textContent = open ? 'Done' : 'Options'; }
+  toggle.addEventListener('click', function(){
+    if (!gradesEl.hidden) safeSet(KEY, selected.join(','));  // Done counts as a choice: next visit starts collapsed
+    setGrades(gradesEl.hidden); hint();
+  });
+  var wide = window.innerWidth > 560, chosen = safeGet(KEY) !== null;
+  setGrades(wide || !chosen); toggle.hidden = wide;  // wide frames: picker always open, no toggle; phones: open on the first visit so parents see the grade filters, then behind Options
 
   var foot = document.getElementById('foot');
   var streams = Object.keys(DATA.streams).map(function(k){ return DATA.streams[k].label; });
@@ -517,8 +519,6 @@ footer p{margin:4px 0}
     document.getElementById('supported').textContent = parts.length ? 'We currently support the ' + parts.join(' and ').replace(/^Class of/, 'Classes of').replace(' and Class of ', ' and ') + '.' : '';
   })();
   [].slice.call(document.querySelectorAll('.chip.pref')).forEach(function(c){ c.addEventListener('click', function(){ pref = c.getAttribute('data-pref'); safeSet(PKEY, pref); render(); }); });
-  var mix = document.getElementById('mixDates'); mix.checked = mixDates;
-  mix.addEventListener('change', function(){ mixDates = mix.checked; safeSet(MKEY, mixDates ? '1' : '0'); render(); });
   document.getElementById('showAll').addEventListener('click', function(){
     var def = TABS.filter(function(x){ return x.id === tab; })[0];
     pool().filter(forMe).filter(def.pick).forEach(function(t){ setHidden(t.id, false); }); render();
@@ -531,7 +531,7 @@ footer p{margin:4px 0}
         return {id: 'official-' + e.uid.replace(/[^a-z0-9]+/gi, '-'), uid: e.uid, officialEvent: true, kind: 'event', audience: 'all', title: e.title, badge: e.badge || '',
                 summary: e.details || '', when: {date: e.date, end: e.end || e.date}, updates: [{date: e.date, note: ''}]};
       });
-      officialState = 'ok'; document.getElementById('mixOpt').hidden = false; render();
+      officialState = 'ok'; render();
     }).catch(function(){ officialState = 'error'; render(); });
   })();
 
