@@ -30,7 +30,7 @@ embeds:
     match: "@sffs-calendar"
   room-parents:
     type: url
-    path: shared/room-parents/   # placed with ?class=YYYY (pattern A: names come from the master sheet's Live tab at deploy time)
+    path: shared/room-parents/   # placed with ?class=YYYY (pattern A: names come from the master sheet's Live tab at deploy time). DORMANT: removed from the 1st-grade Home 2026-11-11 (no personal data on the sites, CLAUDE.md §3); no site lists it
     owner: platform
   updates:
     type: url
@@ -73,7 +73,7 @@ sites:
       - page: resources/basketball
         embed: team-schedule  # Super Friends winter 2027 basketball; Ahin swapped the pasted copy (pasted 2026-10-29) for the URL embed 2026-11-08
         query: {team: hoops-2034-2027-winter}
-        box: card             # live box was placed at the old shape (1154 x 677, h/w 0.587, measured 2026-11-08): the daily check lists the drift until tools/sites_editor.py resize brings it to card
+        box: card             # at card since 2026-11-11 (live check: 1154 x 772, h/w 0.669; it was placed at 0.587 on 2026-11-08)
         status: url           # swapped 2026-11-08
       - page: email-digest
         embed: updates
@@ -81,12 +81,12 @@ sites:
         box: page             # the only thing on its page; 352 x 329 on an iPhone shows the first card's title/date/summary/action (placed by Ahin, measured 2026-11-02)
         status: url
       - page: home
-        embed: school-hours   # swapped from the pasted copy 2026-11-08; re-placed by Ahin the same afternoon, then tools/sites_editor.py resize (1154 x 677 -> 1154 x 772, one drag) and publish; live check PASS: 1154 x 772 desktop, 352 x 235 iPhone
+        embed: updates        # Ahin moved Updates onto Home 2026-11-11 (the Email Digest copy is still published; its fate is Ahin's call)
         query: {class: 2034}
         box: card
         status: url
       - page: home
-        embed: room-parents   # under the welcome text; replaced the pasted glitter list 2026-10-31
+        embed: school-hours   # swapped from the pasted copy 2026-11-08; re-placed by Ahin the same afternoon, then tools/sites_editor.py resize (1154 x 677 -> 1154 x 772, one drag) and publish; live check PASS: 1154 x 772 desktop, 352 x 235 iPhone
         query: {class: 2034}
-        box: card             # at card since 2026-11-02: tools/sites_editor.py resize took it from h/w 0.586 to 0.669, Ahin published; live 1154 x 772 desktop, 352 x 235 iPhone (live check 2026-11-03, no drift)
+        box: card
         status: url
