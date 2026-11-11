@@ -11,7 +11,7 @@ Every site has the same **core**: the shared embeds, placed once per site by URL
 | Name | Editor box | Published desktop | iPhone 13 | Use for |
 |---|---|---|---|---|
 | `card` | 935 × 625 | 1154 × 770 | 352 × 235 | every slot |
-| `page` | 935 × 875 | 1154 × 1080 | 352 × 329 | an embed that is the only thing on its page |
+| `page` | 935 × 875 | 1154 × 1080 | 352 × 329 | an embed that is the only thing on its page (none today) |
 
 Every shared embed passes CI at the `card` phone size (352 × 235 and 315 × 210), so a slot is never tuned to its embed. If a new embed can't work at `card`, fix the embed, not the box.
 
@@ -21,18 +21,18 @@ Every shared embed passes CI at the `card` phone size (352 × 235 and 315 × 210
 |---|---|---|---|
 | Home | Important Dates | `card` | `https://sffs-class-sites.github.io/class-sites/shared/important-dates/` (gets `?class=YYYY` when per-class dates exist, ROADMAP D3) |
 | Home | School hours | `card` | `https://sffs-class-sites.github.io/class-sites/shared/school-hours/?class=YYYY` (live on both sites since 2026-11-08) |
+| Home | Updates | `card` | `https://sffs-class-sites.github.io/class-sites/shared/updates/?class=YYYY` (on the 1st-grade Home since 2026-11-11; it was alone on an Email Digest page at `page` before, and that page is gone) |
 
 Not core, and not on any site since 2026-11-11: the Room parents embed (`shared/room-parents/`), dormant because no personal data goes on a public Site (CLAUDE.md §3); contact lists live in each grade's Class Sheet, linked by hand where the room parents want it.
 
 Not core yet (built 2026-11-11, not placed): **Key School Systems**, `https://sffs-class-sites.github.io/class-sites/shared/key-systems/` at `card` as the **last** block on the Resources page. It is the same on every site (no `?class=`) and draws its own collapsible header to match the page's collapsible groups; closed, the rest of its box is blank, which is why it goes last. `?open=1` places it open instead.
 
 Not core, per site as needed: a team or club season is `https://sffs-class-sites.github.io/class-sites/shared/team-schedule/?team=<id>` at `card` on a page of the site's choosing (the 1st-grade Basketball page today), where `<id>` is a data file in `shared/team-schedule/teams/`.
-| Email Digest | Updates | `page` | `https://sffs-class-sites.github.io/class-sites/shared/updates/?class=YYYY` |
 
 ## 1. Build the template Site once (Ahin, in the editor, ~20 minutes)
 
 1. In Google Sites as `classpages@`, create a site named **Template – Class Page** (never published to families; it only gets copied).
-2. Make the standard pages: **Home**, **Email Digest**. Keep page names exactly these: the registry keys a slot by the page's URL slug (`home`, `email-digest`).
+2. Make the standard page: **Home** (every core embed lives there since 2026-11-11). Keep the name: the registry keys a slot by the page's URL slug (`home`).
 3. On each page, **Insert → Embed → By URL → Whole page** for each core slot, using the URL above with `?class=0000` as a placeholder. Drag the box to full column width, then size it with the script (`tools/sites_editor.py resize --site <template key> --page <page> --embed <id> --box card --apply`, which needs the template in `registry.yaml` and Chrome started as in `docs/sites-editor-driver.md` §1), or drag the bottom handle by eye and check with `list`: the editor shows **no size label**. This is the only time a box is sized at all.
 4. Add a text block under the core on Home titled **Room parents' corner** (or similar) so copies have an obvious place for their own content.
 5. Publish once to yourself (*untested*: a site has to be published at least once for Make a copy to carry the published settings).
@@ -54,7 +54,7 @@ Allowed, anywhere below the core on Home and on pages they create:
 
 Not allowed (each one breaks the core or the check):
 - Resize, move, delete or edit the URL of a core embed. A wrong `?class=` or a missing core embed opens an issue for Ahin the next morning; a resized box is listed as drift.
-- Rename or delete **Home** or **Email Digest** (the registry keys slots by those page slugs).
+- Rename or delete **Home** (the registry keys slots by that page slug).
 - Paste code embeds that show children's names or contact details (CLAUDE.md §3: personal data goes through pattern A, never pasted).
 - Unpublish the site.
 
