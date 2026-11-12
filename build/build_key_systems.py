@@ -11,6 +11,9 @@ a Sites-style collapsible header to sit among the Resources page's collapsible g
 frame cannot change height, so closing it left its box blank; that version is gone. Like
 every shared embed it also works at the `card` box on a phone (CLAUDE.md section 5).
 
+Style (Ahin, 2026-11-12): after a colon the next word starts with a capital letter
+("Tuition and fees: Every SFFS bill ..."). load() refuses a name or description that breaks it.
+
 A <meta name="sffs-embed"> marker carries id@version for the monitor: the data's `updated`
 date plus a hash of the file, so any edit changes the version.
 """
@@ -128,6 +131,7 @@ footer{margin-top:14px;font-size:.8rem;color:var(--sub)}
 """
 
 PERSONAL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+|\b\d{3}[-. ]\d{3}[-. ]\d{4}\b|\b\d{3}-\d{4}\b")
+AFTER_COLON = re.compile(r":\s+[a-z]")   # Ahin, 2026-11-12: after a colon, capitalise the next word
 MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 
 
@@ -160,6 +164,10 @@ def load():
         u = urlparse(s.get("url", ""))
         if u.scheme != "https" or not u.netloc:
             errs.append(f"{tag}: url must be a full https:// link")
+        for k in ("name", "description"):
+            m = AFTER_COLON.search(s.get(k, ""))
+            if m:
+                errs.append(f"{tag}: {k} has a lowercase letter after a colon ({m.group(0)!r}); house style starts the next word with a capital")
         if len(s.get("description", "")) > 160:
             errs.append(f"{tag}: description is over 160 characters; keep it to one line on a desktop")
     if PERSONAL.search(json.dumps({k: v for k, v in data.items() if k != "_note"})):

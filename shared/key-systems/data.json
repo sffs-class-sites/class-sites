@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "_note": "Key School Systems embed (build/build_key_systems.py). One entry per system, shown in this order: name, a one-line description of what families use it for, and the https link families should open. To add, remove, reorder or reword a system, change this file in a PR; the embed updates on every site within ~10 minutes of the merge. No personal data: no names, emails or phone numbers. Bump `updated` when you change it.",
+  "_note": "Key School Systems embed (build/build_key_systems.py). One entry per system, shown in this order: name, a one-line description of what families use it for, and the https link families should open. To add, remove, reorder or reword a system, change this file in a PR; the embed updates on every site within ~10 minutes of the merge. No personal data: No names, emails or phone numbers. Style: After a colon, the next word starts with a capital letter (the build refuses otherwise). Bump `updated` when you change it.",
   "title": "Key School Systems",
-  "updated": "2026-11-11",
+  "updated": "2026-11-12",
   "systems": [
     {
       "name": "Veracross / SFFS Family Portal",
-      "description": "Calendars, class lists and the directory, school forms, attendance, report cards and conference sign-ups.",
+      "description": "Official calendars, class lists, directory, school forms, attendance, etc.",
       "url": "https://portals.veracross.com/sffs/parent"
     },
     {
@@ -16,17 +16,17 @@
     },
     {
       "name": "Vidigami (School Photo Sharing)",
-      "description": "The school's photos: classroom, field trips, athletics and the arts. Every family has an account; log in from your Vidigami invitation email.",
+      "description": "The school's photos: Classroom, field trips, athletics and the arts. Every family has an account; log in from your Vidigami invitation email.",
       "url": "https://vidigami.com/"
     },
     {
       "name": "Magnus Health",
-      "description": "Your child's health record: medical and emergency forms and vaccination records. Required for enrollment.",
+      "description": "Your child's health record: Medical and emergency forms and vaccination records. Required for enrollment.",
       "url": "https://secure.magnushealthportal.com/"
     },
     {
       "name": "Blackbaud Tuition Management",
-      "description": "Tuition and fees: every SFFS bill is paid and managed here.",
+      "description": "Tuition and fees: Every SFFS bill is paid and managed here.",
       "url": "https://parent.blackbaud.school/"
     },
     {
@@ -41,7 +41,7 @@
     },
     {
       "name": "Ravenna (Admissions)",
-      "description": "Admissions: inquiries, school tours and sibling applications.",
+      "description": "Admissions: Inquiries, school tours and sibling applications.",
       "url": "https://ravenna-hub.com/schools/20936"
     }
   ]

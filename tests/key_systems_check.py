@@ -56,6 +56,8 @@ def data_checks():
     check(all(x.get("name") and x.get("description") and x.get("url", "").startswith("https://") for x in s),
           "every system has a name, a description and an https link")
     check(len({x["name"].lower() for x in s}) == len(s), "no system listed twice")
+    check(not [x for x in s for k in ("name", "description") if re.search(r":\s+[a-z]", x[k])],
+          "house style: after a colon the next word starts with a capital letter")
     body = json.dumps({k: v for k, v in d.items() if k != "_note"})
     check(not re.search(r"[\w.+-]+@[\w-]+\.\w|\b\d{3}-\d{4}\b", body), "no email address or phone number in the data (public file)")
     return d
