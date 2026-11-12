@@ -25,7 +25,7 @@ Every shared embed passes CI at the `card` phone size (352 × 235 and 315 × 210
 
 Not core, and not on any site since 2026-11-11: the Room parents embed (`shared/room-parents/`), dormant because no personal data goes on a public Site (CLAUDE.md §3); contact lists live in each grade's Class Sheet, linked by hand where the room parents want it.
 
-Not core yet (built 2026-11-11, not placed): **Key School Systems**, `https://sffs-class-sites.github.io/class-sites/shared/key-systems/` at `card` as the **last** block on the Resources page. It is the same on every site (no `?class=`) and draws its own collapsible header to match the page's collapsible groups; closed, the rest of its box is blank, which is why it goes last. `?open=1` places it open instead.
+Not core yet (built 2026-11-11, not placed): **Key School Systems**, `https://sffs-class-sites.github.io/class-sites/shared/key-systems/`, the same on every site (no `?class=`), alone on its own page at the `page` box (Ahin, 2026-11-12). The page's name sets its slug, which its `registry.yaml` slot must match.
 
 Not core, per site as needed: a team or club season is `https://sffs-class-sites.github.io/class-sites/shared/team-schedule/?team=<id>` at `card` on a page of the site's choosing (the 1st-grade Basketball page today), where `<id>` is a data file in `shared/team-schedule/teams/`.
 

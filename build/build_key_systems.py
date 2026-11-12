@@ -5,13 +5,11 @@ An index of the school's third-party systems (Veracross, Choicelunch, Vidigami, 
 what it is for, and the link. Content is shared/key-systems/data.json, which holds no
 personal data, so it lives in git and is inlined into the page. School-wide: no ?class=.
 
-Made for the Resources page, whose sections are Google Sites collapsible groups. Sites cannot
-put an embed inside a collapsible group, so the embed draws its own: a header row in the same
-type, colour, chevron and rule as Sites' (measured on the published 1st-grade Resources page,
-2026-11-11), closed on load, opening in place. The frame cannot change height (Sites sizes it
-from the editor box, CLAUDE.md §5), so a closed embed leaves the rest of its box blank: place
-it as the last block on the page. ?open=1 starts it open, for a site that would rather show
-the list than the gap.
+A whole-page embed (Ahin, 2026-11-12): it is placed alone on its own Site page at the `page`
+box (registry.yaml), in the same card style as the other shared embeds. The first version drew
+a Sites-style collapsible header to sit among the Resources page's collapsible groups, but a
+frame cannot change height, so closing it left its box blank; that version is gone. Like
+every shared embed it also works at the `card` box on a phone (CLAUDE.md section 5).
 
 A <meta name="sffs-embed"> marker carries id@version for the monitor: the data's `updated`
 date plus a hash of the file, so any edit changes the version.
@@ -39,66 +37,53 @@ PAGE = r"""<!DOCTYPE html>
 <meta name="robots" content="noindex">
 <title>{{TITLE}}</title>
 <style>
-/* Sites' collapsible group on the Resources page: Verdana 24px/36px bold, rgb(0,65,165), 14px 48px 14px 8px padding,
-   1px rgb(94,94,94) rule under the header; body text Verdana 16px rgb(28,28,28). */
-:root{--head:#0041a5;--ink:#1c1c1c;--sub:#5f6368;--rule:#5e5e5e;--line:#e3e5e8;--hover:#f3f6fc;--accent:#3457a6;--accent-light:#eaeffb}
+:root{--ink:#1f2937;--sub:#5b6472;--line:#e2e5ea;--bg:#fff;--hover:#f3f6fc;--accent:#3457a6;--accent-light:#eaeffb}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
-body{overflow:hidden;background:#fff;color:var(--ink);font-family:Verdana,"DejaVu Sans",Geneva,sans-serif}
-.wrap{height:100%;display:flex;flex-direction:column}
-.head{display:flex;align-items:center;width:100%;margin:0;padding:14px 48px 14px 8px;position:relative;
-  background:none;border:0;border-bottom:1px solid var(--rule);border-radius:0;cursor:pointer;text-align:left;font-family:inherit;color:var(--head)}
-.hd{flex:0 0 auto;margin:0;font-size:24px;line-height:36px;font-weight:700}
-.head{font-size:24px;line-height:36px;font-weight:700}
-.head svg{position:absolute;right:14px;top:50%;width:24px;height:24px;margin-top:-12px;fill:#444;transition:transform .15s}
-.head[aria-expanded="true"] svg{transform:rotate(180deg)}
-.head:focus-visible{outline:3px solid #f0a055;outline-offset:-3px}
-.body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding:10px 0 48px}
-.body[hidden]{display:none}
-ul{list-style:none;margin:0;padding:0}
+body{overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.45}
+.wrap{height:100%;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;border:2px solid #d6dff5;border-radius:12px;padding:16px 16px 56px}
+h1{font-size:1.25rem;margin:0 0 2px}
+.sub{color:var(--sub);font-size:.88rem;margin:0 0 12px}
+ul{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
 li{border-bottom:1px solid var(--line)}
 li:last-child{border-bottom:0}
-a.sys{display:block;padding:10px 40px 10px 28px;position:relative;color:var(--ink);text-decoration:none;font-size:16px;line-height:22px}
+a.sys{display:grid;grid-template-columns:minmax(200px,30%) 1fr;column-gap:20px;padding:11px 44px 11px 14px;position:relative;color:var(--ink);text-decoration:none;font-size:.95rem;line-height:1.4}
 a.sys:hover{background:var(--hover)}
 a.sys:focus-visible{outline:3px solid #f0a055;outline-offset:-3px}
-.name{font-weight:700;color:var(--head);text-decoration:underline;text-underline-offset:2px}
-.desc{display:block;margin-top:2px}
-.host{display:block;margin-top:2px;font-size:13px;line-height:18px;color:var(--sub)}
-.go{position:absolute;right:14px;top:12px;width:18px;height:18px;fill:var(--sub)}
-footer{padding:10px 28px 0;font-size:12px;line-height:18px;color:var(--sub)}
-.sffs-fade{position:fixed;left:0;right:0;bottom:0;height:52px;z-index:8;pointer-events:none;background:linear-gradient(to bottom,rgba(255,255,255,0),#fff 72%)}
-.sffs-hint{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);z-index:9;pointer-events:none;white-space:nowrap;font:600 12px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--accent);background:var(--accent-light);border:1px solid #d6dff5;padding:7px 13px;border-radius:999px;box-shadow:0 1px 5px rgba(0,0,0,.13)}
+.name{grid-row:1 / span 2;font-weight:700;color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+.host{font-size:.8rem;color:var(--sub);margin-top:1px}
+.go{position:absolute;right:14px;top:13px;width:18px;height:18px;fill:var(--sub)}
+footer{margin-top:14px;font-size:.8rem;color:var(--sub)}
+.sffs-fade{position:fixed;left:0;right:0;bottom:0;height:58px;z-index:8;pointer-events:none;background:linear-gradient(to bottom,rgba(255,255,255,0),#fff 72%);border-radius:0 0 12px 12px}
+.sffs-hint{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:9;pointer-events:none;white-space:nowrap;font:600 12px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--accent);background:var(--accent-light);border:1px solid #d6dff5;padding:7px 13px;border-radius:999px;box-shadow:0 1px 5px rgba(0,0,0,.13)}
 .sffs-fade[hidden],.sffs-hint[hidden]{display:none}
-/* Wide frames: name on the left, what it is for on the right, so the whole list fits the desktop card. */
-@media (min-width:531px){
-  a.sys{display:grid;grid-template-columns:minmax(220px,30%) 1fr;column-gap:20px;padding:9px 44px 9px 28px}
-  .name{grid-row:1 / span 2}
-  .desc{margin-top:0}
-}
-/* Phones (the card box is 352 x 235 on an iPhone 13): Sites keeps the header at 24px, so do we; the list tightens. */
+/* Narrow frames (a phone): one system per block, name over description, no sideways scrolling. */
 @media (max-width:530px){
-  .body{padding:4px 0 44px}
-  a.sys{padding:8px 34px 8px 8px;font-size:15px;line-height:20px}
-  .desc{font-size:14px;line-height:18px}
+  .wrap{padding:12px 12px 52px}
+  h1{font-size:1.1rem}
+  .sub{font-size:.78rem;margin-bottom:8px}
+  a.sys{display:block;padding:9px 36px 9px 12px;font-size:.95rem}
+  .name,.desc{display:block}
+  .desc{margin-top:2px;font-size:.88rem;line-height:1.35}
   .host{display:none}
-  .go{right:10px;top:10px}
-  footer{padding:8px 8px 0}
+  .go{right:10px;top:11px}
 }
-/* The narrowest phones (315px): one line of header, or the first system drops below the fold. */
+/* The narrowest phones (315 x 210 at the card box): drop the subtitle so the first system shows whole. */
 @media (max-width:359px){
-  .hd,.head{font-size:20px;line-height:30px}
-  .head{padding:12px 40px 12px 8px}
-  .head svg{right:8px}
+  .wrap{padding:10px 10px 52px}
+  h1{margin-bottom:6px}
+  .sub{display:none}
+  a.sys{padding:8px 32px 8px 10px}
+  .desc{font-size:.84rem;line-height:1.3}
 }
 </style>
 </head>
 <body>
 <div class="wrap" id="wrap">
-  <h2 class="hd"><button type="button" class="head" id="head" aria-expanded="false" aria-controls="body"><span id="title">{{TITLE}}</span><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M16.59 8.59 12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg></button></h2>
-  <div class="body" id="body" role="region" aria-labelledby="title" hidden>
-    <ul id="list"></ul>
-    <footer id="foot"></footer>
-  </div>
+  <h1 id="title">{{TITLE}}</h1>
+  <p class="sub" id="sub">What each school system is for, and where to sign in.</p>
+  <ul id="list" aria-labelledby="title"></ul>
+  <footer id="foot"></footer>
 </div>
 <div class="sffs-fade" id="fade" hidden></div>
 <div class="sffs-hint" id="hint" hidden>Scroll for more &#8595;</div>
@@ -113,6 +98,7 @@ footer{padding:10px 28px 0;font-size:12px;line-height:18px;color:var(--sub)}
   /* Text only (textContent), never innerHTML with data. */
   function el(tag, cls, text){ var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 
+  /* Each system is one link that opens a new tab: Sites' sandbox has no top-level navigation (CLAUDE.md section 5). */
   var list = document.getElementById('list');
   DATA.systems.forEach(function(s){
     var li = el('li'), a = el('a', 'sys');
@@ -128,20 +114,13 @@ footer{padding:10px 28px 0;font-size:12px;line-height:18px;color:var(--sub)}
   });
   document.getElementById('foot').textContent = 'Each link opens in a new tab. List updated ' + DATA.updated_label + '.';
 
-  /* The collapsible header. Buttons only: Sites' sandbox has no top-level navigation (CLAUDE.md section 5). */
-  var head = document.getElementById('head'), body = document.getElementById('body');
-  function setOpen(open){ head.setAttribute('aria-expanded', open ? 'true' : 'false'); body.hidden = !open; upd(); }
-  head.addEventListener('click', function(){ setOpen(head.getAttribute('aria-expanded') !== 'true'); });
-
   /* Scroll affordance: Sites lays the iframe out late, so re-check after load and on resize. */
-  var h = document.getElementById('hint'), f = document.getElementById('fade');
-  function upd(){ var more = !body.hidden && body.scrollHeight - body.clientHeight - body.scrollTop > 8; h.hidden = !more; f.hidden = !more; }
-  body.addEventListener('scroll', upd, {passive: true});
+  var w = document.getElementById('wrap'), h = document.getElementById('hint'), f = document.getElementById('fade');
+  function upd(){ var more = w.scrollHeight - w.clientHeight - w.scrollTop > 8; h.hidden = !more; f.hidden = !more; }
+  w.addEventListener('scroll', upd, {passive: true});
   window.addEventListener('resize', upd);
-  if (window.ResizeObserver) new ResizeObserver(upd).observe(body);
-
-  setOpen(/[?&]open=1(&|$)/.test(location.search));
-  setTimeout(upd, 120); setTimeout(upd, 600);
+  if (window.ResizeObserver) new ResizeObserver(upd).observe(w);
+  upd(); setTimeout(upd, 120); setTimeout(upd, 600);
 })();
 </script>
 </body>

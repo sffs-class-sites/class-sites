@@ -47,7 +47,7 @@ embeds:
     owner: platform
   key-systems:
     type: url
-    path: shared/key-systems/    # school-wide, no ?class=; draws its own collapsible header so it sits among the Resources page's collapsible groups. Data: shared/key-systems/data.json. Built 2026-11-11; not placed on any Site yet
+    path: shared/key-systems/    # school-wide, no ?class=; a whole-page embed, alone on its own Site page at box `page` (Ahin, 2026-11-12). Data: shared/key-systems/data.json. Not placed on any Site yet
     owner: platform
 
 sites:
