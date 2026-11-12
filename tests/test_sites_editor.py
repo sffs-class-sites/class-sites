@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Check tools/sites_editor.py against a fake editor, since the real one needs a signed-in Chrome.
 
-Serves a mock Sites editor built to the markup recorded on the real editor on 2026-11-02
-(docs/sites-editor-driver.md §4): a Pages tab and tree, one `div[aria-label="Whole page
+Serves a mock Sites editor built to the markup recorded on the real editor on 2026-11-02 and
+2026-11-12 (docs/sites-editor-driver.md §4): a Pages tab and tree whose entries hold their titles
+only as disabled input[aria-label="Page title"] values (and a canvas heading with the same words
+as a child page's title, the trap the script fell into on 2026-11-12), one `div[aria-label="Whole page
 embed"][data-url]` per URL embed with our real Pages page inside a wrapper iframe, a
 `div[role=gridcell][aria-label="IFRAME"]` that gets aria-selected on a corner click, a
 bottom-centre resize handle that only works while selected and snaps to an 8px grid, and a
@@ -64,9 +66,16 @@ function openPublish() {
 }
 function confirmPublish() {
   document.getElementById('dlg').style.display = 'none';
-  document.getElementById('published').textContent = 'published ' + document.querySelector('[data-url*=room-parents] iframe').style.height;
+  document.getElementById('published').textContent = 'published ' + document.querySelector('[data-url*="shared/updates/"] iframe').style.height;
 }
 """
+
+
+def title_input(title):
+    """A Pages-panel title as the real editor shows it since 2026-11-12: a disabled input, no text of its own.
+    pointer-events:none lets a click on it reach the entry, as a click at its centre did on the real editor."""
+    return (f"<div class='Xb9hP'><input type='text' aria-label='Page title' value='{title}' disabled aria-disabled='true' "
+            f"style='pointer-events:none;border:0;background:none;font:inherit'></div>")
 
 
 def wrapper(url):
@@ -74,13 +83,16 @@ def wrapper(url):
 
 
 def editor_page(page_id):
+    # The slots mirror registry.yaml's class-2034 (2026-11-12). Updates on Home starts at the old 0.587 shape, as
+    # Ahin's Home rearrangement left it on 2026-11-11, so resize has something to do.
     if page_id == "home":
         blocks = [("important-dates", PAGES + "shared/important-dates/", 935, 625),
-                  ("room-parents", PAGES + "shared/room-parents/?class=2034", 935, 549)]
-    elif page_id == "digest":
+                  ("updates", PAGES + "shared/updates/?class=2034", 935, 549),
+                  ("school-hours", PAGES + "shared/school-hours/?class=2034", 935, 625)]
+    elif page_id == "kss":
         # Short, and the last thing on a page with little below it (footer below): resize has to drag in steps,
-        # each by the room the window has, the way the real editor forced it on 2026-11-08.
-        blocks = [("updates", PAGES + "shared/updates/?class=2034", 935, 500)]
+        # each by the room the window has, the way the real editor forced it on 2026-11-08 and 2026-11-12.
+        blocks = [("key-systems", PAGES + "shared/key-systems/", 935, 500)]
     else:
         blocks = []
     pasted = ""
@@ -100,6 +112,9 @@ def editor_page(page_id):
             "<iframe aria-label='Custom embed' src='/pasted?t=calendar-frame' style='display:block;width:935px;height:300px;border:0'></iframe></div></div>"
             "<div role='gridcell' aria-label='IFRAME' style='margin:24px auto;width:935px'><div data-tile-id='t3' data-in-editor='true'>"
             "<iframe aria-label='Custom embed' src='/pasted?t=unknown' style='display:block;width:935px;height:200px;border:0'></iframe></div></div>")
+    if page_id == "resources":
+        # The trap: Resources' own canvas has a heading with a child page's title (a collapsible group linking to it).
+        pasted = "<h2 style='margin:24px'><span>Key School Systems</span></h2>"
     canvas = pasted + "".join(
         f"<div role='gridcell' aria-label='IFRAME' aria-selected='false' aria-grabbed='false' tabindex='-1' style='position:relative;margin:24px auto;width:{w}px'><div class='handle' style='display:none;position:absolute;left:50%;bottom:-7px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:#1a73e8;z-index:2'></div>"
         f"<div><div aria-label='Whole page embed' data-url='{u}'>"
@@ -117,18 +132,18 @@ def editor_page(page_id):
  <div role='button' onclick='confirmPublish()'>Publish</div>
 </div>
 <div style='display:flex'>
- <main style='flex:1'>{canvas}<footer style='height:{160 if page_id == "digest" else 900}px'>footer (the real editor has one too, so the canvas can scroll past the last block)</footer></main>
+ <main style='flex:1'>{canvas}<footer style='height:{160 if page_id == "kss" else 900}px'>footer (the real editor has one too, so the canvas can scroll past the last block)</footer></main>
  <aside style='width:260px'>
   <div role='tablist'><div role='tab' aria-label='Pages'>Pages</div></div>
   <div role='tree'>
-   <div role='treeitem' aria-selected='{str(page_id == "home").lower()}' onclick="if (!location.pathname.includes('/p/home/')) location.href='/d/{SITE_ID}/p/home/edit'"><div>Home</div></div>
-   <div role='treeitem' aria-selected='{str(page_id == "digest").lower()}' onclick="if (!location.pathname.includes('/p/digest/')) location.href='/d/{SITE_ID}/p/digest/edit'"><div>Email Digest</div></div>
-   <div role='treeitem' aria-label='Resources. Child pages available.' aria-expanded='{str(page_id == "basketball").lower()}' aria-selected='{str(page_id == "resources").lower()}'
+   <div role='treeitem' aria-selected='{str(page_id == "home").lower()}' onclick="if (!location.pathname.includes('/p/home/')) location.href='/d/{SITE_ID}/p/home/edit'"><div>{title_input("Home")}</div></div>
+   <div role='treeitem' aria-label='Resources. Child pages available.' aria-expanded='{str(page_id in ("basketball", "kss")).lower()}' aria-selected='{str(page_id == "resources").lower()}'
         onclick="if (event.target.closest('.expander')) return; if (!location.pathname.includes('/p/resources/')) location.href='/d/{SITE_ID}/p/resources/edit'">
-     <div style='display:flex;gap:6px'><span class='expander' role='button' aria-label='Expand child pages' aria-expanded='{str(page_id == "basketball").lower()}'
-        onclick="const k=this.closest('[role=treeitem]').querySelector('.kids'); const on=k.style.display==='none'; k.style.display=on?'block':'none'; this.setAttribute('aria-expanded', on)">&#9656;</span><div>Resources</div></div>
-     <div class='kids' style='display:{"block" if page_id == "basketball" else "none"};padding-left:18px'>
-      <div role='treeitem' aria-label='Basketball.' aria-selected='{str(page_id == "basketball").lower()}' onclick="event.stopPropagation(); if (!location.pathname.includes('/p/basketball/')) location.href='/d/{SITE_ID}/p/basketball/edit'"><div>Basketball</div></div>
+     <div style='display:flex;gap:6px'><span class='expander' role='button' aria-label='Expand child pages' aria-expanded='{str(page_id in ("basketball", "kss")).lower()}'
+        onclick="const k=this.closest('[role=treeitem]').querySelector('.kids'); const on=k.style.display==='none'; k.style.display=on?'block':'none'; this.setAttribute('aria-expanded', on)">&#9656;</span><div>{title_input("Resources")}</div></div>
+     <div class='kids' style='display:{"block" if page_id in ("basketball", "kss") else "none"};padding-left:18px'>
+      <div role='treeitem' aria-selected='{str(page_id == "basketball").lower()}' onclick="event.stopPropagation(); if (!location.pathname.includes('/p/basketball/')) location.href='/d/{SITE_ID}/p/basketball/edit'"><div>{title_input("Basketball")}</div></div>
+      <div role='treeitem' aria-selected='{str(page_id == "kss").lower()}' onclick="event.stopPropagation(); if (!location.pathname.includes('/p/kss/')) location.href='/d/{SITE_ID}/p/kss/edit'"><div>{title_input("Key School Systems")}</div></div>
      </div>
    </div>
   </div>
@@ -211,11 +226,17 @@ def main():
         out = run(["list", "--site", "class-2034", "--page", "home", "--select", "--dump"], 0,
                   "classpages@sffriendsschool.org", "935 × 625 (h/w 0.668)", "935 × 549 (h/w 0.587)", "registry box card",
                   "with this data-url; our page is in Playwright's frame tree", "DOM record written", "pages tree",
-                  "selected room-parents by a corner click: editor marks it selected = True")
-        if "updates" in out.split("signed in as")[1]:
-            problems.append("list home: updates (on the other page) was listed")
-        run(["list", "--site", "class-2034", "--page", "email-digest"], 0,
-            "using the open editor tab", "935 × 500 (h/w 0.535)", "registry box page")
+                  "selected updates by a corner click: editor marks it selected = True")
+        if "key-systems" in out.split("signed in as")[1]:
+            problems.append("list home: key-systems (on another page) was listed")
+        # A child page whose title is also a heading on the parent's canvas: the script must reach it through the
+        # panel (expanding Resources), never by clicking the heading (what happened on the real editor 2026-11-12).
+        out = run(["list", "--site", "class-2034", "--page", "resources/key-school-systems"], 0,
+                  "using the open editor tab", "page 'Resources': clicked its entry in the pages tree",
+                  "page 'Key School Systems': clicked its entry in the pages tree (after clicking the expander 'Expand child pages' on 'Resources')",
+                  "/p/kss/edit", "935 × 500 (h/w 0.535)", "registry box page")
+        if "/p/kss/edit" not in out.split("editor URL")[-1]:
+            problems.append("list resources/key-school-systems: ended somewhere other than the Key School Systems page")
         # A child page: the parent is collapsed, so the script has to expand it, then click the child.
         run(["list", "--site", "class-2034", "--page", "resources/basketball"], 0,
             "page 'Resources': clicked its entry in the pages tree",
@@ -232,14 +253,14 @@ def main():
         run(["list", "--site", "class-2034", "--page", "resources/nope"], 1,
             "no entry titled 'Nope'", "segment 2 of 2", "Resources. Child pages available. [aria-expanded=")
         # resize: dry run reads and plans; --apply drags until the shape is right; a second run has nothing to do.
-        run(["resize", "--site", "class-2034", "--page", "home", "--embed", "room-parents", "--box", "card"], 0,
+        run(["resize", "--site", "class-2034", "--page", "home", "--embed", "updates", "--box", "card"], 0,
             "before: 935 × 549 (h/w 0.587)", "by +76px", "dry run only")
-        run(["resize", "--site", "class-2034", "--page", "home", "--embed", "room-parents", "--box", "card", "--apply"], 0,
+        run(["resize", "--site", "class-2034", "--page", "home", "--embed", "updates", "--box", "card", "--apply"], 0,
             "drag 1:", "after: 935 × 624 (h/w 0.667)", "not published")
-        run(["resize", "--site", "class-2034", "--page", "home", "--embed", "room-parents", "--box", "card", "--apply"], 0,
+        run(["resize", "--site", "class-2034", "--page", "home", "--embed", "updates", "--box", "card", "--apply"], 0,
             "already at the target shape")
-        run(["resize", "--site", "class-2034", "--page", "home", "--embed", "updates", "--box", "card"], 1,
-            "doesn't list updates")
+        run(["resize", "--site", "class-2034", "--page", "home", "--embed", "key-systems", "--box", "card"], 1,
+            "doesn't list key-systems")
         # publish: dry run finds the button; --apply clicks it, confirms in the dialog, and the mock records the new height.
         run(["publish", "--site", "class-2034"], 0, "Publish button found: 'Publish'", "dry run only")
         out = run(["publish", "--site", "class-2034", "--apply"], 0, "buttons ['Cancel', 'Publish']", "published.")
@@ -251,9 +272,9 @@ def main():
             if state != "published 624px":
                 problems.append(f"mock state after publish: {state!r}, expected 'published 624px'")
         # A block at the bottom of its page: one drag can't fit the window, so resize drags by the room it has and repeats.
-        run(["resize", "--site", "class-2034", "--page", "email-digest", "--embed", "updates", "--box", "page"], 0,
+        run(["resize", "--site", "class-2034", "--page", "resources/key-school-systems", "--embed", "key-systems", "--box", "page"], 0,
             "before: 935 × 500 (h/w 0.535)", "by +375px", "dry run only")
-        out = run(["resize", "--site", "class-2034", "--page", "email-digest", "--embed", "updates", "--box", "page", "--apply"], 0,
+        out = run(["resize", "--site", "class-2034", "--page", "resources/key-school-systems", "--embed", "key-systems", "--box", "page", "--apply"], 0,
                   "wanted; the window had room for", "drag 2:", "after: 935 × 872 (h/w 0.933)", "not published")
         if "STOP" in out:
             problems.append("resize at the bottom of a page stopped instead of dragging in steps")

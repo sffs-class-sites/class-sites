@@ -207,7 +207,8 @@ PAGE_ITEM_JS = """
   // The Pages panel keeps each title as the value of a disabled input[aria-label="Page title"] (seen 2026-11-12),
   // which has no innerText; text-matching alone then finds the same words on the canvas (a heading) and clicks
   // into the page being edited. So the panel's own inputs win whenever one matches.
-  for (const el of document.querySelectorAll('input[aria-label="Page title"]')) {
+  const inputs = [...document.querySelectorAll('input[aria-label="Page title"]')];
+  for (const el of inputs) {
     if (norm(el.value) !== want) continue;
     const r = el.getBoundingClientRect();
     if (r.width === 0 || r.height === 0) continue;
@@ -215,6 +216,9 @@ PAGE_ITEM_JS = """
     const q = el.getBoundingClientRect();
     return {text: el.value, tag: 'input', role: 'Page title', in_tree: true, candidates: 1, x: q.x, y: q.y, w: q.width, h: q.height};
   }
+  // A panel built from Page title inputs never falls back to text: a hidden match means its parent is collapsed
+  // (the caller expands it), and no match means no such page. Either way the canvas is never searched.
+  if (inputs.length) return null;
   const out = [];
   for (const el of document.querySelectorAll('[role=treeitem], [role=option], [role=listitem], [role=link], [role=button], li, a, div, span')) {
     const t = (el.innerText || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
