@@ -27,6 +27,8 @@ Not core, and not on any site since 2026-11-11: the Room parents embed (`shared/
 
 Not core yet (live on the 1st-grade site only, `resources/key-school-systems`, since 2026-11-12): **Key School Systems**, `https://sffs-class-sites.github.io/class-sites/shared/key-systems/`, the same on every site (no `?class=`), alone on its own page at the `page` box (Ahin, 2026-11-12). The page's name sets its slug, which its `registry.yaml` slot must match.
 
+Not core yet (live on the 1st-grade site only, `resources/dropoff-and-pickup`, since 2026-11-12): **Drop-off & Pickup**, `https://sffs-class-sites.github.io/class-sites/shared/dropoff-pickup/?class=YYYY`, alone on its own page at the `page` box. **Each time it is placed on a grade's Site, ask the person who made the page for its published URL** and record the page path in that site's `dropoff-pickup` slot in `registry.yaml`: School Hours on that Site's Home then links to it ("Pickup and drop-off details") on the next deploy. No slot, no link.
+
 Not core, per site as needed: a team or club season is `https://sffs-class-sites.github.io/class-sites/shared/team-schedule/?team=<id>` at `card` on a page of the site's choosing (the 1st-grade Basketball page today), where `<id>` is a data file in `shared/team-schedule/teams/`.
 
 ## 1. Build the template Site once (Ahin, in the editor, ~20 minutes)

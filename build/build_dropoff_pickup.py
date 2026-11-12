@@ -3,8 +3,7 @@
 
 How to do morning drop-off and afternoon pickup at 250 Valencia: one toggle (morning /
 afternoon, chosen by the time of day in San Francisco), a simplified street diagram with the
-route drawn on it and a car moving along it, three numbered steps that match the numbered
-pins, and the rest of the school's rules in short cards below.
+route drawn on it and cars moving along it, numbered steps that match the numbered pins, and the rest of the school's rules in short cards below.
 
 Facts and wording: shared/dropoff-pickup/data.json (edited down from the school's "Arrival,
 Dismissal and Carpool Information"; no emails or phone numbers, and the only names are the two
@@ -86,12 +85,15 @@ MAP = r"""
   <g id="m-morning">
     <rect x="59" y="97" width="212" height="16" fill="url(#hatch-no)"/>
     <rect x="59" y="207" width="212" height="16" fill="url(#hatch-no)"/>
-    <rect x="25" y="114" width="32" height="92" fill="url(#hatch-no)"/>
     <rect x="273" y="48" width="18" height="48" fill="url(#hatch-wait)"/>
     <text x="266" y="76" class="t-wait" text-anchor="end">No waiting</text>
     <rect x="268" y="130" width="7" height="60" rx="3" class="island"/>
+    <!-- two ways in: down Valencia, or along Duboce and right onto Valencia (Ahin, 2026-11-12) -->
     <path class="route" d="M282,0 V250"/>
-    <g class="arrow"><path d="M282,116 l-6,-9 h12z"/><path d="M282,236 l-6,-9 h12z"/></g>
+    <path class="route" d="M0,40 H282"/>
+    <g class="arrow"><path d="M222,40 l-9,-6 v12z"/><path d="M282,116 l-6,-9 h12z"/><path d="M282,236 l-6,-9 h12z"/></g>
+    <g class="car"><rect x="-7" y="-4" width="14" height="8" rx="3"/>
+      <animateMotion dur="7s" begin="3.5s" repeatCount="indefinite" rotate="auto" calcMode="linear" path="M-12,40 H282 V262" keyPoints="0;0.802;0.802;1" keyTimes="0;0.5;0.72;1"/></g>
     <g class="car"><rect x="-7" y="-4" width="14" height="8" rx="3"/>
       <animateMotion dur="7s" repeatCount="indefinite" rotate="auto" calcMode="linear" path="M282,-12 V262" keyPoints="0;0.628;0.628;1" keyTimes="0;0.42;0.72;1"/></g>
     <g class="pin"><circle cx="301" cy="30" r="8.5"/><text x="301" y="34">1</text></g>
@@ -110,9 +112,8 @@ MAP = r"""
     <g class="arrow"><path d="M49,150 l-6,9 h12z"/><path d="M175,105 l-9,-6 v12z"/><path d="M282,236 l-6,-9 h12z"/></g>
     <g class="car"><rect x="-7" y="-4" width="14" height="8" rx="3"/>
       <animateMotion dur="10s" repeatCount="indefinite" rotate="auto" calcMode="linear" path="M49,262 V105 H282 V262" keyPoints="0;0.47;0.47;0.814;0.814;1" keyTimes="0;0.27;0.45;0.62;0.86;1"/></g>
-    <g class="pin"><circle cx="34" cy="190" r="8.5"/><text x="34" y="194">1</text></g>
-    <g class="pin"><circle cx="215" cy="105" r="8.5"/><text x="215" y="109">2</text></g>
-    <g class="pin"><circle cx="301" cy="160" r="8.5"/><text x="301" y="164">3</text></g>
+    <g class="pin"><circle cx="215" cy="105" r="8.5"/><text x="215" y="109">1</text></g>
+    <g class="pin"><circle cx="301" cy="160" r="8.5"/><text x="301" y="164">2</text></g>
   </g>
 
   <!-- CIRCLE THE BLOCK (both) -->
@@ -148,7 +149,7 @@ a.full[hidden]{display:none}
 .seg{display:grid;grid-template-columns:1fr 1fr;gap:0;border:2px solid var(--accent);border-radius:12px;overflow:hidden;margin-bottom:12px}
 .seg button{min-height:46px;border:0;background:#fff;color:var(--accent);font-family:inherit;font-weight:700;font-size:1rem;line-height:1.15;cursor:pointer;padding:6px 8px}
 .seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
-.seg button:focus-visible,.loopbtn:focus-visible,a:focus-visible{outline:3px solid #f0a055;outline-offset:-3px}
+.seg button:focus-visible,.looplink:focus-visible,a:focus-visible{outline:3px solid #f0a055;outline-offset:-3px}
 .main{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:22px;align-items:start}
 figure{margin:0}
 #map{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:10px;background:#e8ecf1}
@@ -176,8 +177,6 @@ figure{margin:0}
 .legend .wait i{background:repeating-linear-gradient(45deg,#e0a21b 0 3px,#fff1cf 3px 6px)}
 .legend .loopk i{background:repeating-linear-gradient(90deg,var(--loop) 0 5px,transparent 5px 8px);height:4px;vertical-align:2px}
 .legend [hidden]{display:none}
-.loopbtn{margin-top:10px;width:100%;min-height:46px;border:2px solid var(--loop);border-radius:10px;background:#fff;color:var(--loop);font-family:inherit;font-weight:700;font-size:.95rem;line-height:1.2;cursor:pointer;padding:6px 10px}
-.loopbtn[aria-pressed="true"]{background:#fff3e8}
 .looptext{margin:8px 0 0;font-size:.92rem;border-left:4px solid var(--loop);padding:2px 0 2px 10px}
 .looptext[hidden]{display:none}
 h2{font-size:1.08rem;margin:0 0 8px}
@@ -189,15 +188,21 @@ ol.steps li:first-child{border-top:0}
 .st{font-weight:700;display:block}
 .sd{display:block;color:#374151;font-size:.92rem;margin-top:1px}
 .donts{margin:12px 0 0;padding:10px 12px;border-radius:10px;background:var(--no-light);border:1px solid #f5c6c2}
-.donts h3{margin:0 0 4px;font-size:.85rem;letter-spacing:.04em;text-transform:uppercase;color:var(--no)}
 .donts ul{margin:0;padding:0;list-style:none}
-.donts li{padding:3px 0 3px 22px;position:relative;font-size:.93rem}
-.donts li:before{content:"\2715";position:absolute;left:2px;top:3px;color:var(--no);font-weight:700}
+.donts li{padding:4px 0 4px 28px;position:relative;font-size:.93rem}
+.donts li:before{content:"\2716";position:absolute;left:1px;top:1px;color:var(--no);font-weight:900;font-size:1.2rem;line-height:1.5}
+.donts li.ok:before{content:"\2714";color:var(--go)}
+.looplink{display:block;width:100%;min-height:44px;margin:-2px 0;padding:4px 0;border:0;background:none;text-align:left;font-family:inherit;font-size:inherit;font-weight:700;color:var(--ink);cursor:pointer}
+.looplink span{display:inline-block;margin-left:8px;font-size:.8rem;font-weight:600;color:var(--loop);border:1px solid var(--loop);border-radius:999px;padding:1px 9px;white-space:nowrap}
+.looplink[aria-pressed="true"] span{background:#fff3e8}
 .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}
 .card{border:1px solid var(--line);border-radius:10px;padding:11px 13px}
 .card h3{margin:0 0 5px;font-size:.98rem;color:var(--accent)}
 .card p{margin:0 0 6px;font-size:.92rem}
 .card p:last-child{margin-bottom:0}
+.card ul{margin:0;padding:0 0 0 18px;font-size:.92rem}
+.card li{margin:0 0 5px}
+.card li:last-child{margin-bottom:0}
 .card a{color:var(--accent);font-weight:600}
 .card.times{grid-column:span 1}
 table{border-collapse:collapse;width:100%;font-size:.9rem;margin-top:4px}
@@ -245,14 +250,13 @@ footer{margin-top:16px;font-size:.8rem;color:var(--sub)}
     <figure>
       {{MAP}}
       <ul class="legend" id="legend"></ul>
-      <button type="button" class="loopbtn" id="loopbtn" aria-pressed="false"></button>
       <p class="looptext" id="looptext" hidden></p>
     </figure>
     <section aria-labelledby="headline">
       <h2 id="headline"></h2>
       <p class="ready" id="ready"></p>
       <ol class="steps" id="steps"></ol>
-      <div class="donts"><h3>Please don't</h3><ul id="donts"></ul></div>
+      <div class="donts"><ul id="donts" aria-label="Rules for drivers"></ul></div>
     </section>
   </div>
   <div class="cards" id="cards"></div>
@@ -290,9 +294,21 @@ footer{margin-top:16px;font-size:.8rem;color:var(--sub)}
   }
   var mode = defaultMode(), loop = false;
 
+  /* [words](https://link) in the data becomes a link that opens a new tab; everything else is plain text. */
+  function rich(node, text){
+    var re = /\[([^\]]+)\]\((https:\/\/[^)\s]+)\)/g, last = 0, m;
+    while ((m = re.exec(text))) {
+      node.appendChild(document.createTextNode(text.slice(last, m.index)));
+      var a = el('a', null, m[1]); a.href = m[2]; a.target = '_blank'; a.rel = 'noopener'; node.appendChild(a);
+      last = re.lastIndex;
+    }
+    node.appendChild(document.createTextNode(text.slice(last)));
+    return node;
+  }
   function card(c){
     var d = el('div', 'card'); d.appendChild(el('h3', null, c.h));
-    c.p.forEach(function(t){ d.appendChild(el('p', null, t)); });
+    if (c.bullets) { var ul = el('ul'); c.p.forEach(function(t){ ul.appendChild(rich(el('li'), t)); }); d.appendChild(ul); }
+    else c.p.forEach(function(t){ d.appendChild(rich(el('p'), t)); });
     if (c.portal) { var p = el('p'), a = el('a', null, DATA.portal.label + ' ↗'); a.href = DATA.portal.url; a.target = '_blank'; a.rel = 'noopener'; p.appendChild(a); d.appendChild(p); }
     return d;
   }
@@ -329,14 +345,25 @@ footer{margin-top:16px;font-size:.8rem;color:var(--sub)}
     $('ready').textContent = m.ready;
     fill($('steps'), m.steps.map(function(s, i){
       var li = el('li'); li.appendChild(el('span', 'num', String(i + 1)));
-      var b = el('div'); b.appendChild(el('span', 'st', s.t)); b.appendChild(el('span', 'sd', s.d)); li.appendChild(b); return li;
+      var b = el('div'); b.appendChild(el('span', 'st', s.t)); b.appendChild(rich(el('span', 'sd'), s.d)); li.appendChild(b); return li;
     }));
-    fill($('donts'), m.donts.map(function(t){ return el('li', null, t); }));
+    fill($('donts'), m.donts.map(function(x){
+      if (typeof x === 'string') return el('li', null, x);
+      var li = el('li', x.ok ? 'ok' : null);
+      if (!x.loop) { li.textContent = x.t; return li; }
+      /* The circle-the-block line is a button: it draws the loop on the map and brings the map into view. */
+      var b = el('button', 'looplink', x.t); b.type = 'button'; b.id = 'loopbtn'; b.setAttribute('aria-pressed', String(loop));
+      b.appendChild(el('span', null, loop ? 'Hide on map' : 'Show on map'));
+      b.addEventListener('click', function(){
+        loop = !loop; render();
+        if (loop) { w.scrollTop += $('map').getBoundingClientRect().top - w.getBoundingClientRect().top - 8; upd(); }
+        var nb = $('loopbtn'); if (nb) nb.focus({preventScroll: true});
+      });
+      li.appendChild(b); return li;
+    }));
     var lg = m.legend.map(function(x){ var li = el('li', x[0]); li.appendChild(el('i')); li.appendChild(document.createTextNode(x[1])); return li; });
     if (loop) { var lk = el('li', 'loopk'); lk.appendChild(el('i')); lk.appendChild(document.createTextNode('Circle the block')); lg.push(lk); }
     fill($('legend'), lg);
-    $('loopbtn').textContent = loop ? 'Hide the loop' : m.loop.button;
-    $('loopbtn').setAttribute('aria-pressed', String(loop));
     $('looptext').textContent = m.loop.text; $('looptext').hidden = !loop;
     fill($('cards'), [times(m)].concat(m.cards.map(card)));
     upd();
@@ -345,7 +372,6 @@ footer{margin-top:16px;font-size:.8rem;color:var(--sub)}
   $('tab-afternoon').textContent = DATA.modes.afternoon.tab;
   $('tab-morning').addEventListener('click', function(){ mode = 'morning'; loop = false; render(); });
   $('tab-afternoon').addEventListener('click', function(){ mode = 'afternoon'; loop = false; render(); });
-  $('loopbtn').addEventListener('click', function(){ loop = !loop; render(); });
   fill($('always'), DATA.always.map(card));
   $('foot').textContent = 'From the school’s ' + DATA.source_title + '. The map is a simplified diagram, not to scale. Updated ' + DATA.updated_label + '.';
 
@@ -377,6 +403,7 @@ footer{margin-top:16px;font-size:.8rem;color:var(--sub)}
 
 PERSONAL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+|\b\d{3}[-. ]\d{3}[-. ]\d{4}\b|\b\d{3}-\d{4}\b")
 MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+PINS = {"morning": 3, "afternoon": 2}   # numbered pins drawn in MAP for each mode
 SOURCE_TITLE = "Arrival, Dismissal and Carpool Information, {year}"
 
 
@@ -399,8 +426,12 @@ def load():
         for k in ("tab", "headline", "ready", "steps", "legend", "donts", "loop", "cards", "times_h", "times_lead"):
             if not m.get(k):
                 errs.append(f"modes.{name}.{k} is missing")
-        if len(m.get("steps") or []) != 3:
-            errs.append(f"modes.{name}.steps: the map has pins 1 to 3, so there must be exactly 3 steps")
+        if len(m.get("steps") or []) != PINS[name]:
+            errs.append(f"modes.{name}.steps: the {name} map has {PINS[name]} numbered pins, so there must be exactly {PINS[name]} steps")
+        if sum(1 for x in m.get("donts") or [] if isinstance(x, dict) and x.get("loop")) != 1:
+            errs.append(f"modes.{name}.donts: exactly one entry must have \"loop\": true (the button that draws the loop)")
+        if not (m.get("loop") or {}).get("text"):
+            errs.append(f"modes.{name}.loop.text is missing")
     if not data.get("always"):
         errs.append("always is missing")
     for where, s in style.walk_strings(data):
