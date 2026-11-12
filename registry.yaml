@@ -49,6 +49,10 @@ embeds:
     type: url
     path: shared/key-systems/    # school-wide, no ?class=; a whole-page embed, alone on its own Site page at box `page` (Ahin, 2026-11-12). Data: shared/key-systems/data.json. Live on the 1st-grade Resources → Key School Systems page since 2026-11-12
     owner: platform
+  dropoff-pickup:
+    type: url
+    path: shared/dropoff-pickup/  # placed with ?class=YYYY (flags that class's times); a whole-page embed, alone on its own Site page at box `page`. Built 2026-11-12; not placed on a Site yet. Data: shared/dropoff-pickup/data.json; the map is drawn in build/build_dropoff_pickup.py
+    owner: platform
 
 sites:
   class-2032:            # 3rd grade in 2026–27

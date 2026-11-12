@@ -1,0 +1,72 @@
+{
+  "schema": 1,
+  "_note": "Drop-off & Pickup embed (build/build_dropoff_pickup.py). Every fact here comes from the school's 'Arrival, Dismissal and Carpool Information 2026-27' (Google Doc 1pziyPtYZ9dg8m8nHnMNLzVB-vwP99cSteEc6_C-on1Q) and its two maps; wording is edited down, never changed in meaning. Start and dismissal times are NOT here: the build reads them from shared/school-hours/data.json. The map itself (streets, routes) is drawn in the build script. Personal data: No emails or phone numbers. The two staff names in the Middle School self-dismissal card are the school's own published contacts and are here as an exception to the no-personal-data rule (Ahin, 2026-11-12); add no other names. Style: After a colon, the next word starts with a capital letter. Bump `updated` when you change it.",
+  "title": "Drop-off & Pickup",
+  "address": "250 Valencia St",
+  "year_label": "Academic Year '26-'27",
+  "updated": "2026-11-12",
+  "portal": {"label": "Open the Family Portal", "url": "https://portals.veracross.com/sffs/parent"},
+  "modes": {
+    "morning": {
+      "tab": "Morning drop-off",
+      "headline": "By car: South on Valencia to the front of school",
+      "ready": "Have your child ready, bag in hand.",
+      "steps": [
+        {"t": "Come south on Valencia from Duboce", "d": "Expect a wait, and watch for cyclists in the bike lane."},
+        {"t": "Don't line up before Clinton Park", "d": "Valencia between Duboce and Clinton Park stays clear. If there is no space in front of school, staff may ask you to circle the block."},
+        {"t": "Pull up to the concrete loading island", "d": "Staff open the door and walk your child into school."}
+      ],
+      "legend": [["route", "Your route"], ["no", "No school cars: Clinton Park, Brosnan"], ["wait", "No waiting or drop-off"]],
+      "donts": [
+        "No driving down Clinton Park or Brosnan in the morning.",
+        "No drop-off on Guerrero in front of Francis of Assisi.",
+        "No lining up on Valencia between Duboce and Clinton Park."
+      ],
+      "loop": {
+        "button": "No room? Circle the block",
+        "text": "Asked to circle? One way around that stays off the side alleys: Valencia, 15th, Guerrero, Duboce, and back down Valencia."
+      },
+      "cards": [
+        {"h": "On foot or by bike", "p": ["Bring your child to the South Gate on Valencia, into the Front Yard.", "There is a bike rack on the patio."]},
+        {"h": "Running late?", "p": ["Park legally and walk your child to the Front Desk. The receptionist gets them to class."]}
+      ],
+      "times_h": "When",
+      "times_lead": "The South Gate opens at 8:00 a.m. for all students."
+    },
+    "afternoon": {
+      "tab": "Afternoon pickup",
+      "headline": "By car: Up Guerrero, along Clinton Park, to the front of school",
+      "ready": "Placard with each student's name on the passenger side of the dashboard.",
+      "steps": [
+        {"t": "Come up Guerrero and turn onto Clinton Park", "d": "Don't come down Valencia from Duboce to reach the school."},
+        {"t": "Line up on Clinton Park and wait for staff", "d": "8 cars at most, and no lining up before dismissal time. Staff holding cars back means the line is full: Circle the block."},
+        {"t": "When staff wave you on, pull up to the loading island on Valencia", "d": "Stay in the car. Staff call your carpool, walk the students out and open the door."}
+      ],
+      "legend": [["route", "Your route"], ["no", "No school cars: Brosnan"], ["wait", "No stopping or waiting"]],
+      "donts": [
+        "No driving down Brosnan.",
+        "No double parking or idling on Valencia between Clinton Park and Duboce.",
+        "No lining up on Clinton Park before dismissal time.",
+        "Neighbors on Clinton Park come first: If one needs to pull out, staff may ask you to leave the line and circle the block."
+      ],
+      "loop": {
+        "button": "Line full? Circle the block",
+        "text": "Line full, or asked to make room for a neighbor? Circle the block: Duboce, down Valencia, back around on 15th, then onto Guerrero."
+      },
+      "cards": [
+        {"h": "One pickup per car", "p": ["Picking up students with different dismissal times? Come once, at the later time. Students who finish earlier wait for their carpool."]},
+        {"h": "In the car", "p": ["Safety seats go on the passenger side of the back seat.", "Staff help kindergartners buckle up. 1st through 8th graders buckle themselves.", "Placards are mailed home in August."]},
+        {"h": "On foot", "p": ["Check in with the gate monitor at the South Gate. Your student is called to the gate."]},
+        {"h": "Extended Day (ED/A3) pickup", "p": ["Come in through the Brosnan Gate and sign your child out at the ED desk in the lobby."]},
+        {"h": "Dismissal form (Lower School)", "p": ["Fill out the weekly form by Sunday evening for the week ahead. It is on the Family Portal. No changes from last week? Skip it.", "Mid-week change, drop-in ED included: Email the Lead and Associate Teachers before noon. After 12:00 p.m., email them and call the Front Desk."], "portal": true},
+        {"h": "Middle School: Self-dismissal", "p": ["With written permission, students may leave on their own at dismissal time, or with a younger sibling if the permission slip says so.", "Once out, no waiting around at school and no coming back in.", "Need to leave for a meal before an evening activity (6:00 p.m. or later)? Contact Marina Vendrell or Sarah Wolf well in advance. This should be rare.", "No leaving and coming back with food, and no food deliveries to school."]}
+      ],
+      "times_h": "When",
+      "times_lead": "Dismissal times by grade. Wednesday is early dismissal."
+    }
+  },
+  "always": [
+    {"h": "Every time", "p": ["Always yield to pedestrians and cyclists.", "Never double park, anywhere.", "Never block a driveway. Cars blocking a neighbor's driveway are towed.", "No U-turns on Valencia, and no jaywalking across it.", "Share this page with anyone who picks up for you."]},
+    {"h": "Parking and other ways in", "p": ["There are several places to park near 250 Valencia. The lot on 14th is the closest.", "Carpools, public transit, biking and walking all ease the crowd out front."]}
+  ]
+}

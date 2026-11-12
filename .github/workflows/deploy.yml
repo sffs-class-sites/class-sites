@@ -62,6 +62,7 @@ jobs:
           python3 build/build_school_hours.py
           python3 build/build_team_schedule.py
           python3 build/build_key_systems.py
+          python3 build/build_dropoff_pickup.py
 
       # Pattern A (CLAUDE.md §3): personal data is fetched at deploy time and never committed.
       # Writes nothing unless the Site Map marks room-parents publishable. An invalid Live tab
@@ -96,6 +97,9 @@ jobs:
 
       - name: Key school systems check (data file, collapsible header, links open new tabs, phone first view)
         run: python3 tests/key_systems_check.py
+
+      - name: Drop-off and pickup check (morning and afternoon routes, circle-the-block loop, times by grade, phone first view)
+        run: python3 tests/dropoff_pickup_check.py
 
       - name: House style on every rendered embed (a capital letter after a colon; build/style.py)
         run: python3 tests/style_check.py

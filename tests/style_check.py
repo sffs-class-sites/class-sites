@@ -31,6 +31,8 @@ EMBEDS = [
     f"shared/school-hours/?class=2034&today={TODAY}",
     "shared/team-schedule/?team=hoops-2034-2027-winter&today=2026-12-01",
     "shared/key-systems/",
+    "shared/dropoff-pickup/?view=morning&class=2034",
+    "shared/dropoff-pickup/?view=afternoon&class=2034",
     f"shared/room-parents/?class=2034&today={TODAY}",
 ]
 TEXT_JS = """() => {
