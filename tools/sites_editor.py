@@ -203,6 +203,18 @@ PAGE_ITEM_JS = """
   // Candidate page entries in the Pages panel: visible elements whose own text is exactly the title.
   // Prefer one inside the pages tree, then the smallest; scroll it into view and measure it fresh.
   const want = title.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const norm = s => (s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  // The Pages panel keeps each title as the value of a disabled input[aria-label="Page title"] (seen 2026-11-12),
+  // which has no innerText; text-matching alone then finds the same words on the canvas (a heading) and clicks
+  // into the page being edited. So the panel's own inputs win whenever one matches.
+  for (const el of document.querySelectorAll('input[aria-label="Page title"]')) {
+    if (norm(el.value) !== want) continue;
+    const r = el.getBoundingClientRect();
+    if (r.width === 0 || r.height === 0) continue;
+    el.scrollIntoView({block: 'center', behavior: 'instant'});
+    const q = el.getBoundingClientRect();
+    return {text: el.value, tag: 'input', role: 'Page title', in_tree: true, candidates: 1, x: q.x, y: q.y, w: q.width, h: q.height};
+  }
   const out = [];
   for (const el of document.querySelectorAll('[role=treeitem], [role=option], [role=listitem], [role=link], [role=button], li, a, div, span')) {
     const t = (el.innerText || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();

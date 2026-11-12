@@ -47,7 +47,7 @@ embeds:
     owner: platform
   key-systems:
     type: url
-    path: shared/key-systems/    # school-wide, no ?class=; a whole-page embed, alone on its own Site page at box `page` (Ahin, 2026-11-12). Data: shared/key-systems/data.json. Not placed on any Site yet
+    path: shared/key-systems/    # school-wide, no ?class=; a whole-page embed, alone on its own Site page at box `page` (Ahin, 2026-11-12). Data: shared/key-systems/data.json. Live on the 1st-grade Resources → Key School Systems page since 2026-11-12
     owner: platform
 
 sites:
@@ -79,6 +79,10 @@ sites:
         query: {team: hoops-2034-2027-winter}
         box: card             # at card since 2026-11-11 (live check: 1154 x 772, h/w 0.669; it was placed at 0.587 on 2026-11-08)
         status: url           # swapped 2026-11-08
+      - page: resources/key-school-systems
+        embed: key-systems    # alone on its own page; Ahin placed it 2026-11-12, tools/sites_editor.py resize took it from h/w 0.586 to 0.935 (two drags) and published; live check PASS: 1154 x 1079 desktop, 352 x 329 iPhone
+        box: page
+        status: url
       - page: home
         embed: updates        # Ahin moved Updates onto Home and deleted the Email Digest page 2026-11-11; tools/sites_editor.py resize set card and published
         query: {class: 2034}
