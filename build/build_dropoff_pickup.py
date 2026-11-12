@@ -172,9 +172,10 @@ ol.steps li:first-child{border-top:0}
 .sd{display:block;color:#374151;font-size:.92rem;margin-top:1px}
 .donts{margin:12px 0 0;padding:10px 12px;border-radius:10px;background:var(--no-light);border:1px solid #f5c6c2}
 .donts ul{margin:0;padding:0;list-style:none}
-.donts li{padding:4px 0 4px 28px;position:relative;font-size:.93rem}
-.donts li:before{content:"\2716";position:absolute;left:1px;top:1px;color:var(--no);font-weight:900;font-size:1.2rem;line-height:1.5}
-.donts li.ok:before{content:"\2714";color:var(--go)}
+.donts li{padding:5px 0 5px 34px;position:relative;font-size:.93rem;min-height:34px}
+/* Drawn marks, not font glyphs: a phone may draw a "heavy X" or check character from its emoji font, in black. */
+.donts li:before{content:"";position:absolute;left:0;top:4px;width:24px;height:24px;border-radius:50%;background:#d93025 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6.5 6.5l11 11M17.5 6.5l-11 11' stroke='white' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E") center/15px no-repeat}
+.donts li.ok:before{background-color:#188038;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
 .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}
 .card{border:1px solid var(--line);border-radius:10px;padding:11px 13px}
 .card h3{margin:0 0 5px;font-size:.98rem;color:var(--accent)}
