@@ -86,7 +86,10 @@ def main():
                       gradeOn: [...document.querySelectorAll('.chip.g.on')].map(c => c.dataset.g),
                       subtitle: document.getElementById('subtitle').textContent,
                       showing: document.getElementById('showing').textContent,
-                      tabLabels: [...document.querySelectorAll('.chip.tab')].map(b => b.firstChild.textContent.trim()),
+                      tabLabels: [...document.querySelectorAll('.chip.tab:not([hidden])')].map(b => b.firstChild.textContent.trim()),
+                      searchLine: (() => { const mid = e => { const b = e.getBoundingClientRect(); return b.top + b.height / 2; }; const se = document.getElementById('search'); return se.getBoundingClientRect().height > 0 && Math.abs(mid(se) - mid(document.querySelector('.grades .lbl'))) < 4; })(),
+                      searchFont: parseFloat(getComputedStyle(document.getElementById('search')).fontSize),
+                      searchPh: document.getElementById('search').placeholder,
                       overflow: [...document.querySelectorAll('.card, .chip, .lnk')].filter(e => e.getBoundingClientRect().right > innerWidth + 1 && !e.closest('.row')).length,
                       panelOpen: !document.getElementById('grades').hidden, toggleText: document.getElementById('gradesToggle').textContent,
                       toggleShown: !document.getElementById('gradesToggle').hidden,
@@ -98,6 +101,8 @@ def main():
             m = fr.evaluate(MEASURE)
             check(not errors, f"no JS errors {errors[:1]}")
             check(not m["mixOption"], "no 'Include Important Dates' option: the official calendar is always mixed in")
+            check(m["panelOpen"] and m["searchLine"] and m["searchPh"] == "Email search", f"the 'Email search' box sits on the Grade Filters line ({m['searchPh']!r})")
+            check(m["searchFont"] >= 16, f"search text is at least 16px, so iPhones don't zoom in on it ({m['searchFont']}px)")
             if fw > 560:
                 check(m["panelOpen"] and not m["toggleShown"], "wide frame: grade filters always open, no Options button")
             else:
@@ -234,6 +239,47 @@ def main():
                 fr.locator('#gradesToggle').click()
             fr.locator('.chip.g[data-g="3"]').click()
 
+
+            # Email search: every match shows at once under "All matches"; the tab counts become matches per tab
+            if fr.evaluate("() => document.getElementById('grades').hidden"):
+                fr.locator('#gradesToggle').click()
+            base = fr.evaluate("() => document.querySelector('.chip.tab[data-tab=\"action\"] .n').textContent")
+            fr.locator('#search').fill('picture')
+            page.wait_for_timeout(200)
+            sm = fr.evaluate("""() => {
+              const tabs = [...document.querySelectorAll('.chip.tab')], n = b => +b.querySelector('.n').textContent;
+              const allBtn = document.querySelector('.chip.tab[data-tab="all"]'), others = tabs.filter(b => b !== allBtn);
+              const norm = s => s.toLowerCase().replace(/[\u2018\u2019]/g, "'");
+              return {allShown: !allBtn.hidden, allOn: allBtn.classList.contains('on'), allN: n(allBtn), cards: document.querySelectorAll('.card').length,
+                      everyCardMatches: [...document.querySelectorAll('.card')].every(c => norm(c.textContent).includes('picture')),
+                      zeroDimmed: others.every(b => (n(b) === 0) === b.classList.contains('zero')), someZero: others.some(b => n(b) === 0),
+                      firstNonZero: (others.find(b => n(b) > 0) || {}).dataset?.tab, firstNonZeroN: n(others.find(b => n(b) > 0) || allBtn),
+                      bar: document.getElementById('searchbar').hidden ? null : document.getElementById('searchCount').textContent }; }""")
+            check(sm["allShown"] and sm["allOn"] and sm["cards"] == sm["allN"] and sm["cards"] >= 2, f"search shows every match at once under 'All matches' ({sm['cards']} cards, count {sm['allN']})")
+            check(sm["everyCardMatches"], "every card shown for 'picture' mentions it")
+            check(sm["bar"] == f'{sm["allN"]} matches for "picture"', f"a bar above the results says how many matched ({sm['bar']!r})")
+            check(sm["someZero"] and sm["zeroDimmed"], "tab counts show matches per tab, and tabs with none are dimmed")
+            fr.locator(f'.chip.tab[data-tab="{sm["firstNonZero"]}"]').click()
+            page.wait_for_timeout(150)
+            narrowed = fr.evaluate("() => document.querySelectorAll('.card').length")
+            check(narrowed == sm["firstNonZeroN"], f"a tab narrows the matches to its count ({sm['firstNonZero']}: {narrowed} cards, count {sm['firstNonZeroN']})")
+            fr.locator('.chip.tab[data-tab="all"]').click()
+            page.wait_for_timeout(150)
+            fr.locator('#search').fill('fall break')
+            page.wait_for_timeout(200)
+            fb = fr.evaluate("() => ({emails: [...document.querySelectorAll('.card:not(.stub)')].some(c => !c.querySelector('.badge.dates')), official: document.querySelectorAll('.card .badge.dates').length, secs: [...document.querySelectorAll('h2.sec')].map(h => h.textContent)})")
+            check(fb["official"] >= 1 and fb["emails"] and fb["secs"] == ["From the emails", "Important Dates"], f"search covers the emails and the Important Dates calendar, in two groups ({fb})")
+            fr.locator('#search').fill('zzqx')
+            page.wait_for_timeout(150)
+            check(fr.evaluate("() => !document.getElementById('empty').hidden && document.querySelectorAll('.card').length === 0"), "a search with no matches says so")
+            if fw <= 560:
+                fr.locator('#gradesToggle').click()  # fold Options: the search stays on and its bar stays visible
+                page.wait_for_timeout(150)
+                check(fr.evaluate("() => document.getElementById('grades').hidden && !document.getElementById('searchbar').hidden"), "phone: with Options folded, an active search still shows its bar and Clear button")
+            fr.locator('#searchClear').click()
+            page.wait_for_timeout(150)
+            cl = fr.evaluate("() => ({allHidden: document.querySelector('.chip.tab[data-tab=\"all\"]').hidden, bar: document.getElementById('searchbar').hidden, q: document.getElementById('search').value, action: document.querySelector('.chip.tab[data-tab=\"action\"] .n').textContent})")
+            check(cl["allHidden"] and cl["bar"] and cl["q"] == "" and cl["action"] == base, f"Clear search restores the full counts ({cl})")
 
             # Outbound link opens a popup, frame stays put
             fr.locator('.chip.tab[data-tab="action"]').click()

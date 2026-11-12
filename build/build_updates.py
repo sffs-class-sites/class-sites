@@ -127,6 +127,15 @@ h1{font-size:1.35rem;margin:0 0 2px}
 .grades{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.8rem;color:var(--sub);margin-top:6px}
 .grades[hidden]{display:none}
 .grades .lbl{margin-right:2px}
+/* Email search: in the Grade Filters row, at its end on wide frames; on a phone it shares the label's line. 16px text so iOS does not zoom on focus. */
+.search{order:2;flex:0 1 220px;min-width:130px;margin-left:auto;font-family:inherit;font-size:16px;line-height:1.2;padding:4px 12px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--ink)}
+.search::placeholder{color:var(--sub)}
+.search:focus-visible{outline:3px solid #f0a055;outline-offset:1px}
+.grades .brk{order:1;display:none}
+.searchbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 2px;font-size:.84rem;color:var(--ink);font-weight:600}
+.searchbar[hidden]{display:none}
+.searchbar .lnk{padding:4px 9px;font-size:.74rem}
+.chip.tab.zero{opacity:.5}
 .prefs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.8rem;color:var(--sub);margin-top:6px}
 .prefs .lbl{margin-right:2px}
 .chip.pref{padding:6px 9px;font-size:.76rem}
@@ -196,7 +205,10 @@ footer p{margin:4px 0}
   .showing .short{display:inline}
   .prefs{display:none}  /* on a phone the calendar choice lives inside the Options panel */
   .grades:not([hidden]) ~ .prefs{display:flex}
-  .grades .lbl{flex-basis:100%}  /* the label on its own line, so the nine grade chips share the next one */
+  .grades .lbl{flex:0 0 auto}  /* the label and the search box share one line, so the nine grade chips share the next one */
+  .search{order:0;flex:1 1 0;min-width:0;width:0;margin-left:4px;padding:3px 10px}
+  .grades .brk{order:0;display:block;flex-basis:100%;height:0}
+  .searchbar{margin:6px 0 2px;font-size:.78rem}
   header{margin-bottom:3px}
   .intro{display:none}  /* the tab name says it; the phone needs the room */
   .chip{padding:6px 10px;font-size:.78rem}
@@ -246,7 +258,7 @@ footer p{margin:4px 0}
     <h1>{{TITLE}}</h1>
     <p class="subtitle" id="subtitle"><strong>NOT SANCTIONED.</strong> {{SUBTITLE_REST}} <span id="supported"></span></p>
     <div class="showing"><span id="showing"></span><span class="short">&nbsp;· Not sanctioned</span> <button type="button" class="chip tiny" id="gradesToggle" aria-expanded="false" aria-controls="grades">Options</button></div>
-    <div class="grades" id="grades" role="group" aria-label="Grade Filters" hidden><span class="lbl">Grade Filters:</span></div>
+    <div class="grades" id="grades" role="group" aria-label="Grade Filters" hidden><span class="lbl">Grade Filters:</span><input type="search" class="search" id="search" placeholder="Email search" aria-label="Email search" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search"><span class="brk"></span></div>
     <div class="prefs" id="prefs" role="group" aria-label="Your calendar"><span class="lbl">Your calendar:</span>
       <button type="button" class="chip pref" data-pref="google" aria-pressed="false">Google</button>
       <button type="button" class="chip pref" data-pref="outlook" aria-pressed="false">Outlook</button>
@@ -256,6 +268,7 @@ footer p{margin:4px 0}
   <nav class="toolbar" id="toolbar" aria-label="Sections">
     <div class="row" id="tabs" role="tablist"></div>
   </nav>
+  <div class="searchbar" id="searchbar" hidden><span id="searchCount"></span> <button type="button" class="lnk" id="searchClear">Clear search</button></div>
   <p class="intro" id="intro"></p>
   <div id="list" aria-live="polite"></div>
   <p class="empty" id="empty" hidden>Nothing here right now.</p>
@@ -405,6 +418,27 @@ footer p{margin:4px 0}
      intro:"Brenda Leaks' letters, newest first, in a few lines each. The full text is in the log."}
   ];
   var tab = 'action';
+  // Email search (Ahin, 2026-11-12): every topic whose text matches all the words typed, across every section.
+  // The list shows all matches at once ("All matches"); each tab's count becomes its share, so a tab can narrow it.
+  var query = '', qWords = [], searchTab = 'all', shown = [];
+  function norm(s){ s = String(s).toLowerCase().replace(/[\u2018\u2019]/g, "'").replace(/[\u201c\u201d]/g, '"'); try { s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch(e) {} return s; }
+  function hay(t){
+    if (t._hay === undefined) {
+      var parts = [t.title, t.summary, t.badge, fmtWhen(t), audienceLabel(t.audience), SECTION_LABEL[t.section], t.subject, t.deadline && t.deadline.what];
+      (t.items || []).forEach(function(x){ parts.push(x); });
+      (t.links || []).forEach(function(l){ parts.push(l.label); });
+      if (!t.officialEvent) t.updates.forEach(function(u){ parts.push(u.note, sourceLabel(u.source)); });
+      t._hay = norm(parts.filter(Boolean).join(' \n '));
+    }
+    return t._hay;
+  }
+  function matches(t){ if (!qWords.length) return true; var h = hay(t); return qWords.every(function(w){ return h.indexOf(w) >= 0; }); }
+  function notHidden(t){ return !isHidden(t); }
+  function byNewest(a, b){ var x = latest(a).date, y = latest(b).date; return x !== y ? (x > y ? -1 : 1) : (a.title < b.title ? -1 : 1); }
+  function searchAll(){  // every match: email topics newest first, then matching Important Dates in date order
+    return {led: DATA.topics.filter(forMe).filter(matches).sort(byNewest),
+            off: OFFICIAL.filter(matches).sort(function(a, b){ return start(a) < start(b) ? -1 : 1; })};
+  }
   var tm = qs.match(/[?&]tab=([a-z]+)/); if (tm && TABS.some(function(t){ return t.id === tm[1]; })) tab = tm[1];
 
   var list = document.getElementById('list'), empty = document.getElementById('empty'), intro = document.getElementById('intro');
@@ -458,24 +492,42 @@ footer p{margin:4px 0}
   }
 
   function render(){
-    var def = TABS.filter(function(x){ return x.id === tab; })[0];
-    var items = pool().filter(forMe).filter(def.pick).sort(def.sort);
+    var searching = qWords.length > 0, view = searching ? searchTab : tab;
+    var def = TABS.filter(function(x){ return x.id === view; })[0];
+    var items, both = false;
+    if (view === 'all') { var r = searchAll(); items = r.led.concat(r.off); both = r.led.length > 0 && r.off.length > 0; }
+    else items = pool(view).filter(forMe).filter(def.pick).filter(matches).sort(def.sort);
+    shown = items;
     list.textContent = '';
     var lastSection = null, nHidden = 0;
     items.forEach(function(t){
-      var sec = tab === 'classroom' ? t.section : tab === 'know' ? knowGroup(t) : null;
-      if (sec !== null && sec !== lastSection) { var h = document.createElement('h2'); h.className = 'sec'; h.textContent = tab === 'classroom' ? (SECTION_LABEL[sec] || sec) : KNOW_LABEL[sec]; list.appendChild(h); lastSection = sec; }
+      var sec = view === 'classroom' ? t.section : view === 'know' ? knowGroup(t) : both ? (t.officialEvent ? 'off' : 'led') : null;
+      if (sec !== null && sec !== lastSection) {
+        var h = document.createElement('h2'); h.className = 'sec';
+        h.textContent = view === 'classroom' ? (SECTION_LABEL[sec] || sec) : view === 'know' ? KNOW_LABEL[sec] : sec === 'off' ? 'Important Dates' : 'From the emails';
+        list.appendChild(h); lastSection = sec;
+      }
       if (isHidden(t)) { nHidden++; list.appendChild(stub(t)); } else list.appendChild(card(t));
     });
-    if (tab === 'dates' && officialState !== 'ok') { var m = document.createElement('p'); m.className = 'empty'; m.textContent = officialState === 'loading' ? 'Loading the calendar…' : 'The Important Dates calendar could not be loaded right now.'; list.appendChild(m); }
-    empty.hidden = items.length > 0 || tab === 'dates';
-    intro.textContent = def.intro;
+    if (view === 'dates' && officialState !== 'ok') { var m = document.createElement('p'); m.className = 'empty'; m.textContent = officialState === 'loading' ? 'Loading the calendar…' : 'The Important Dates calendar could not be loaded right now.'; list.appendChild(m); }
+    empty.hidden = items.length > 0 || (view === 'dates' && officialState !== 'ok');
+    empty.textContent = searching ? 'No matches for "' + query.trim() + '"' + (view === 'all' ? '.' : ' in ' + def.label + '.') : 'Nothing here right now.';
+    intro.textContent = view === 'all' ? 'Every topic that mentions your search, newest email first, then matching Important Dates. Tap a section above to narrow it down.' : def.intro;
     var hb = document.getElementById('hiddenbar'); hb.hidden = nHidden === 0;
     document.getElementById('hiddenCount').textContent = nHidden + ' hidden on this tab.';
+    var all = searchAll(), allN = all.led.filter(notHidden).length + all.off.filter(notHidden).length;
+    document.getElementById('searchbar').hidden = !searching;
+    if (searching) {
+      var n = view === 'all' ? allN : items.filter(notHidden).length;
+      document.getElementById('searchCount').textContent = n + (n === 1 ? ' match' : ' matches') + ' for "' + query.trim() + '"' + (view === 'all' ? '' : ' in ' + def.label);
+    }
     [].slice.call(tabsEl.children).forEach(function(b){
-      var on = b.getAttribute('data-tab') === tab; b.classList.toggle('on', on); b.setAttribute('aria-selected', on);
-      var d = TABS.filter(function(x){ return x.id === b.getAttribute('data-tab'); })[0];
-      b.querySelector('.n').textContent = pool(d.id).filter(forMe).filter(d.pick).filter(function(t){ return !isHidden(t); }).length;
+      var id = b.getAttribute('data-tab'), on = id === view, n;
+      if (id === 'all') { b.hidden = !searching; n = allN; }
+      else { var d = TABS.filter(function(x){ return x.id === id; })[0]; n = pool(id).filter(forMe).filter(d.pick).filter(notHidden).filter(matches).length; }
+      b.classList.toggle('on', on); b.setAttribute('aria-selected', on);
+      b.classList.toggle('zero', searching && n === 0);
+      b.querySelector('.n').textContent = n;
     });
     [].slice.call(gradesEl.querySelectorAll('.chip')).forEach(function(c){ var on = selected.indexOf(c.getAttribute('data-g')) >= 0; c.classList.toggle('on', on); c.setAttribute('aria-pressed', on); });
     [].slice.call(document.querySelectorAll('.chip.pref')).forEach(function(c){ var on = c.getAttribute('data-pref') === pref; c.classList.toggle('on', on); c.setAttribute('aria-pressed', on); });
@@ -483,12 +535,33 @@ footer p{margin:4px 0}
     hint();
   }
 
+  function toTop(){ try { w.scrollTo({top: 0}); } catch(e) { w.scrollTop = 0; } }
+  (function(){
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'chip tab all'; b.setAttribute('role', 'tab'); b.setAttribute('data-tab', 'all'); b.hidden = true;
+    b.innerHTML = 'All matches <span class="n"></span>';
+    b.addEventListener('click', function(){ searchTab = 'all'; render(); toTop(); });
+    tabsEl.appendChild(b);
+  })();
   TABS.forEach(function(d){
     var b = document.createElement('button'); b.type = 'button'; b.className = 'chip tab'; b.setAttribute('role', 'tab'); b.setAttribute('data-tab', d.id);
     b.innerHTML = esc(d.label) + ' <span class="n"></span>';
-    b.addEventListener('click', function(){ tab = d.id; render(); try { w.scrollTo({top: 0}); } catch(e) { w.scrollTop = 0; } });
+    b.addEventListener('click', function(){ tab = d.id; searchTab = d.id; render(); toTop(); });
     tabsEl.appendChild(b);
   });
+  var searchEl = document.getElementById('search');
+  function setQuery(v){
+    var was = qWords.length > 0;
+    query = v; var q = norm(v).trim();
+    qWords = q.length >= 2 ? q.split(/\s+/) : [];
+    if (!was && qWords.length) searchTab = 'all';
+    render(); toTop();
+  }
+  searchEl.addEventListener('input', function(){ setQuery(searchEl.value); });
+  searchEl.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') { searchEl.value = ''; setQuery(''); }
+    else if (e.key === 'Enter') searchEl.blur();  // closes a phone keyboard; the results are already showing
+  });
+  document.getElementById('searchClear').addEventListener('click', function(){ searchEl.value = ''; setQuery(''); });
   GRADES.forEach(function(g){
     var c = document.createElement('button'); c.type = 'button'; c.className = 'chip g'; c.setAttribute('data-g', g); c.setAttribute('aria-pressed', 'false');
     c.textContent = g === 'K' ? 'K' : g; c.title = gradeLabel(g);
@@ -520,8 +593,7 @@ footer p{margin:4px 0}
   })();
   [].slice.call(document.querySelectorAll('.chip.pref')).forEach(function(c){ c.addEventListener('click', function(){ pref = c.getAttribute('data-pref'); safeSet(PKEY, pref); render(); }); });
   document.getElementById('showAll').addEventListener('click', function(){
-    var def = TABS.filter(function(x){ return x.id === tab; })[0];
-    pool().filter(forMe).filter(def.pick).forEach(function(t){ setHidden(t.id, false); }); render();
+    shown.forEach(function(t){ setHidden(t.id, false); }); render();
   });
   // Important Dates: same origin as this embed, so a plain fetch; the tab says so if it fails.
   (function(){
