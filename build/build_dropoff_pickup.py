@@ -8,8 +8,8 @@ route drawn on it and cars moving along it, numbered steps that match the number
 Facts and wording: shared/dropoff-pickup/data.json (edited down from the school's "Arrival,
 Dismissal and Carpool Information"; no emails or phone numbers, and the only names are the two
 staff contacts for Middle School self-dismissal, an exception Ahin made on 2026-11-12). Start and dismissal times come from
-shared/school-hours/data.json so they are kept in one place. The map (streets, routes, the
-circle-the-block loop) is drawn here, in MAP: a diagram, not to scale, traced from the
+shared/school-hours/data.json so they are kept in one place. The map (streets and routes) is
+drawn here, in MAP: a diagram, not to scale, traced from the
 school's two satellite maps.
 
 A whole-page embed: alone on its own Site page at the `page` box. Placed with ?class=YYYY it
@@ -34,8 +34,8 @@ OUT = ROOT / "_site" / "shared" / "dropoff-pickup"
 
 # Street diagram, 360 units wide. North is up. Guerrero x 24-58 (northbound lane x=49),
 # Valencia x 272-312 (southbound lane x=282, the school side), Duboce y 20-48 (eastbound lane
-# y=40), Clinton Park y 96-114, Brosnan y 206-224, 14th y 268-290, 15th y 334-362 (westbound
-# lane y=342). The normal view stops below Brosnan (height 250); the loop view runs to 15th (380).
+# y=40), Clinton Park y 96-114, Brosnan y 206-224. The view stops just below Brosnan (height 250).
+# No circle-the-block loop is drawn (Ahin, 2026-11-12): staff outside direct it.
 MAP = r"""
 <svg id="map" viewBox="0 0 360 250" role="img" aria-labelledby="map-desc" xmlns="http://www.w3.org/2000/svg">
   <desc id="map-desc"></desc>
@@ -47,14 +47,12 @@ MAP = r"""
       <rect width="6" height="6" fill="#fff1cf"/><rect width="2.4" height="6" fill="#e0a21b"/>
     </pattern>
   </defs>
-  <rect x="0" y="0" width="360" height="380" fill="#e8ecf1"/>
+  <rect x="0" y="0" width="360" height="250" fill="#e8ecf1"/>
   <!-- roads -->
   <g fill="#fff" stroke="#c9d0da" stroke-width="1">
     <rect x="-2" y="20" width="364" height="28"/>
     <rect x="58" y="96" width="214" height="18"/>
     <rect x="58" y="206" width="214" height="18"/>
-    <rect x="-2" y="268" width="364" height="22"/>
-    <rect x="-2" y="334" width="364" height="28"/>
     <rect x="24" y="-2" width="34" height="384"/>
     <rect x="272" y="-2" width="40" height="384"/>
   </g>
@@ -76,8 +74,6 @@ MAP = r"""
     <text x="64" y="237">Brosnan</text>
     <text transform="translate(15 160) rotate(-90)" text-anchor="middle">Guerrero</text>
     <text transform="translate(331 96) rotate(-90)" text-anchor="middle">Valencia</text>
-    <text x="150" y="283" text-anchor="middle">14th St</text>
-    <text x="150" y="357" text-anchor="middle">15th St</text>
   </g>
   <text x="346" y="14" class="t-n" text-anchor="middle">N &#8593;</text>
 
@@ -88,12 +84,12 @@ MAP = r"""
     <rect x="273" y="48" width="18" height="48" fill="url(#hatch-wait)"/>
     <text x="266" y="76" class="t-wait" text-anchor="end">No waiting</text>
     <rect x="268" y="130" width="7" height="60" rx="3" class="island"/>
-    <!-- two ways in: down Valencia, or along Duboce and right onto Valencia (Ahin, 2026-11-12) -->
+    <!-- two ways in: down Valencia, or along Duboce and right onto Valencia; that car starts on Duboce itself, so it reads as coming from Duboce or from Guerrero (Ahin, 2026-11-12) -->
     <path class="route" d="M282,0 V250"/>
-    <path class="route" d="M0,40 H282"/>
+    <path class="route" d="M74,40 H282"/>
     <g class="arrow"><path d="M222,40 l-9,-6 v12z"/><path d="M282,116 l-6,-9 h12z"/><path d="M282,236 l-6,-9 h12z"/></g>
     <g class="car"><rect x="-7" y="-4" width="14" height="8" rx="3"/>
-      <animateMotion dur="7s" begin="3.5s" repeatCount="indefinite" rotate="auto" calcMode="linear" path="M-12,40 H282 V262" keyPoints="0;0.802;0.802;1" keyTimes="0;0.5;0.72;1"/></g>
+      <animateMotion dur="7s" begin="3.5s" repeatCount="indefinite" rotate="auto" calcMode="linear" path="M74,40 H282 V262" keyPoints="0;0.763;0.763;1" keyTimes="0;0.5;0.72;1"/></g>
     <g class="car"><rect x="-7" y="-4" width="14" height="8" rx="3"/>
       <animateMotion dur="7s" repeatCount="indefinite" rotate="auto" calcMode="linear" path="M282,-12 V262" keyPoints="0;0.628;0.628;1" keyTimes="0;0.42;0.72;1"/></g>
     <g class="pin"><circle cx="301" cy="30" r="8.5"/><text x="301" y="34">1</text></g>
@@ -116,13 +112,6 @@ MAP = r"""
     <g class="pin"><circle cx="301" cy="160" r="8.5"/><text x="301" y="164">2</text></g>
   </g>
 
-  <!-- CIRCLE THE BLOCK (both) -->
-  <g id="m-loop" hidden>
-    <path class="loop" d="M288,39 V343 H43 V39 Z"/>
-    <g class="arrow loop-arrow"><path d="M288,316 l-6,-9 h12z"/><path d="M165,343 l9,-6 v12z"/><path d="M43,300 l-6,9 h12z"/><path d="M120,39 l-9,-6 v12z"/></g>
-    <g class="car loop-car"><rect x="-7" y="-4" width="14" height="8" rx="3"/>
-      <animateMotion dur="12s" repeatCount="indefinite" rotate="auto" path="M288,39 V343 H43 V39 Z"/></g>
-  </g>
 </svg>
 """
 
@@ -135,7 +124,7 @@ PAGE = r"""<!DOCTYPE html>
 <meta name="robots" content="noindex">
 <title>{{TITLE}}</title>
 <style>
-:root{--ink:#1f2937;--sub:#5b6472;--line:#e2e5ea;--bg:#fff;--accent:#3457a6;--accent-light:#eaeffb;--go:#12784a;--go-light:#e3f4ea;--no:#b3261e;--no-light:#fdeceb;--wait:#8a5a00;--loop:#c2570c}
+:root{--ink:#1f2937;--sub:#5b6472;--line:#e2e5ea;--bg:#fff;--accent:#3457a6;--accent-light:#eaeffb;--go:#12784a;--go-light:#e3f4ea;--no:#b3261e;--no-light:#fdeceb;--wait:#8a5a00}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 body{overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.45}
@@ -149,7 +138,7 @@ a.full[hidden]{display:none}
 .seg{display:grid;grid-template-columns:1fr 1fr;gap:0;border:2px solid var(--accent);border-radius:12px;overflow:hidden;margin-bottom:12px}
 .seg button{min-height:46px;border:0;background:#fff;color:var(--accent);font-family:inherit;font-weight:700;font-size:1rem;line-height:1.15;cursor:pointer;padding:6px 8px}
 .seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
-.seg button:focus-visible,.looplink:focus-visible,a:focus-visible{outline:3px solid #f0a055;outline-offset:-3px}
+.seg button:focus-visible,a:focus-visible{outline:3px solid #f0a055;outline-offset:-3px}
 .main{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:22px;align-items:start}
 figure{margin:0}
 #map{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:10px;background:#e8ecf1}
@@ -164,10 +153,7 @@ figure{margin:0}
 .island{fill:var(--go);stroke:#fff;stroke-width:1.5}
 .route{fill:none;stroke:var(--go);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
 .arrow path{fill:#fff;stroke:var(--go);stroke-width:1.6;stroke-linejoin:round}
-.loop{fill:none;stroke:var(--loop);stroke-width:3.5;stroke-dasharray:7 5;stroke-linejoin:round}
-.loop-arrow path{stroke:var(--loop)}
 .car rect{fill:#111827;stroke:#fff;stroke-width:1.5}
-.loop-car rect{fill:var(--loop)}
 .pin circle{fill:#111827;stroke:#fff;stroke-width:1.5}
 .pin text{font:700 11px sans-serif;fill:#fff;text-anchor:middle}
 .legend{display:flex;flex-wrap:wrap;gap:4px 14px;margin:8px 0 0;padding:0;list-style:none;font-size:.8rem;color:var(--sub)}
@@ -175,10 +161,7 @@ figure{margin:0}
 .legend .route i{background:var(--go)}
 .legend .no i{background:repeating-linear-gradient(45deg,#e2574c 0 3px,#fde3e1 3px 6px)}
 .legend .wait i{background:repeating-linear-gradient(45deg,#e0a21b 0 3px,#fff1cf 3px 6px)}
-.legend .loopk i{background:repeating-linear-gradient(90deg,var(--loop) 0 5px,transparent 5px 8px);height:4px;vertical-align:2px}
 .legend [hidden]{display:none}
-.looptext{margin:8px 0 0;font-size:.92rem;border-left:4px solid var(--loop);padding:2px 0 2px 10px}
-.looptext[hidden]{display:none}
 h2{font-size:1.08rem;margin:0 0 8px}
 .ready{margin:0 0 10px;padding:8px 12px;border-radius:10px;background:var(--go-light);color:#0d5a37;font-weight:600;font-size:.95rem}
 ol.steps{list-style:none;margin:0;padding:0}
@@ -192,9 +175,6 @@ ol.steps li:first-child{border-top:0}
 .donts li{padding:4px 0 4px 28px;position:relative;font-size:.93rem}
 .donts li:before{content:"\2716";position:absolute;left:1px;top:1px;color:var(--no);font-weight:900;font-size:1.2rem;line-height:1.5}
 .donts li.ok:before{content:"\2714";color:var(--go)}
-.looplink{display:block;width:100%;min-height:44px;margin:-2px 0;padding:4px 0;border:0;background:none;text-align:left;font-family:inherit;font-size:inherit;font-weight:700;color:var(--ink);cursor:pointer}
-.looplink span{display:inline-block;margin-left:8px;font-size:.8rem;font-weight:600;color:var(--loop);border:1px solid var(--loop);border-radius:999px;padding:1px 9px;white-space:nowrap}
-.looplink[aria-pressed="true"] span{background:#fff3e8}
 .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}
 .card{border:1px solid var(--line);border-radius:10px;padding:11px 13px}
 .card h3{margin:0 0 5px;font-size:.98rem;color:var(--accent)}
@@ -250,7 +230,6 @@ footer{margin-top:16px;font-size:.8rem;color:var(--sub)}
     <figure>
       {{MAP}}
       <ul class="legend" id="legend"></ul>
-      <p class="looptext" id="looptext" hidden></p>
     </figure>
     <section aria-labelledby="headline">
       <h2 id="headline"></h2>
@@ -292,7 +271,7 @@ footer{margin-top:16px;font-size:.8rem;color:var(--sub)}
     try { h = parseInt(new Intl.DateTimeFormat('en-US', {timeZone: 'America/Los_Angeles', hour: 'numeric', hourCycle: 'h23'}).format(new Date()), 10); } catch (e) { h = new Date().getHours(); }
     return h < 11 ? 'morning' : 'afternoon';
   }
-  var mode = defaultMode(), loop = false;
+  var mode = defaultMode();
 
   /* [words](https://link) in the data becomes a link that opens a new tab; everything else is plain text. */
   function rich(node, text){
@@ -338,9 +317,7 @@ footer{margin-top:16px;font-size:.8rem;color:var(--sub)}
       $('tab-' + k).setAttribute('aria-pressed', String(k === mode));
       $('m-' + k).toggleAttribute('hidden', k !== mode);
     });
-    $('m-loop').toggleAttribute('hidden', !loop);
-    $('map').setAttribute('viewBox', loop ? '0 0 360 380' : '0 0 360 250');
-    $('map-desc').textContent = m.headline + '. ' + m.steps.map(function(s, i){ return (i + 1) + ': ' + s.t; }).join('. ') + '.' + (loop ? ' ' + m.loop.text : '');
+    $('map-desc').textContent = m.headline + '. ' + m.steps.map(function(s, i){ return (i + 1) + ': ' + s.t; }).join('. ') + '.';
     $('headline').textContent = m.headline;
     $('ready').textContent = m.ready;
     fill($('steps'), m.steps.map(function(s, i){
@@ -350,28 +327,17 @@ footer{margin-top:16px;font-size:.8rem;color:var(--sub)}
     fill($('donts'), m.donts.map(function(x){
       if (typeof x === 'string') return el('li', null, x);
       var li = el('li', x.ok ? 'ok' : null);
-      if (!x.loop) { li.textContent = x.t; return li; }
-      /* The circle-the-block line is a button: it draws the loop on the map and brings the map into view. */
-      var b = el('button', 'looplink', x.t); b.type = 'button'; b.id = 'loopbtn'; b.setAttribute('aria-pressed', String(loop));
-      b.appendChild(el('span', null, loop ? 'Hide on map' : 'Show on map'));
-      b.addEventListener('click', function(){
-        loop = !loop; render();
-        if (loop) { w.scrollTop += $('map').getBoundingClientRect().top - w.getBoundingClientRect().top - 8; upd(); }
-        var nb = $('loopbtn'); if (nb) nb.focus({preventScroll: true});
-      });
-      li.appendChild(b); return li;
+      li.textContent = x.t; return li;
     }));
     var lg = m.legend.map(function(x){ var li = el('li', x[0]); li.appendChild(el('i')); li.appendChild(document.createTextNode(x[1])); return li; });
-    if (loop) { var lk = el('li', 'loopk'); lk.appendChild(el('i')); lk.appendChild(document.createTextNode('Circle the block')); lg.push(lk); }
     fill($('legend'), lg);
-    $('looptext').textContent = m.loop.text; $('looptext').hidden = !loop;
     fill($('cards'), [times(m)].concat(m.cards.map(card)));
     upd();
   }
   $('tab-morning').textContent = DATA.modes.morning.tab;
   $('tab-afternoon').textContent = DATA.modes.afternoon.tab;
-  $('tab-morning').addEventListener('click', function(){ mode = 'morning'; loop = false; render(); });
-  $('tab-afternoon').addEventListener('click', function(){ mode = 'afternoon'; loop = false; render(); });
+  $('tab-morning').addEventListener('click', function(){ mode = 'morning'; render(); });
+  $('tab-afternoon').addEventListener('click', function(){ mode = 'afternoon'; render(); });
   fill($('always'), DATA.always.map(card));
   $('foot').textContent = 'From the school’s ' + DATA.source_title + '. The map is a simplified diagram, not to scale. Updated ' + DATA.updated_label + '.';
 
@@ -380,7 +346,6 @@ footer{margin-top:16px;font-size:.8rem;color:var(--sub)}
     Array.prototype.forEach.call(document.querySelectorAll('#map animateMotion'), function(a){ a.parentNode.removeChild(a); });
     document.querySelector('#m-morning .car').setAttribute('transform', 'translate(282 160) rotate(90)');
     document.querySelector('#m-afternoon .car').setAttribute('transform', 'translate(282 160) rotate(90)');
-    document.querySelector('#m-loop .car').setAttribute('display', 'none');
   }
 
   /* Inside a Site the frame is small on a phone: offer the same page in its own tab. */
@@ -423,15 +388,11 @@ def load():
         errs.append("portal.url must be a full https:// link")
     for name in ("morning", "afternoon"):
         m = (data.get("modes") or {}).get(name) or {}
-        for k in ("tab", "headline", "ready", "steps", "legend", "donts", "loop", "cards", "times_h", "times_lead"):
+        for k in ("tab", "headline", "ready", "steps", "legend", "donts", "cards", "times_h", "times_lead"):
             if not m.get(k):
                 errs.append(f"modes.{name}.{k} is missing")
         if len(m.get("steps") or []) != PINS[name]:
             errs.append(f"modes.{name}.steps: the {name} map has {PINS[name]} numbered pins, so there must be exactly {PINS[name]} steps")
-        if sum(1 for x in m.get("donts") or [] if isinstance(x, dict) and x.get("loop")) != 1:
-            errs.append(f"modes.{name}.donts: exactly one entry must have \"loop\": true (the button that draws the loop)")
-        if not (m.get("loop") or {}).get("text"):
-            errs.append(f"modes.{name}.loop.text is missing")
     if not data.get("always"):
         errs.append("always is missing")
     for where, s in style.walk_strings(data):

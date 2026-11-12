@@ -6,7 +6,7 @@
    352 x 329 on an iPhone 13), at `card` (352 x 235, 315 x 210) and a tablet, in both modes:
    title at the top; the toggle shows the right mode and switches; the right route is drawn and the
    other hidden; three steps; the map (pin 3, the loading island) is in the first view on a phone at
-   `page`; the circle-the-block line in the rules box extends the map to 15th and back; times come from
+   `page`; no circle-the-block loop, button or route text anywhere; times come from
    shared/school-hours/data.json with ?class= flagged; buttons at least 44px; no horizontal scroll;
    outbound links open a new tab.
 3. The time-of-day default (morning before 11 a.m. Pacific) and the translation notice.
@@ -62,13 +62,13 @@ STATE = """() => {
   const box = e => { const r = e.getBoundingClientRect(); return {top: r.top, bottom: r.bottom, h: r.height}; };
   const mode = ['morning', 'afternoon'].find(k => q('#tab-' + k).getAttribute('aria-pressed') === 'true');
   return {title: q('#title').textContent, title_top: box(q('#title')).top, mode,
-          routes: {morning: vis(q('#m-morning .route')), afternoon: vis(q('#m-afternoon .route')), loop: vis(q('#m-loop .loop'))},
+          routes: {morning: vis(q('#m-morning .route')), afternoon: vis(q('#m-afternoon .route'))},
           viewbox: q('#map').getAttribute('viewBox'), map: box(q('#map')), pin3: box(q('#m-' + mode + ' .pin:last-of-type')),
           headline: q('#headline').textContent, steps: [...document.querySelectorAll('#steps .st')].map(e => e.textContent),
           donts: [...document.querySelectorAll('#donts li')].map(l => [l.className === 'ok', l.querySelector('button') ? l.querySelector('button').childNodes[0].textContent : l.textContent]),
           pins: [...document.querySelectorAll('#m-' + mode + ' .pin text')].map(t => t.textContent), cars: document.querySelectorAll('#m-' + mode + ' .car').length,
           legend: [...document.querySelectorAll('#legend li')].map(l => l.textContent), has_dont_heading: /please don/i.test(q('.donts').textContent),
-          bullets: [...document.querySelectorAll('.card')].filter(c => c.querySelector('ul')).map(c => c.querySelector('h3').textContent), loop_pressed: q('#loopbtn').getAttribute('aria-pressed'), looptext_hidden: q('#looptext').hidden,
+          bullets: [...document.querySelectorAll('.card')].filter(c => c.querySelector('ul')).map(c => c.querySelector('h3').textContent), loop_bits: document.querySelectorAll('#m-loop, .loop, #loopbtn, .looplink, #looptext').length,
           buttons: [...document.querySelectorAll('button')].map(b => b.getBoundingClientRect().height),
           rows: [...document.querySelectorAll('#cards table tbody tr')].map(r => [...r.cells].map(c => c.childNodes[0].textContent)),
           mine: [...document.querySelectorAll('#cards tr.mine td')].map(c => c.childNodes[0].textContent),
@@ -106,8 +106,8 @@ def embed_checks(p, d):
             st = frame.evaluate(STATE)
             check(not errors, f"{tag}: no script errors {errors or ''}")
             check(st["title"] == d["title"] and 0 <= st["title_top"] < 40, f"{tag}: title at the top of the frame")
-            check(st["mode"] == mode and st["routes"] == {"morning": mode == "morning", "afternoon": mode == "afternoon", "loop": False},
-                  f"{tag}: toggle shows {mode}, only that route is drawn, no loop")
+            check(st["mode"] == mode and st["routes"] == {"morning": mode == "morning", "afternoon": mode == "afternoon"} and st["viewbox"] == "0 0 360 250" and st["loop_bits"] == 0 and "15th" not in st["text"] and "on map" not in st["text"],
+                  f"{tag}: toggle shows {mode}, only that route is drawn; no loop, loop button or loop text")
             check(st["headline"] == m["headline"] and st["steps"] == [s["t"] for s in m["steps"]], f"{tag}: headline and the {len(m['steps'])} steps from the data")
             check(st["donts"] == [[isinstance(x, dict) and bool(x.get("ok")), x["t"] if isinstance(x, dict) else x] for x in m["donts"]] and not st["has_dont_heading"],
                   f"{tag}: the rules box lists the data's lines with an X or a check, and has no heading")
@@ -132,18 +132,12 @@ def embed_checks(p, d):
                 check(st["map"]["top"] < st["inner_h"] - 40, f"{tag}: the map starts in the first view")
             if label in ("desktop-page", "phone-page"):
                 page.screenshot(path=str(harness / f"dropoff-pickup-{label}-{mode}.png"))
-            # circle the block, then the other mode
-            fl.locator("#loopbtn").click()
-            s2 = frame.evaluate(STATE)
-            check(s2["routes"]["loop"] and s2["viewbox"] == "0 0 360 380" and s2["loop_pressed"] == "true" and not s2["looptext_hidden"] and m["loop"]["text"] in s2["text"],
-                  f"{tag}: the loop button draws the loop, extends the map to 15th and shows its text")
-            if label == "desktop-page":
-                page.screenshot(path=str(harness / f"dropoff-pickup-{label}-{mode}-loop.png"))
+            # the other mode
             other = "afternoon" if mode == "morning" else "morning"
             fl.locator(f"#tab-{other}").click()
             s3 = frame.evaluate(STATE)
-            check(s3["mode"] == other and s3["routes"][other] and not s3["routes"][mode] and not s3["routes"]["loop"] and s3["viewbox"] == "0 0 360 250"
-                  and s3["headline"] == d["modes"][other]["headline"], f"{tag}: the toggle switches to {other} in place and drops the loop")
+            check(s3["mode"] == other and s3["routes"][other] and not s3["routes"][mode]
+                  and s3["headline"] == d["modes"][other]["headline"], f"{tag}: the toggle switches to {other} in place")
             ctx.close()
     print("[time of day]")
     for iso, want in (("2026-11-12T15:30:00Z", "morning"), ("2026-11-12T22:30:00Z", "afternoon")):   # 7:30 a.m. and 2:30 p.m. Pacific

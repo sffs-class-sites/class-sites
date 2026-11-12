@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "_note": "Drop-off & Pickup embed (build/build_dropoff_pickup.py). Every fact here comes from the school's 'Arrival, Dismissal and Carpool Information 2026-27' (Google Doc 1pziyPtYZ9dg8m8nHnMNLzVB-vwP99cSteEc6_C-on1Q) and its two maps; wording is edited down, never changed in meaning. Start and dismissal times are NOT here: the build reads them from shared/school-hours/data.json. The map itself (streets, routes) is drawn in the build script. Personal data: No emails or phone numbers. The two staff names in the Middle School self-dismissal card are the school's own published contacts and are here as an exception to the no-personal-data rule (Ahin, 2026-11-12); add no other names. Style: After a colon, the next word starts with a capital letter. Bump `updated` when you change it. Wording revised by Ahin 2026-11-12. In a card or step, [words](https://link) makes a link that opens a new tab. A card with \"bullets\": true shows each line as a bullet. A `donts` entry is a plain string (shown with an X) or {\"t\": ..., \"ok\": true} (a check mark); add \"loop\": true to make it the button that draws the circle-the-block loop on the map (one per mode).",
+  "_note": "Drop-off & Pickup embed (build/build_dropoff_pickup.py). Every fact here comes from the school's 'Arrival, Dismissal and Carpool Information 2026-27' (Google Doc 1pziyPtYZ9dg8m8nHnMNLzVB-vwP99cSteEc6_C-on1Q) and its two maps; wording is edited down, never changed in meaning. Start and dismissal times are NOT here: the build reads them from shared/school-hours/data.json. The map itself (streets, routes) is drawn in the build script. Personal data: No emails or phone numbers. The two staff names in the Middle School self-dismissal card are the school's own published contacts and are here as an exception to the no-personal-data rule (Ahin, 2026-11-12); add no other names. Style: After a colon, the next word starts with a capital letter. Bump `updated` when you change it. Wording revised by Ahin 2026-11-12. In a card or step, [words](https://link) makes a link that opens a new tab. A card with \"bullets\": true shows each line as a bullet. A `donts` entry is a plain string (shown with an X) or {\"t\": ..., \"ok\": true} (a check mark). No circle-the-block route is drawn or described (Ahin, 2026-11-12): Staff outside direct it.",
   "title": "Drop-Off & Pickup",
   "address": "250 Valencia St",
   "year_label": "Academic Year '26-'27",
@@ -47,13 +47,9 @@
         "No drop-off on Guerrero in front of Francis of Assisi.",
         {
           "t": "No room? Circle the Block",
-          "ok": true,
-          "loop": true
+          "ok": true
         }
       ],
-      "loop": {
-        "text": "Asked to circle? One way around that stays off the side alleys: Valencia, 15th, Guerrero, Duboce, and back down Valencia."
-      },
       "cards": [
         {
           "h": "On foot or by bike",
@@ -104,16 +100,8 @@
         {
           "t": "Neighbors on Clinton Park come first, staff may ask you to circle the block to accommodate them.",
           "ok": true
-        },
-        {
-          "t": "Line full? Circle the Block",
-          "ok": true,
-          "loop": true
         }
       ],
-      "loop": {
-        "text": "Line full, or asked to make room for a neighbor? Circle the block: Duboce, down Valencia, back around on 15th, then onto Guerrero."
-      },
       "cards": [
         {
           "h": "One pickup per car",
