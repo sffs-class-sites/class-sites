@@ -45,6 +45,10 @@ embeds:
     type: url
     path: shared/team-schedule/  # placed with ?team=<id>; one data file per team in shared/team-schedule/teams/ (ROADMAP C5 step 2, built 2026-11-08). First team: hoops-2034-2027-winter, live on the 1st-grade Basketball page since 2026-11-08
     owner: platform
+  key-systems:
+    type: url
+    path: shared/key-systems/    # school-wide, no ?class=; draws its own collapsible header so it sits among the Resources page's collapsible groups. Data: shared/key-systems/data.json. Built 2026-11-11; not placed on any Site yet
+    owner: platform
 
 sites:
   class-2032:            # 3rd grade in 2026–27
