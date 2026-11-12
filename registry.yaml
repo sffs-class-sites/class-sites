@@ -51,7 +51,7 @@ embeds:
     owner: platform
   dropoff-pickup:
     type: url
-    path: shared/dropoff-pickup/  # placed with ?class=YYYY (flags that class's times); a whole-page embed, alone on its own Site page at box `page`. Built 2026-11-12; not placed on a Site yet. Data: shared/dropoff-pickup/data.json; the map is drawn in build/build_dropoff_pickup.py
+    path: shared/dropoff-pickup/  # placed with ?class=YYYY (flags that class's times); a whole-page embed, alone on its own Site page at box `page`. Live on the 1st-grade Resources → Dropoff and Pickup page since 2026-11-12. Data: shared/dropoff-pickup/data.json; the map is drawn in build/build_dropoff_pickup.py
     owner: platform
 
 sites:
@@ -85,6 +85,11 @@ sites:
         status: url           # swapped 2026-11-08
       - page: resources/key-school-systems
         embed: key-systems    # alone on its own page; Ahin placed it 2026-11-12, tools/sites_editor.py resize took it from h/w 0.586 to 0.935 (two drags) and published; live check PASS: 1154 x 1079 desktop, 352 x 329 iPhone
+        box: page
+        status: url
+      - page: resources/dropoff-and-pickup
+        embed: dropoff-pickup # alone on its own page (Resources → Dropoff and Pickup); Ahin placed it 2026-11-12, tools/sites_editor.py resize took it from h/w 0.586 to 0.935 (two drags) and published; live check PASS: 1154 x 1079 desktop, 352 x 329 iPhone
+        query: {class: 2034}
         box: page
         status: url
       - page: home
