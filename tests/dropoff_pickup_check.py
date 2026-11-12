@@ -6,7 +6,7 @@
    352 x 329 on an iPhone 13), at `card` (352 x 235, 315 x 210) and a tablet, in both modes:
    title at the top; the toggle shows the right mode and switches; the right route is drawn and the
    other hidden; three steps; the map (pin 3, the loading island) is in the first view on a phone at
-   `page`; the circle-the-block button extends the map to 15th and back; times come from
+   `page`; the circle-the-block line in the rules box extends the map to 15th and back; times come from
    shared/school-hours/data.json with ?class= flagged; buttons at least 44px; no horizontal scroll;
    outbound links open a new tab.
 3. The time-of-day default (morning before 11 a.m. Pacific) and the translation notice.
@@ -30,6 +30,7 @@ from render_check import SANDBOX  # noqa: E402
 
 BASE = "http://127.0.0.1:8741/shared/dropoff-pickup/"
 FRAMES = [("desktop-page", 1154, 1080), ("tablet", 700, 672), ("phone-page", 352, 329), ("phone-card", 352, 235), ("phone-narrow", 315, 210)]
+LINK = re.compile(r"\[([^\]]+)\]\(https://[^)\s]+\)")
 failures = []
 
 
@@ -50,7 +51,7 @@ def data_checks():
     print("[data]")
     d = json.loads((ROOT / "shared/dropoff-pickup/data.json").read_text())
     check(d.get("schema") == 1 and d.get("title") and re.fullmatch(r"\d{4}-\d{2}-\d{2}", d.get("updated", "")), "schema 1 with a title and an updated date")
-    check(all(len(d["modes"][m]["steps"]) == 3 for m in ("morning", "afternoon")), "morning and afternoon each have exactly 3 steps (the map's pins)")
+    check(len(d["modes"]["morning"]["steps"]) == 3 and len(d["modes"]["afternoon"]["steps"]) == 2, "3 morning steps and 2 afternoon steps (the map's pins)")
     body = json.dumps({k: v for k, v in d.items() if k != "_note"})
     check(not re.search(r"[\w.+-]+@[\w-]+\.\w|\b\d{3}-\d{4}\b", body), "no email address or phone number in the data (public file)")
     return d
@@ -64,7 +65,10 @@ STATE = """() => {
           routes: {morning: vis(q('#m-morning .route')), afternoon: vis(q('#m-afternoon .route')), loop: vis(q('#m-loop .loop'))},
           viewbox: q('#map').getAttribute('viewBox'), map: box(q('#map')), pin3: box(q('#m-' + mode + ' .pin:last-of-type')),
           headline: q('#headline').textContent, steps: [...document.querySelectorAll('#steps .st')].map(e => e.textContent),
-          donts: document.querySelectorAll('#donts li').length, loop_pressed: q('#loopbtn').getAttribute('aria-pressed'), looptext_hidden: q('#looptext').hidden,
+          donts: [...document.querySelectorAll('#donts li')].map(l => [l.className === 'ok', l.querySelector('button') ? l.querySelector('button').childNodes[0].textContent : l.textContent]),
+          pins: [...document.querySelectorAll('#m-' + mode + ' .pin text')].map(t => t.textContent), cars: document.querySelectorAll('#m-' + mode + ' .car').length,
+          legend: [...document.querySelectorAll('#legend li')].map(l => l.textContent), has_dont_heading: /please don/i.test(q('.donts').textContent),
+          bullets: [...document.querySelectorAll('.card')].filter(c => c.querySelector('ul')).map(c => c.querySelector('h3').textContent), loop_pressed: q('#loopbtn').getAttribute('aria-pressed'), looptext_hidden: q('#looptext').hidden,
           buttons: [...document.querySelectorAll('button')].map(b => b.getBoundingClientRect().height),
           rows: [...document.querySelectorAll('#cards table tbody tr')].map(r => [...r.cells].map(c => c.childNodes[0].textContent)),
           mine: [...document.querySelectorAll('#cards tr.mine td')].map(c => c.childNodes[0].textContent),
@@ -104,13 +108,19 @@ def embed_checks(p, d):
             check(st["title"] == d["title"] and 0 <= st["title_top"] < 40, f"{tag}: title at the top of the frame")
             check(st["mode"] == mode and st["routes"] == {"morning": mode == "morning", "afternoon": mode == "afternoon", "loop": False},
                   f"{tag}: toggle shows {mode}, only that route is drawn, no loop")
-            check(st["headline"] == m["headline"] and st["steps"] == [s["t"] for s in m["steps"]], f"{tag}: headline and the 3 steps from the data")
-            check(st["donts"] == len(m["donts"]), f"{tag}: {len(m['donts'])} don'ts listed")
+            check(st["headline"] == m["headline"] and st["steps"] == [s["t"] for s in m["steps"]], f"{tag}: headline and the {len(m['steps'])} steps from the data")
+            check(st["donts"] == [[isinstance(x, dict) and bool(x.get("ok")), x["t"] if isinstance(x, dict) else x] for x in m["donts"]] and not st["has_dont_heading"],
+                  f"{tag}: the rules box lists the data's lines with an X or a check, and has no heading")
+            check(st["pins"] == [str(i + 1) for i in range(len(m["steps"]))], f"{tag}: one numbered pin per step ({st['pins']})")
+            check(st["cars"] == (2 if mode == "morning" else 1), f"{tag}: {'two cars (down Valencia, and from Duboce)' if mode == 'morning' else 'one car'} on the route")
+            check(st["legend"][0] == "SFFS Route", f"{tag}: legend calls the route 'SFFS Route'")
+            check(st["bullets"] == [c["h"] for c in m["cards"] + d["always"] if c.get("bullets")], f"{tag}: bulleted cards are the ones the data marks ({len(st['bullets'])})")
             want = [[r["label"], r["regular"]["start"]] if mode == "morning" else [r["label"], r["regular"]["end"], r["wednesday"]["end"]] for r in hours]
             check(st["rows"] == want, f"{tag}: times by grade match shared/school-hours/data.json")
             check(st["mine"][:1] == ["1st Grade"], f"{tag}: ?class=2034 flags the 1st grade row")
             check(st["cards"] == [m["times_h"]] + [c["h"] for c in m["cards"]] + [c["h"] for c in d["always"]], f"{tag}: every card from the data, in order")
-            check(all(t in st["text"] for c in m["cards"] + d["always"] for t in c["p"]), f"{tag}: every line of every card is on the page")
+            check(all(LINK.sub(r"\1", t) in st["text"] for c in m["cards"] + d["always"] for t in c["p"]), f"{tag}: every line of every card is on the page")
+            check(sum(1 for l in st["links"] if l["href"] == d["form_url"]) == (2 if mode == "afternoon" else 0), f"{tag}: the dismissal form is linked from its two cards (afternoon only)")
             check(min(st["buttons"]) >= 44, f"{tag}: every button at least 44px tall ({min(st['buttons']):.0f})")
             check(not st["hscroll"], f"{tag}: no horizontal scroll")
             check(not st["full_hidden"], f"{tag}: Full page link offered inside a frame")

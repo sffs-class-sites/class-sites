@@ -13,11 +13,18 @@ puts that row's hours first on a phone. Without ?class= it shows the plain table
 
 A <meta name="sffs-embed"> marker carries id@version for the monitor: the handbook's
 revision month plus a hash of the data, so an edit to the hours changes the version.
+
+Under the table, a class whose Site has a Drop-off & Pickup page gets a link to it (Ahin,
+2026-11-12). The link is that Site's own page, so it differs per class: dropoff_links() reads
+it from registry.yaml (the site's `live` URL plus the page of its dropoff-pickup slot). A class
+with no such slot shows no link. The links are part of the version.
 """
 import hashlib
 import json
 import pathlib
 import sys
+
+import yaml
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import classinfo
@@ -26,6 +33,7 @@ import style
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SRC = ROOT / "shared" / "school-hours" / "data.json"
 OUT = ROOT / "_site" / "shared" / "school-hours"
+REGISTRY = ROOT / "registry.yaml"
 
 PAGE = r"""<!DOCTYPE html>
 <html lang="en">
@@ -68,6 +76,10 @@ tr.is-highlight .grade-cell{border-left:3px solid var(--hl-border);padding-left:
 footer{margin-top:16px;font-size:.8rem;color:var(--sub)}
 footer p{margin:4px 0}
 a.src{color:var(--accent);font-weight:600}
+.more{margin:10px 0 0;font-size:.95rem}
+.more[hidden]{display:none}
+.more a{display:inline-block;padding:8px 0;color:var(--accent);font-weight:700}
+.more a:focus-visible{outline:3px solid #f0a055;outline-offset:2px}
 a.src:focus-visible{outline:3px solid #f0a055;outline-offset:2px}
 .sffs-fade{position:fixed;left:0;right:0;bottom:0;height:58px;z-index:8;pointer-events:none;background:linear-gradient(to bottom,rgba(255,255,255,0),#fff 72%);border-radius:0 0 12px 12px}
 .sffs-hint{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:9;pointer-events:none;white-space:nowrap;font:600 12px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--accent);background:var(--accent-light);border:1px solid #d6dff5;padding:7px 13px;border-radius:999px;box-shadow:0 1px 5px rgba(0,0,0,.13)}
@@ -108,6 +120,7 @@ a.src:focus-visible{outline:3px solid #f0a055;outline-offset:2px}
       <tbody id="rows"></tbody>
     </table>
   </div>
+  <p class="more" id="dropoff" hidden><a id="dropoff-link" href="" target="_blank" rel="noopener">Pickup and drop-off details &#8599;</a></p>
   <div class="callout"><h2>Building hours</h2><div id="building"></div></div>
   <footer id="foot"></footer>
 </div>
@@ -157,6 +170,10 @@ a.src:focus-visible{outline:3px solid #f0a055;outline-offset:2px}
     tbody.appendChild(tr);
   });
 
+  /* This class's Drop-off & Pickup page on its own Site, when it has one (registry.yaml, at build time). */
+  var dp = ci.cls && DATA.dropoff_links[String(ci.cls)];
+  if (dp) { document.getElementById('dropoff-link').href = dp; document.getElementById('dropoff').hidden = false; }
+
   var b = document.getElementById('building');
   DATA.building.forEach(function(x){ var p = el('p'); p.appendChild(el('strong', null, x.label + ': ')); p.appendChild(document.createTextNode(x.text)); b.appendChild(p); });
 
@@ -193,8 +210,21 @@ def load():
     return data, raw
 
 
+def dropoff_links(registry=REGISTRY):
+    """{class year: URL of that class Site's Drop-off & Pickup page}, from the registry's dropoff-pickup slots."""
+    sites = yaml.safe_load(registry.read_text()).get("sites") or {}
+    out = {}
+    for key, site in sites.items():
+        for slot in site.get("slots") or []:
+            if slot.get("embed") == "dropoff-pickup" and key.startswith("class-") and site.get("live"):
+                out[key.removeprefix("class-")] = site["live"].rstrip("/") + "/" + slot["page"].strip("/")
+    return out
+
+
 def build(data, raw):
-    version = f"{data['source']['updated_iso']}.{hashlib.sha256(raw).hexdigest()[:8]}"
+    links = dropoff_links()
+    data = dict(data, dropoff_links=links)
+    version = f"{data['source']['updated_iso']}.{hashlib.sha256(raw + json.dumps(links, sort_keys=True).encode()).hexdigest()[:8]}"
     page = (PAGE.replace("{{VERSION}}", version)
                 .replace("{{CLASS_JS}}", classinfo.class_js())
                 .replace("{{LANG_JS}}", classinfo.lang_js())

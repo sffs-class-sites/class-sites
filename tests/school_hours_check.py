@@ -30,6 +30,10 @@ from render_check import SANDBOX  # noqa: E402
 
 TODAY = "2026-10-12"   # inside 2026-27, so ?class= resolves as the data file's school year expects
 # phone = the standard `card` box on an iPhone 13; phone-narrow = the same box on the narrowest phones (registry.yaml `boxes`)
+sys.path.insert(0, str(ROOT / "build"))
+from build_school_hours import dropoff_links  # noqa: E402
+
+DROPOFF = dropoff_links()
 FRAMES = [("desktop", 1154, 770), ("tablet", 700, 672), ("phone", 352, 235), ("phone-narrow", 315, 210)]
 TIME = re.compile(r"^\d{1,2}:\d{2} [ap]\.m\.$")
 failures = []
@@ -111,6 +115,14 @@ def embed_checks(p, d):
             }""")
             check(st["rows"] == len(d["rows"]), f"{tag}: all {len(d['rows'])} grade rows rendered")
             check(not st["hscroll"], f"{tag}: no horizontal scroll")
+            cls = re.search(r"class=(\d{4})", query)
+            want_dp = DROPOFF.get(cls.group(1)) if cls else None
+            dp = frame.evaluate("() => { const p = document.querySelector('#dropoff'), a = document.querySelector('#dropoff-link'); return p.hidden ? null : {href: a.getAttribute('href'), target: a.target, rel: a.rel, h: a.getBoundingClientRect().height, below: a.getBoundingClientRect().top >= document.querySelector('table').getBoundingClientRect().bottom}; }")
+            if want_dp:
+                check(dp and dp["href"] == want_dp and dp["target"] == "_blank" and "noopener" in dp["rel"] and dp["below"] and dp["h"] >= 32,
+                      f"{tag}: under the table, a link to this class's Drop-off & Pickup page ({want_dp}) that opens a new tab")
+            else:
+                check(dp is None, f"{tag}: no Drop-off & Pickup link (this class's Site has no such page in registry.yaml)")
             if want_row:
                 check(st["hl"] == [want_row] and st["flags"] == ["THIS CLASS"], f"{tag}: row {want_row!r} highlighted and flagged THIS CLASS ({st['hl']})")
                 check(not st["lead_hidden"] and st["lead_text"].startswith(want_lead), f"{tag}: lead card names the viewer's grade ({st['lead_text'][:40]!r})")
