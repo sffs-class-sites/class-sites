@@ -11,6 +11,8 @@ import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "build"))
+from style import data_issues  # noqa: E402  house style: a capital after a colon
 DATA = json.loads((ROOT / "shared/important-dates/data.json").read_text())
 SRC = (ROOT / "shared/important-dates/source-2026-27.txt").read_text()
 
@@ -78,6 +80,8 @@ def main():
     for e in evs:
         if not ("2026-08-01" <= e["date"] <= "2027-06-30"):
             errors.append(f"{e['date']}: outside the 2026–27 school year")
+    for issue in data_issues(DATA):
+        errors.append(f"after a colon, start the next word with a capital letter: {issue}")
     if errors:
         print("FAIL\n  " + "\n  ".join(errors))
         return 1

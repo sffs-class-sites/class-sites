@@ -12,6 +12,8 @@ import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "build"))
+from style import data_issues, starts_lowercase  # noqa: E402  house style: a capital after a colon
 SRC = ROOT / "shared" / "updates" / "data.json"
 
 KINDS = {"event", "deadline", "notice", "volunteer", "letter", "classroom"}
@@ -136,6 +138,15 @@ def main():
                 errors.append(f"{w}: link needs label and https url: {l}")
             if "veracross.com/c/" in l.get("url", ""):
                 errors.append(f"{w}: link is a Veracross tracking redirect; store the destination")
+
+    # House style (build/style.py): a capital letter after a colon in our own wording. Email subjects are
+    # exempt: the build links each source to its full text by the subject exactly as the email had it.
+    for issue in data_issues(data):
+        errors.append(f"after a colon, start the next word with a capital letter: {issue}")
+    for t in data["topics"]:   # the page prints "Due <date>: " + what, so `what` itself must start with a capital
+        what = (t.get("deadline") or {}).get("what")
+        if starts_lowercase(what):
+            errors.append(f"topic {t['id']}: deadline.what follows 'Due <date>: ' on the page, so start it with a capital letter: {what[:30]!r}")
 
     # Personal data sweep over every string in the file.
     for s in walk_text(data):

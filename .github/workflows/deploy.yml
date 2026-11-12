@@ -97,6 +97,9 @@ jobs:
       - name: Key school systems check (data file, collapsible header, links open new tabs, phone first view)
         run: python3 tests/key_systems_check.py
 
+      - name: House style on every rendered embed (a capital letter after a colon; build/style.py)
+        run: python3 tests/style_check.py
+
       - name: Live check self-test (fake Site built from this build; the real Sites are checked daily)
         run: python3 tests/live_check.py --mock
 

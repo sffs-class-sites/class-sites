@@ -26,6 +26,7 @@ from urllib.parse import urlparse
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import classinfo
+import style
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SRC = ROOT / "shared" / "key-systems" / "data.json"
@@ -131,7 +132,6 @@ footer{margin-top:14px;font-size:.8rem;color:var(--sub)}
 """
 
 PERSONAL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+|\b\d{3}[-. ]\d{3}[-. ]\d{4}\b|\b\d{3}-\d{4}\b")
-AFTER_COLON = re.compile(r":\s+[a-z]")   # Ahin, 2026-11-12: after a colon, capitalise the next word
 MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 
 
@@ -165,9 +165,8 @@ def load():
         if u.scheme != "https" or not u.netloc:
             errs.append(f"{tag}: url must be a full https:// link")
         for k in ("name", "description"):
-            m = AFTER_COLON.search(s.get(k, ""))
-            if m:
-                errs.append(f"{tag}: {k} has a lowercase letter after a colon ({m.group(0)!r}); house style starts the next word with a capital")
+            for snip in style.colon_issues(s.get(k, "")):
+                errs.append(f"{tag}: {k} has a lowercase letter after a colon ({snip}); house style (build/style.py) starts the next word with a capital")
         if len(s.get("description", "")) > 160:
             errs.append(f"{tag}: description is over 160 characters; keep it to one line on a desktop")
     if PERSONAL.search(json.dumps({k: v for k, v in data.items() if k != "_note"})):
