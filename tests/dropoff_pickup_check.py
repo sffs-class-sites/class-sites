@@ -65,6 +65,7 @@ STATE = """() => {
           routes: {morning: vis(q('#m-morning .route')), afternoon: vis(q('#m-afternoon .route'))},
           viewbox: q('#map').getAttribute('viewBox'), map: box(q('#map')), pin3: box(q('#m-' + mode + ' .pin:last-of-type')),
           headline: q('#headline').textContent, steps: [...document.querySelectorAll('#steps .st')].map(e => e.textContent),
+          marks: [...document.querySelectorAll('#donts li')].map(l => { const s = getComputedStyle(l, '::before'); return [l.className === 'ok', s.backgroundColor, parseFloat(s.width), s.backgroundImage.startsWith('url(')]; }),
           donts: [...document.querySelectorAll('#donts li')].map(l => [l.className === 'ok', l.querySelector('button') ? l.querySelector('button').childNodes[0].textContent : l.textContent]),
           pins: [...document.querySelectorAll('#m-' + mode + ' .pin text')].map(t => t.textContent), cars: document.querySelectorAll('#m-' + mode + ' .car').length,
           legend: [...document.querySelectorAll('#legend li')].map(l => l.textContent), has_dont_heading: /please don/i.test(q('.donts').textContent),
@@ -111,6 +112,8 @@ def embed_checks(p, d):
             check(st["headline"] == m["headline"] and st["steps"] == [s["t"] for s in m["steps"]], f"{tag}: headline and the {len(m['steps'])} steps from the data")
             check(st["donts"] == [[isinstance(x, dict) and bool(x.get("ok")), x["t"] if isinstance(x, dict) else x] for x in m["donts"]] and not st["has_dont_heading"],
                   f"{tag}: the rules box lists the data's lines with an X or a check, and has no heading")
+            check(all(m_[1] == ("rgb(24, 128, 56)" if m_[0] else "rgb(217, 48, 37)") and m_[2] >= 22 and m_[3] for m_ in st["marks"]),
+                  f"{tag}: each rule has a drawn mark at least 22px wide, a white X on red or a white check on green")
             check(st["pins"] == [str(i + 1) for i in range(len(m["steps"]))], f"{tag}: one numbered pin per step ({st['pins']})")
             check(st["cars"] == (2 if mode == "morning" else 1), f"{tag}: {'two cars (down Valencia, and from Duboce)' if mode == 'morning' else 'one car'} on the route")
             check(st["legend"][0] == "SFFS Route", f"{tag}: legend calls the route 'SFFS Route'")
