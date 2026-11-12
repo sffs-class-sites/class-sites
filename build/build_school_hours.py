@@ -21,6 +21,7 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import classinfo
+import style
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SRC = ROOT / "shared" / "school-hours" / "data.json"
@@ -185,6 +186,10 @@ def load():
     data = json.loads(raw)
     if data.get("schema") != 1 or not data.get("rows") or not data.get("source"):
         raise SystemExit("school-hours/data.json: expected schema 1 with rows and source")
+    issues = style.data_issues(data) + [f"building[{i}].text (shown after '{b['label']}: '): {b['text'][:30]!r}"
+                                        for i, b in enumerate(data.get("building", [])) if style.starts_lowercase(b.get("text"))]
+    if issues:
+        raise SystemExit("school-hours/data.json: after a colon, start the next word with a capital letter:\n  " + "\n  ".join(issues))
     return data, raw
 
 

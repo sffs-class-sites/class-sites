@@ -26,6 +26,7 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import classinfo
+import style
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 TEAMS = ROOT / "shared" / "team-schedule" / "teams"
@@ -42,6 +43,9 @@ def load_team(path):
               "utc_offset_hours", "utc_offset_valid_until", "source", "venue", "games", "class"):
         if k not in t:
             raise SystemExit(f"{path.name}: missing {k}")
+    issues = style.data_issues(t)
+    if issues:
+        raise SystemExit(f"{path.name}: after a colon, start the next word with a capital letter:\n  " + "\n  ".join(issues))
     if not re.fullmatch(r"\d{8}T\d{6}Z", t["dtstamp"]):
         raise SystemExit(f"{path.name}: dtstamp must look like 20261029T000000Z")
     limit = dt.date.fromisoformat(t["utc_offset_valid_until"])
@@ -313,9 +317,9 @@ footer a{color:var(--accent);font-weight:600}
   body.appendChild(tools);
   all.addEventListener('click', function(){ download(team.id + '-games.ics', wrapCal(events.map(function(e){ return e.ics; }))); });
   var NOTE = {
-    google: ['Each game has a + Google button. ', 'Add all games', ' downloads one calendar file: in Google Calendar, Settings \u2192 Import & export \u2192 Import, and choose the file.'],
-    outlook: ['Each game has a + Outlook button. ', 'Add all games', ' downloads one calendar file: open it, or use Import in your calendar settings.'],
-    apple: ['Each game has a + Apple button. ', 'Add all games', ' downloads one calendar file: open it and Apple Calendar offers to add them all.']
+    google: ['Each game has a + Google button. ', 'Add all games', ' downloads one calendar file: In Google Calendar, Settings \u2192 Import & export \u2192 Import, and choose the file.'],
+    outlook: ['Each game has a + Outlook button. ', 'Add all games', ' downloads one calendar file: Open it, or use Import in your calendar settings.'],
+    apple: ['Each game has a + Apple button. ', 'Add all games', ' downloads one calendar file: Open it and Apple Calendar offers to add them all.']
   };
   function renderButtons(pref){
     rows.forEach(function(r){
