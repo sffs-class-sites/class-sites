@@ -67,7 +67,7 @@ STATE = """() => {
           headline: q('#headline').textContent, steps: [...document.querySelectorAll('#steps .st')].map(e => e.textContent),
           marks: [...document.querySelectorAll('#donts li')].map(l => { const s = getComputedStyle(l, '::before'); return [l.className === 'ok', s.backgroundColor, parseFloat(s.width), s.backgroundImage.startsWith('url(')]; }),
           donts: [...document.querySelectorAll('#donts li')].map(l => [l.className === 'ok', l.querySelector('button') ? l.querySelector('button').childNodes[0].textContent : l.textContent]),
-          pins: [...document.querySelectorAll('#m-' + mode + ' .pin text')].map(t => t.textContent), cars: document.querySelectorAll('#m-' + mode + ' .car').length, models: [...document.querySelectorAll('#map .car')].map(c => c.dataset.model + ':' + !!document.querySelector(c.querySelector('use').getAttribute('href'))),
+          pins: [...document.querySelectorAll('#m-' + mode + ' .pin text')].map(t => t.textContent), cars: document.querySelectorAll('#m-' + mode + ' .car').length, models: [...document.querySelectorAll('#m-' + mode + ' .car')].map(c => c.dataset.model + ':' + !!document.querySelector(c.querySelector('use').getAttribute('href'))),
           legend: [...document.querySelectorAll('#legend li')].map(l => l.textContent), has_dont_heading: /please don/i.test(q('.donts').textContent),
           bullets: [...document.querySelectorAll('.card')].filter(c => c.querySelector('ul')).map(c => c.querySelector('h3').textContent), loop_bits: document.querySelectorAll('#m-loop, .loop, #loopbtn, .looplink, #looptext').length,
           buttons: [...document.querySelectorAll('button')].map(b => b.getBoundingClientRect().height),
@@ -115,8 +115,8 @@ def embed_checks(p, d):
             check(all(m_[1] == ("rgb(24, 128, 56)" if m_[0] else "rgb(217, 48, 37)") and m_[2] >= 22 and m_[3] for m_ in st["marks"]),
                   f"{tag}: each rule has a drawn mark at least 22px wide, a white X on red or a white check on green")
             check(st["pins"] == [str(i + 1) for i in range(len(m["steps"]))], f"{tag}: one numbered pin per step ({st['pins']})")
-            check(st["cars"] == (2 if mode == "morning" else 1), f"{tag}: {'two cars (down Valencia, and from Duboce)' if mode == 'morning' else 'one car'} on the route")
-            check(st["models"] == ["mini:true", "bronco:true", "mustang:true"], f"{tag}: three different cars, each drawn from its own silhouette ({st['models']})")
+            check(st["cars"] == 3, f"{tag}: all three cars on the route")
+            check(sorted(st["models"]) == ["bronco:true", "mini:true", "mustang:true"], f"{tag}: the Bronco, the Mini and the convertible, each drawn from its own silhouette ({st['models']})")
             check(st["legend"][0] == "SFFS Route", f"{tag}: legend calls the route 'SFFS Route'")
             check(st["bullets"] == [c["h"] for c in m["cards"] + d["always"] if c.get("bullets")], f"{tag}: bulleted cards are the ones the data marks ({len(st['bullets'])})")
             want = [[r["label"], r["regular"]["start"]] if mode == "morning" else [r["label"], r["regular"]["end"], r["wednesday"]["end"]] for r in hours]

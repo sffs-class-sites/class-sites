@@ -116,10 +116,13 @@ MAP = r"""
     <path class="route" d="M282,0 V250"/>
     <path class="route" d="M74,40 H282"/>
     <g class="arrow"><path d="M222,40 l-9,-6 v12z"/><path d="M282,116 l-6,-9 h12z"/><path d="M282,236 l-6,-9 h12z"/></g>
+    <!-- All three cars in each scene, one every 3.5s (morning) or 4s (afternoon), so each has the loading island to itself (Ahin, 2026-11-12). -->
     <g class="car" data-model="mini"><use href="#car-mini"/>
-      <animateMotion dur="7s" begin="-3.5s" repeatCount="indefinite" rotate="auto" calcMode="linear" path="M74,40 H282 V262" keyPoints="0;0.763;0.763;1" keyTimes="0;0.5;0.72;1"/></g>
+      <animateMotion dur="10.5s" begin="-3.5s" repeatCount="indefinite" rotate="auto" calcMode="linear" path="M74,40 H282 V262" keyPoints="0;0.763;0.763;1" keyTimes="0;0.4286;0.7143;1"/></g>
     <g class="car" data-model="bronco"><use href="#car-bronco"/>
-      <animateMotion dur="7s" repeatCount="indefinite" rotate="auto" calcMode="linear" path="M282,-12 V262" keyPoints="0;0.628;0.628;1" keyTimes="0;0.42;0.72;1"/></g>
+      <animateMotion dur="10.5s" repeatCount="indefinite" rotate="auto" calcMode="linear" path="M282,-12 V262" keyPoints="0;0.628;0.628;1" keyTimes="0;0.4286;0.7143;1"/></g>
+    <g class="car" data-model="mustang"><use href="#car-mustang"/>
+      <animateMotion dur="10.5s" begin="-7s" repeatCount="indefinite" rotate="auto" calcMode="linear" path="M282,-12 V262" keyPoints="0;0.628;0.628;1" keyTimes="0;0.4286;0.7143;1"/></g>
     <g class="pin"><circle cx="301" cy="30" r="8.5"/><text x="301" y="34">1</text></g>
     <g class="pin"><circle cx="301" cy="72" r="8.5"/><text x="301" y="76">2</text></g>
     <g class="pin"><circle cx="301" cy="160" r="8.5"/><text x="301" y="164">3</text></g>
@@ -135,7 +138,11 @@ MAP = r"""
     <path class="route" d="M49,250 V105 H282 V250"/>
     <g class="arrow"><path d="M49,150 l-6,9 h12z"/><path d="M175,105 l-9,-6 v12z"/><path d="M282,236 l-6,-9 h12z"/></g>
     <g class="car" data-model="mustang"><use href="#car-mustang"/>
-      <animateMotion dur="10s" repeatCount="indefinite" rotate="auto" calcMode="linear" path="M49,262 V105 H282 V262" keyPoints="0;0.47;0.47;0.814;0.814;1" keyTimes="0;0.27;0.45;0.62;0.86;1"/></g>
+      <animateMotion dur="12s" repeatCount="indefinite" rotate="auto" calcMode="linear" path="M49,262 V105 H282 V262" keyPoints="0;0.47;0.47;0.814;0.814;1" keyTimes="0;0.2083;0.4167;0.5417;0.7917;1"/></g>
+    <g class="car" data-model="bronco"><use href="#car-bronco"/>
+      <animateMotion dur="12s" begin="-4s" repeatCount="indefinite" rotate="auto" calcMode="linear" path="M49,262 V105 H282 V262" keyPoints="0;0.47;0.47;0.814;0.814;1" keyTimes="0;0.2083;0.4167;0.5417;0.7917;1"/></g>
+    <g class="car" data-model="mini"><use href="#car-mini"/>
+      <animateMotion dur="12s" begin="-8s" repeatCount="indefinite" rotate="auto" calcMode="linear" path="M49,262 V105 H282 V262" keyPoints="0;0.47;0.47;0.814;0.814;1" keyTimes="0;0.2083;0.4167;0.5417;0.7917;1"/></g>
     <g class="pin"><circle cx="215" cy="105" r="8.5"/><text x="215" y="109">1</text></g>
     <g class="pin"><circle cx="301" cy="160" r="8.5"/><text x="301" y="164">2</text></g>
   </g>
@@ -372,10 +379,13 @@ footer{margin-top:16px;font-size:.8rem;color:var(--sub)}
   /* Reduced motion: no moving cars; park each one at its stop instead. */
   if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) {
     Array.prototype.forEach.call(document.querySelectorAll('#map animateMotion'), function(a){ a.parentNode.removeChild(a); });
-    /* One car parked at the loading island per mode (the Bronco in the morning, the convertible in the afternoon); the Mini is hidden. */
-    document.querySelector('#m-morning [data-model="bronco"]').setAttribute('transform', 'translate(282 160) rotate(90)');
-    document.querySelector('#m-morning [data-model="mini"]').setAttribute('display', 'none');
-    document.querySelector('#m-afternoon [data-model="mustang"]').setAttribute('transform', 'translate(282 160) rotate(90)');
+    /* One car parked at the loading island per mode (the Bronco in the morning, the convertible in the afternoon); the others are hidden. */
+    [['morning', 'bronco'], ['afternoon', 'mustang']].forEach(function(p){
+      Array.prototype.forEach.call(document.querySelectorAll('#m-' + p[0] + ' .car'), function(c){
+        if (c.getAttribute('data-model') === p[1]) c.setAttribute('transform', 'translate(282 160) rotate(90)');
+        else c.setAttribute('display', 'none');
+      });
+    });
   }
 
   /* Inside a Site the frame is small on a phone: offer the same page in its own tab. */
