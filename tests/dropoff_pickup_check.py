@@ -67,7 +67,9 @@ STATE = """() => {
           headline: q('#headline').textContent, steps: [...document.querySelectorAll('#steps .st')].map(e => e.textContent),
           marks: [...document.querySelectorAll('#donts li')].map(l => { const s = getComputedStyle(l, '::before'); return [l.className === 'ok', s.backgroundColor, parseFloat(s.width), s.backgroundImage.startsWith('url(')]; }),
           donts: [...document.querySelectorAll('#donts li')].map(l => [l.className === 'ok', l.querySelector('button') ? l.querySelector('button').childNodes[0].textContent : l.textContent]),
-          pins: [...document.querySelectorAll('#m-' + mode + ' .pin text')].map(t => t.textContent), cars: document.querySelectorAll('#m-' + mode + ' .car').length, models: [...document.querySelectorAll('#m-' + mode + ' .car')].map(c => c.dataset.model + ':' + !!document.querySelector(c.querySelector('use').getAttribute('href'))),
+          pins: [...document.querySelectorAll('#m-' + mode + ' .pin text')].map(t => t.textContent), gates: [...document.querySelectorAll('#map .gate')].map(g => { const t = g.querySelector('text').getBoundingClientRect(), r = g.querySelector('rect').getBoundingClientRect(), s = q('#map rect[fill="#3457a6"]').getBoundingClientRect(); return [g.textContent.trim(), t.left >= r.left - .5 && t.right <= r.right + .5, r.left >= s.left - .5 && r.right <= s.right + .5 && r.bottom <= s.bottom + .5, getComputedStyle(g.querySelector('rect')).fill]; }),
+          logo: (i => i && i.getAttribute('href'))(q('#map image')),
+          cars: document.querySelectorAll('#m-' + mode + ' .car').length, models: [...document.querySelectorAll('#m-' + mode + ' .car')].map(c => c.dataset.model + ':' + !!document.querySelector(c.querySelector('use').getAttribute('href'))),
           legend: [...document.querySelectorAll('#legend li')].map(l => l.textContent), has_dont_heading: /please don/i.test(q('.donts').textContent),
           bullets: [...document.querySelectorAll('.card')].filter(c => c.querySelector('ul')).map(c => c.querySelector('h3').textContent), loop_bits: document.querySelectorAll('#m-loop, .loop, #loopbtn, .looplink, #looptext').length,
           buttons: [...document.querySelectorAll('button')].map(b => b.getBoundingClientRect().height),
@@ -117,6 +119,9 @@ def embed_checks(p, d):
             check(st["pins"] == [str(i + 1) for i in range(len(m["steps"]))], f"{tag}: one numbered pin per step ({st['pins']})")
             check(st["cars"] == 3, f"{tag}: all three cars on the route")
             check(sorted(st["models"]) == ["bronco:true", "mini:true", "mustang:true"], f"{tag}: the Bronco, the Mini and the convertible, each drawn from its own silhouette ({st['models']})")
+            check([g[0][:7] for g in st["gates"]] == ["South G", "Brosnan"] and all(g[1] and g[2] and g[3] == "rgb(255, 255, 255)" for g in st["gates"]),
+                  f"{tag}: both gate names on white pills that fit their text and stay on the building ({st['gates']})")
+            check(st["logo"] == "sffs-logo.png", f"{tag}: the school logo is on the building")
             check(st["legend"][0] == "SFFS Route", f"{tag}: legend calls the route 'SFFS Route'")
             check(st["bullets"] == [c["h"] for c in m["cards"] + d["always"] if c.get("bullets")], f"{tag}: bulleted cards are the ones the data marks ({len(st['bullets'])})")
             want = [[r["label"], r["regular"]["start"]] if mode == "morning" else [r["label"], r["regular"]["end"], r["wednesday"]["end"]] for r in hours]
@@ -165,6 +170,8 @@ def main():
     d = data_checks()
     built = SITE / "shared/dropoff-pickup/index.html"
     check(built.exists() and 'name="sffs-embed" content="dropoff-pickup@' in built.read_text(), "built page carries the sffs-embed version marker")
+    logo = SITE / "shared/dropoff-pickup/sffs-logo.png"
+    check(logo.exists() and logo.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n", "the logo is published beside the page (sffs-logo.png)")
     with sync_playwright() as p:
         embed_checks(p, d)
     print("\nRESULT:", "PASS" if not failures else f"FAIL ({len(failures)})")

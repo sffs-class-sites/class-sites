@@ -30,6 +30,7 @@ import style
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SRC = ROOT / "shared" / "dropoff-pickup" / "data.json"
 HOURS = ROOT / "shared" / "school-hours" / "data.json"
+LOGO = ROOT / "shared" / "dropoff-pickup" / "sffs-logo.png"   # the school's logo, white-text version, 480px wide
 OUT = ROOT / "_site" / "shared" / "dropoff-pickup"
 
 # Street diagram, 360 units wide. North is up. Guerrero x 24-58 (northbound lane x=49),
@@ -88,13 +89,15 @@ MAP = r"""
     <rect x="57" y="97" width="3" height="16"/><rect x="270" y="97" width="4" height="16"/><rect x="57" y="207" width="3" height="16"/><rect x="270" y="207" width="4" height="16"/></g>
   <!-- school -->
   <rect x="150" y="119" width="118" height="82" rx="3" fill="#3457a6"/>
-  <text x="209" y="141" class="t-school">Friends School</text>
-  <text x="209" y="154" class="t-addr">250 Valencia</text>
+  <!-- The school's own logo (its white-text version for dark backgrounds, from sffriendsschool.org), Ahin 2026-11-12.
+       The gate names sit on white pills below it so they stay the most prominent words on the building. -->
+  <image href="sffs-logo.png" x="155" y="122" width="108" height="34.2" preserveAspectRatio="xMidYMid meet"><title>San Francisco Friends School</title></image>
+  <text x="209" y="167" class="t-addr">250 Valencia</text>
   <rect x="266" y="172" width="5" height="10" fill="#fff"/>
-  <text x="262" y="181" class="t-gate">South Gate &#9656;</text>
+  <g class="gate" data-right="265"><rect x="205" y="171" width="59" height="13" rx="6.5"/><text x="234.5" y="181">South Gate &#9656;</text></g>
   <!-- Brosnan Gate: the middle of the school building on Brosnan (Ahin, 2026-11-12) -->
   <rect x="204" y="199" width="10" height="5" fill="#fff"/>
-  <text x="209" y="196" class="t-gate" style="text-anchor:middle">Brosnan Gate &#9662;</text>
+  <g class="gate" data-center="209"><rect x="176" y="186" width="66" height="13" rx="6.5"/><text x="209" y="196">Brosnan Gate &#9662;</text></g>
   <!-- street names -->
   <g class="t-street">
     <text x="150" y="32" text-anchor="middle">Duboce</text>
@@ -178,9 +181,9 @@ a.full[hidden]{display:none}
 figure{margin:0}
 #map{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:10px;background:#e8ecf1}
 #map [hidden]{display:none}
-.t-school{font:700 12.5px sans-serif;fill:#fff;text-anchor:middle}
-.t-addr{font:10px sans-serif;fill:#dfe7fa;text-anchor:middle}
-.t-gate{font:700 10px sans-serif;fill:#fff;text-anchor:end}
+.t-addr{font:600 9px sans-serif;fill:#eef2fb;text-anchor:middle}
+.gate rect{fill:#fff;stroke:#1d3d7a;stroke-width:.8}
+.gate text{font:800 9.5px sans-serif;fill:#14306b;text-anchor:middle}
 .t-street text{font:600 10px sans-serif;fill:#4b5563;paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round}
 .t-n{font:700 9.5px sans-serif;fill:#6b7280}
 .t-wait{font:700 10px sans-serif;fill:var(--wait)}
@@ -376,6 +379,14 @@ footer{margin-top:16px;font-size:.8rem;color:var(--sub)}
   fill($('always'), DATA.always.map(card));
   $('foot').textContent = 'From the school’s ' + DATA.source_title + '. The map is a simplified diagram, not to scale. Updated ' + DATA.updated_label + '.';
 
+  /* Gate pills: fit each white pill to its text as this device's font draws it (fonts differ in width),
+     the South Gate pill flush right against the gate, the Brosnan Gate pill centred over its gate. */
+  Array.prototype.forEach.call(document.querySelectorAll('#map .gate'), function(g){
+    var t = g.querySelector('text'), r = g.querySelector('rect'), bb = t.getBBox(), wdt = bb.width + 8;
+    var x = g.getAttribute('data-right') ? +g.getAttribute('data-right') - wdt : +g.getAttribute('data-center') - wdt / 2;
+    r.setAttribute('x', x); r.setAttribute('width', wdt); t.setAttribute('x', x + wdt / 2);
+  });
+
   /* Reduced motion: no moving cars; park each one at its stop instead. */
   if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) {
     Array.prototype.forEach.call(document.querySelectorAll('#map animateMotion'), function(a){ a.parentNode.removeChild(a); });
@@ -448,7 +459,7 @@ def load():
 
 
 def build(data, hours, raw):
-    version = f"{data['updated']}.{hashlib.sha256(raw + MAP.encode()).hexdigest()[:8]}"
+    version = f"{data['updated']}.{hashlib.sha256(raw + MAP.encode() + LOGO.read_bytes()).hexdigest()[:8]}"
     y, m, d = (int(x) for x in data["updated"].split("-"))
     public = {k: v for k, v in data.items() if not k.startswith("_")}
     public["hours"] = hours
@@ -469,6 +480,7 @@ def main():
     page, version = build(data, hours, raw)
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "index.html").write_text(page)
+    (OUT / LOGO.name).write_bytes(LOGO.read_bytes())   # the map's <image href="sffs-logo.png"> loads it from beside the page
     print(f"dropoff-pickup@{version} -> {OUT / 'index.html'} ({len(page)} bytes)")
 
 
