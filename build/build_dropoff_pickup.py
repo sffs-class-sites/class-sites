@@ -46,6 +46,29 @@ MAP = r"""
     <pattern id="hatch-wait" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
       <rect width="6" height="6" fill="#fff1cf"/><rect width="2.4" height="6" fill="#e0a21b"/>
     </pattern>
+    <!-- The cars, seen from above, front to the right (+x): animateMotion's rotate="auto" turns them along the route.
+         Generic silhouettes Ahin asked for (2026-11-12): a boxy two-door 4x4 with a spare on the back, a split-window
+         camper bus, and a long-hood convertible with the top down. No badges or logos. -->
+    <g id="car-bronco">
+      <rect x="-11" y="-6" width="22" height="12" rx="2" fill="#2b7a78" stroke="#fff" stroke-width="1.2"/>
+      <rect x="-8" y="-4.6" width="9.5" height="9.2" rx="1" fill="#f4f1ea"/>
+      <rect x="2.2" y="-4.6" width="2.6" height="9.2" rx=".8" fill="#1f2937"/>
+      <circle cx="-12.3" cy="0" r="3.3" fill="#1f2937" stroke="#fff" stroke-width="1"/>
+    </g>
+    <g id="car-vw-bus">
+      <rect x="-13" y="-6" width="26" height="12" rx="4.5" fill="#e4572e" stroke="#fff" stroke-width="1.2"/>
+      <rect x="-11" y="-4.4" width="18" height="8.8" rx="2.5" fill="#f4f1ea"/>
+      <path d="M-8,-2.8 V2.8 M-4,-2.8 V2.8 M0,-2.8 V2.8" stroke="#c9c2b3" stroke-width=".9"/>
+      <path d="M8.6,-4.4 Q11.6,0 8.6,4.4" fill="none" stroke="#1f2937" stroke-width="2.2"/>
+    </g>
+    <g id="car-mustang">
+      <path d="M-12,-5 Q-13,0 -12,5 H9 Q13,4 13,0 Q13,-4 9,-5 Z" fill="#c8102e" stroke="#fff" stroke-width="1.2"/>
+      <rect x="-6.5" y="-4" width="8.5" height="8" rx="2" fill="#2b1d1d"/>
+      <rect x="-5.5" y="-3.2" width="3.2" height="2.6" rx=".8" fill="#a07a5f"/>
+      <rect x="-5.5" y=".6" width="3.2" height="2.6" rx=".8" fill="#a07a5f"/>
+      <path d="M3,-4.2 Q4.6,0 3,4.2" fill="none" stroke="#cfe3f2" stroke-width="1.4"/>
+      <path d="M4.6,-1.2 H12.4 M4.6,1.2 H12.4 M-12.2,-1.2 H-7 M-12.2,1.2 H-7" stroke="#fff" stroke-width="1"/>
+    </g>
   </defs>
   <rect x="0" y="0" width="360" height="250" fill="#e8ecf1"/>
   <!-- roads -->
@@ -88,9 +111,9 @@ MAP = r"""
     <path class="route" d="M282,0 V250"/>
     <path class="route" d="M74,40 H282"/>
     <g class="arrow"><path d="M222,40 l-9,-6 v12z"/><path d="M282,116 l-6,-9 h12z"/><path d="M282,236 l-6,-9 h12z"/></g>
-    <g class="car"><rect x="-7" y="-4" width="14" height="8" rx="3"/>
-      <animateMotion dur="7s" begin="3.5s" repeatCount="indefinite" rotate="auto" calcMode="linear" path="M74,40 H282 V262" keyPoints="0;0.763;0.763;1" keyTimes="0;0.5;0.72;1"/></g>
-    <g class="car"><rect x="-7" y="-4" width="14" height="8" rx="3"/>
+    <g class="car" data-model="vw-bus"><use href="#car-vw-bus"/>
+      <animateMotion dur="7s" begin="-3.5s" repeatCount="indefinite" rotate="auto" calcMode="linear" path="M74,40 H282 V262" keyPoints="0;0.763;0.763;1" keyTimes="0;0.5;0.72;1"/></g>
+    <g class="car" data-model="bronco"><use href="#car-bronco"/>
       <animateMotion dur="7s" repeatCount="indefinite" rotate="auto" calcMode="linear" path="M282,-12 V262" keyPoints="0;0.628;0.628;1" keyTimes="0;0.42;0.72;1"/></g>
     <g class="pin"><circle cx="301" cy="30" r="8.5"/><text x="301" y="34">1</text></g>
     <g class="pin"><circle cx="301" cy="72" r="8.5"/><text x="301" y="76">2</text></g>
@@ -106,7 +129,7 @@ MAP = r"""
     <rect x="268" y="130" width="7" height="60" rx="3" class="island"/>
     <path class="route" d="M49,250 V105 H282 V250"/>
     <g class="arrow"><path d="M49,150 l-6,9 h12z"/><path d="M175,105 l-9,-6 v12z"/><path d="M282,236 l-6,-9 h12z"/></g>
-    <g class="car"><rect x="-7" y="-4" width="14" height="8" rx="3"/>
+    <g class="car" data-model="mustang"><use href="#car-mustang"/>
       <animateMotion dur="10s" repeatCount="indefinite" rotate="auto" calcMode="linear" path="M49,262 V105 H282 V262" keyPoints="0;0.47;0.47;0.814;0.814;1" keyTimes="0;0.27;0.45;0.62;0.86;1"/></g>
     <g class="pin"><circle cx="215" cy="105" r="8.5"/><text x="215" y="109">1</text></g>
     <g class="pin"><circle cx="301" cy="160" r="8.5"/><text x="301" y="164">2</text></g>
@@ -153,7 +176,6 @@ figure{margin:0}
 .island{fill:var(--go);stroke:#fff;stroke-width:1.5}
 .route{fill:none;stroke:var(--go);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
 .arrow path{fill:#fff;stroke:var(--go);stroke-width:1.6;stroke-linejoin:round}
-.car rect{fill:#111827;stroke:#fff;stroke-width:1.5}
 .pin circle{fill:#111827;stroke:#fff;stroke-width:1.5}
 .pin text{font:700 11px sans-serif;fill:#fff;text-anchor:middle}
 .legend{display:flex;flex-wrap:wrap;gap:4px 14px;margin:8px 0 0;padding:0;list-style:none;font-size:.8rem;color:var(--sub)}
@@ -345,8 +367,10 @@ footer{margin-top:16px;font-size:.8rem;color:var(--sub)}
   /* Reduced motion: no moving cars; park each one at its stop instead. */
   if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) {
     Array.prototype.forEach.call(document.querySelectorAll('#map animateMotion'), function(a){ a.parentNode.removeChild(a); });
-    document.querySelector('#m-morning .car').setAttribute('transform', 'translate(282 160) rotate(90)');
-    document.querySelector('#m-afternoon .car').setAttribute('transform', 'translate(282 160) rotate(90)');
+    /* One car parked at the loading island per mode (the Bronco in the morning, the Mustang in the afternoon); the bus is hidden. */
+    document.querySelector('#m-morning [data-model="bronco"]').setAttribute('transform', 'translate(282 160) rotate(90)');
+    document.querySelector('#m-morning [data-model="vw-bus"]').setAttribute('display', 'none');
+    document.querySelector('#m-afternoon [data-model="mustang"]').setAttribute('transform', 'translate(282 160) rotate(90)');
   }
 
   /* Inside a Site the frame is small on a phone: offer the same page in its own tab. */
