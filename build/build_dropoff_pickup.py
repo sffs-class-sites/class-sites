@@ -47,19 +47,24 @@ MAP = r"""
       <rect width="6" height="6" fill="#fff1cf"/><rect width="2.4" height="6" fill="#e0a21b"/>
     </pattern>
     <!-- The cars, seen from above, front to the right (+x): animateMotion's rotate="auto" turns them along the route.
-         Generic silhouettes Ahin asked for (2026-11-12): a boxy two-door 4x4 with a spare on the back, a split-window
-         camper bus, and a long-hood convertible with the top down. No badges or logos. -->
+         Generic silhouettes Ahin asked for (2026-11-12): a blue boxy two-door 4x4 with a spare on the back (Bronco), a
+         black Mini Cooper with the Indian flag painted on its roof, and a red convertible with the top down. No badges or logos. -->
     <g id="car-bronco">
-      <rect x="-11" y="-6" width="22" height="12" rx="2" fill="#2b7a78" stroke="#fff" stroke-width="1.2"/>
+      <rect x="-11" y="-6" width="22" height="12" rx="2" fill="#1d5fb4" stroke="#fff" stroke-width="1.2"/>
       <rect x="-8" y="-4.6" width="9.5" height="9.2" rx="1" fill="#f4f1ea"/>
       <rect x="2.2" y="-4.6" width="2.6" height="9.2" rx=".8" fill="#1f2937"/>
       <circle cx="-12.3" cy="0" r="3.3" fill="#1f2937" stroke="#fff" stroke-width="1"/>
     </g>
-    <g id="car-vw-bus">
-      <rect x="-13" y="-6" width="26" height="12" rx="4.5" fill="#e4572e" stroke="#fff" stroke-width="1.2"/>
-      <rect x="-11" y="-4.4" width="18" height="8.8" rx="2.5" fill="#f4f1ea"/>
-      <path d="M-8,-2.8 V2.8 M-4,-2.8 V2.8 M0,-2.8 V2.8" stroke="#c9c2b3" stroke-width=".9"/>
-      <path d="M8.6,-4.4 Q11.6,0 8.6,4.4" fill="none" stroke="#1f2937" stroke-width="2.2"/>
+    <g id="car-mini">
+      <rect x="-10.5" y="-6" width="21" height="12" rx="3.6" fill="#111111" stroke="#fff" stroke-width="1.2"/>
+      <!-- the roof: the Indian flag, saffron / white / green with the navy Ashoka Chakra, upright when the car faces right -->
+      <rect x="-7.8" y="-4.6" width="10.8" height="3.07" fill="#ff9933"/>
+      <rect x="-7.8" y="-1.53" width="10.8" height="3.06" fill="#ffffff"/>
+      <rect x="-7.8" y="1.53" width="10.8" height="3.07" fill="#138808"/>
+      <circle cx="-2.4" cy="0" r="1.25" fill="none" stroke="#000080" stroke-width=".55"/>
+      <circle cx="-2.4" cy="0" r=".35" fill="#000080"/>
+      <rect x="4" y="-4.4" width="2.4" height="8.8" rx=".8" fill="#8fa9bf"/>
+      <circle cx="9.2" cy="-3.7" r="1" fill="#fde68a"/><circle cx="9.2" cy="3.7" r="1" fill="#fde68a"/>
     </g>
     <g id="car-mustang">
       <path d="M-12,-5 Q-13,0 -12,5 H9 Q13,4 13,0 Q13,-4 9,-5 Z" fill="#c8102e" stroke="#fff" stroke-width="1.2"/>
@@ -111,7 +116,7 @@ MAP = r"""
     <path class="route" d="M282,0 V250"/>
     <path class="route" d="M74,40 H282"/>
     <g class="arrow"><path d="M222,40 l-9,-6 v12z"/><path d="M282,116 l-6,-9 h12z"/><path d="M282,236 l-6,-9 h12z"/></g>
-    <g class="car" data-model="vw-bus"><use href="#car-vw-bus"/>
+    <g class="car" data-model="mini"><use href="#car-mini"/>
       <animateMotion dur="7s" begin="-3.5s" repeatCount="indefinite" rotate="auto" calcMode="linear" path="M74,40 H282 V262" keyPoints="0;0.763;0.763;1" keyTimes="0;0.5;0.72;1"/></g>
     <g class="car" data-model="bronco"><use href="#car-bronco"/>
       <animateMotion dur="7s" repeatCount="indefinite" rotate="auto" calcMode="linear" path="M282,-12 V262" keyPoints="0;0.628;0.628;1" keyTimes="0;0.42;0.72;1"/></g>
@@ -367,9 +372,9 @@ footer{margin-top:16px;font-size:.8rem;color:var(--sub)}
   /* Reduced motion: no moving cars; park each one at its stop instead. */
   if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) {
     Array.prototype.forEach.call(document.querySelectorAll('#map animateMotion'), function(a){ a.parentNode.removeChild(a); });
-    /* One car parked at the loading island per mode (the Bronco in the morning, the Mustang in the afternoon); the bus is hidden. */
+    /* One car parked at the loading island per mode (the Bronco in the morning, the convertible in the afternoon); the Mini is hidden. */
     document.querySelector('#m-morning [data-model="bronco"]').setAttribute('transform', 'translate(282 160) rotate(90)');
-    document.querySelector('#m-morning [data-model="vw-bus"]').setAttribute('display', 'none');
+    document.querySelector('#m-morning [data-model="mini"]').setAttribute('display', 'none');
     document.querySelector('#m-afternoon [data-model="mustang"]').setAttribute('transform', 'translate(282 160) rotate(90)');
   }
 

@@ -116,7 +116,7 @@ def embed_checks(p, d):
                   f"{tag}: each rule has a drawn mark at least 22px wide, a white X on red or a white check on green")
             check(st["pins"] == [str(i + 1) for i in range(len(m["steps"]))], f"{tag}: one numbered pin per step ({st['pins']})")
             check(st["cars"] == (2 if mode == "morning" else 1), f"{tag}: {'two cars (down Valencia, and from Duboce)' if mode == 'morning' else 'one car'} on the route")
-            check(st["models"] == ["vw-bus:true", "bronco:true", "mustang:true"], f"{tag}: three different cars, each drawn from its own silhouette ({st['models']})")
+            check(st["models"] == ["mini:true", "bronco:true", "mustang:true"], f"{tag}: three different cars, each drawn from its own silhouette ({st['models']})")
             check(st["legend"][0] == "SFFS Route", f"{tag}: legend calls the route 'SFFS Route'")
             check(st["bullets"] == [c["h"] for c in m["cards"] + d["always"] if c.get("bullets")], f"{tag}: bulleted cards are the ones the data marks ({len(st['bullets'])})")
             want = [[r["label"], r["regular"]["start"]] if mode == "morning" else [r["label"], r["regular"]["end"], r["wednesday"]["end"]] for r in hours]
