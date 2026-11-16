@@ -9,7 +9,7 @@
   "last_day": "2027-06-09",
   "end_year": 2027
  },
- "built_through": "2026-11-12",
+ "built_through": "2026-11-16",
  "log": {
   "note": "Full text of every email lives in Google Docs in the bot's Drive, one document per stream per school year. Each email is a dated heading; the pipeline fills doc_url and the per-source anchor once the documents exist.",
   "docs": {
@@ -590,6 +590,12 @@
    "stream": "circle-back",
    "date": "2026-11-12",
    "subject": "SFFS Circle Back: November 12, 2026"
+  },
+  {
+   "id": "t1-1116",
+   "stream": "teachers-1",
+   "date": "2026-11-16",
+   "subject": "Field Trip to Slide Ranch December 4, 2026"
   }
  ],
  "topics": [
@@ -2643,6 +2649,41 @@
      "source": "t1-1106",
      "date": "2026-11-06",
      "note": "Chaperones confirmed. Details added: Arrive by 8:30, packed lunch (no Choice Lunch that day), walking shoes and a rain layer, back by 2:00."
+    }
+   ]
+  },
+  {
+   "id": "g1-field-trip-slide-ranch-2026-12-04",
+   "kind": "event",
+   "audience": [
+    "1"
+   ],
+   "title": "1st grade field trip: Slide Ranch",
+   "summary": "Field trip to Slide Ranch on Fri Dec 4, an educational farm on the coast about 30 minutes north of the Golden Gate Bridge. Fill out the online participation waiver before Dec 2. Students may milk a goat, feed chickens, plant in the garden, hike or explore tide pools. Dress in layers with a hat and windbreaker, clothes that can get dirty and sturdy closed-toe shoes (required); a rain jacket or rain pants and sunscreen are recommended. Pack lunch, snacks and a reusable water bottle in reusable containers: Lunch is not provided, and all trash comes home. Do a tick check when your child gets home. Teachers will draw 2–3 chaperones with a wheel of names and contact them directly.",
+   "when": {
+    "date": "2026-12-04",
+    "location": "Slide Ranch"
+   },
+   "deadline": {
+    "date": "2026-12-01",
+    "what": "Fill out the Slide Ranch participation waiver (before Dec 2)"
+   },
+   "action": "Fill out the waiver",
+   "links": [
+    {
+     "label": "Slide Ranch waiver (English)",
+     "url": "https://docs.google.com/forms/d/e/1FAIpQLSfXD15vgD_D0MGwiL4oye-VfSvZOsOZ0a_vFUw69h8H6N7Yjw/viewform"
+    },
+    {
+     "label": "Slide Ranch waiver (Spanish)",
+     "url": "https://docs.google.com/forms/d/e/1FAIpQLSeK54mNWxs5Z2KN-G4aexKCwuXWHBjO9pfGyShBAka9hO_sfQ/viewform"
+    }
+   ],
+   "updates": [
+    {
+     "source": "t1-1116",
+     "date": "2026-11-16",
+     "note": "Announced, with the waiver form due before Dec 2. Chaperones will be drawn by the teachers."
     }
    ]
   },
