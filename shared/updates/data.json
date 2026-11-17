@@ -9,7 +9,7 @@
   "last_day": "2027-06-09",
   "end_year": 2027
  },
- "built_through": "2026-11-16",
+ "built_through": "2026-11-17",
  "log": {
   "note": "Full text of every email lives in Google Docs in the bot's Drive, one document per stream per school year. Each email is a dated heading; the pipeline fills doc_url and the per-source anchor once the documents exist.",
   "docs": {
@@ -596,6 +596,12 @@
    "stream": "teachers-1",
    "date": "2026-11-16",
    "subject": "Field Trip to Slide Ranch December 4, 2026"
+  },
+  {
+   "id": "d3-1117",
+   "stream": "digest-3",
+   "date": "2026-11-17",
+   "subject": "SFFS 3rd Grade | Room Parent Digest | 11-17-26"
   }
  ],
  "topics": [
@@ -2540,7 +2546,7 @@
    "kind": "volunteer",
    "audience": "lower",
    "title": "Volunteer with Lower School art",
-   "summary": "Weekly Thursday shifts prepping materials and mounting student work with art teacher Yara. No art experience needed.",
+   "summary": "Weekly Thursday shifts prepping materials and mounting student work with art teacher Yara. No art experience needed. A few more parents are wanted on Thu Nov 19 to hang 3rd and 4th grade art before GrandFriends Day; use the same sign-up.",
    "links": [
     {
      "label": "Thursday prep shifts",
@@ -2557,6 +2563,11 @@
      "source": "d1-0922",
      "date": "2026-09-22",
      "note": "Announced in both grade digests."
+    },
+    {
+     "source": "d3-1117",
+     "date": "2026-11-17",
+     "note": "Extra help wanted Thu Nov 19 to hang 3rd and 4th grade art for GrandFriends Day."
     }
    ]
   },
@@ -3955,6 +3966,46 @@
      "source": "sc-1110",
      "date": "2026-11-10",
      "note": "Announced, with RSVP form."
+    }
+   ]
+  },
+  {
+   "id": "g3-ice-skating-playdate-2026-12-18",
+   "kind": "event",
+   "audience": [
+    "3"
+   ],
+   "title": "3rd grade ice skating playdate",
+   "summary": "Save the date: An ice skating playdate for 3rd grade families at Yerba Buena Skating Rink, straight after Winter Celebration on Fri Dec 18 (an early dismissal day).",
+   "when": {
+    "date": "2026-12-18",
+    "location": "Yerba Buena Skating Rink"
+   },
+   "updates": [
+    {
+     "source": "d3-1117",
+     "date": "2026-11-17",
+     "note": "Save the date."
+    }
+   ]
+  },
+  {
+   "id": "community-mfw-2026-12-02",
+   "kind": "event",
+   "audience": "all",
+   "title": "Coffee Under the Awning + Community Meeting for Worship",
+   "summary": "Coffee under the awning from 8:15, then Community Meeting for Worship 8:45–9:15.",
+   "when": {
+    "date": "2026-12-02",
+    "start_time": "08:15",
+    "end_time": "09:15",
+    "location": "Yard and Meeting Room"
+   },
+   "updates": [
+    {
+     "source": "d3-1117",
+     "date": "2026-11-17",
+     "note": "Announced in the 3rd grade digest."
     }
    ]
   }
