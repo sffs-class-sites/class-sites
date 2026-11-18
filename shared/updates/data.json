@@ -9,7 +9,7 @@
   "last_day": "2027-06-09",
   "end_year": 2027
  },
- "built_through": "2026-11-17",
+ "built_through": "2026-11-18",
  "log": {
   "note": "Full text of every email lives in Google Docs in the bot's Drive, one document per stream per school year. Each email is a dated heading; the pipeline fills doc_url and the per-source anchor once the documents exist.",
   "docs": {
@@ -602,6 +602,12 @@
    "stream": "digest-3",
    "date": "2026-11-17",
    "subject": "SFFS 3rd Grade | Room Parent Digest | 11-17-26"
+  },
+  {
+   "id": "sc-1118",
+   "stream": "school",
+   "date": "2026-11-18",
+   "subject": "[SFFS] Preventive Lice Check"
   }
  ],
  "topics": [
@@ -4006,6 +4012,34 @@
      "source": "d3-1117",
      "date": "2026-11-17",
      "note": "Announced in the 3rd grade digest."
+    }
+   ]
+  },
+  {
+   "id": "lice-check-2026-12-02",
+   "kind": "event",
+   "audience": "all",
+   "title": "Preventive head lice check for all students",
+   "summary": "Hair Fairies will be at school on Wednesday, December 2, after Fall Break, to check every student for head lice, one at a time for privacy. The school tells you if your child has a confirmed case; the student is not told. The check is optional: Tell Nurse Ann if you do not want your child checked. Remind children not to share hats or hair accessories, and tie long hair back in a ponytail or braid.",
+   "when": {
+    "date": "2026-12-02",
+    "location": "SFFS"
+   },
+   "links": [
+    {
+     "label": "Hair Fairies",
+     "url": "https://hairfairies.com/"
+    },
+    {
+     "label": "Head lice fact sheet (California Department of Health)",
+     "url": "https://drive.google.com/file/d/1hg8LXCkndJpHZKoo6KXNz3z6q03IG_e5/view"
+    }
+   ],
+   "updates": [
+    {
+     "source": "sc-1118",
+     "date": "2026-11-18",
+     "note": "Announced by the school nurse."
     }
    ]
   }
