@@ -614,6 +614,12 @@
    "stream": "school",
    "date": "2026-11-19",
    "subject": "[SFFS] Adjustable Tuition Application for 2027-28"
+  },
+  {
+   "id": "sc-1119b",
+   "stream": "school",
+   "date": "2026-11-19",
+   "subject": "[SFFS] An Update on Today’s Power Outage"
   }
  ],
  "topics": [
@@ -4079,6 +4085,24 @@
      "source": "sc-1119",
      "date": "2026-11-19",
      "note": "Announced. Due January 8, 2027; Clarity webinar December 8 at 5:30 pm."
+    }
+   ]
+  },
+  {
+   "id": "power-outage-early-release-2026-11-18",
+   "kind": "notice",
+   "audience": "all",
+   "title": "Power outage and early release (Nov 18)",
+   "summary": "School released early on Wed Nov 18 because of a prolonged power outage. Power is back on and students return on Thu Nov 19. Why the school closed: PG&E gave no time for restoring power beyond \"by tomorrow\", and besides the lack of light and heat, the fire alarm, security and emergency lighting were on backup power that only lasts a limited time, which together with school fire-code rules led to the early release. The school is looking at backup systems that would keep those safety systems running longer, and at other ways to stay open when power is expected back within a reasonable time. Uneaten ChoiceLunch meals were donated to Huckleberry House and Larkin Street Youth Services. GrandFriends Day on Fri Nov 20 goes ahead.",
+   "when": {
+    "date": "2026-11-18",
+    "location": "SFFS"
+   },
+   "updates": [
+    {
+     "source": "sc-1119b",
+     "date": "2026-11-19",
+     "note": "Sent the evening of the outage: Power restored, school open Thu Nov 19, and the reasons for the early release."
     }
    ]
   }
