@@ -9,7 +9,7 @@
   "last_day": "2027-06-09",
   "end_year": 2027
  },
- "built_through": "2026-11-18",
+ "built_through": "2026-11-19",
  "log": {
   "note": "Full text of every email lives in Google Docs in the bot's Drive, one document per stream per school year. Each email is a dated heading; the pipeline fills doc_url and the per-source anchor once the documents exist.",
   "docs": {
@@ -608,6 +608,12 @@
    "stream": "school",
    "date": "2026-11-18",
    "subject": "[SFFS] Preventive Lice Check"
+  },
+  {
+   "id": "sc-1119",
+   "stream": "school",
+   "date": "2026-11-19",
+   "subject": "[SFFS] Adjustable Tuition Application for 2027-28"
   }
  ],
  "topics": [
@@ -4040,6 +4046,39 @@
      "source": "sc-1118",
      "date": "2026-11-18",
      "note": "Announced by the school nurse."
+    }
+   ]
+  },
+  {
+   "id": "adjustable-tuition-application-2027-28",
+   "kind": "deadline",
+   "audience": "all",
+   "title": "Adjustable Tuition application for 2027-28",
+   "summary": "The Adjustable Tuition application for 2027-28 is open in Clarity: Log in to your account, or register if you are new. Complete it by Friday, January 8, 2027. Your 2025 1040 and W-2 transfer automatically from the IRS at the verification step. Current-year tax returns are needed only if your finances changed significantly; those families may be asked for their 2025 federal return and schedules by February 1, 2027. Clarity hosts a webinar on completing the application on Tuesday, December 8 at 5:30 pm, online; the registration link is in the email.",
+   "deadline": {
+    "date": "2027-01-08",
+    "what": "Complete the Adjustable Tuition application in Clarity"
+   },
+   "action": "Apply",
+   "links": [
+    {
+     "label": "About the Adjustable Tuition application",
+     "url": "https://www.sffriendsschool.org/admissions/tuition/adjustable-tuition/adjustable-tuition"
+    },
+    {
+     "label": "Clarity (log in)",
+     "url": "https://app.clarityapp.com/sign-in"
+    },
+    {
+     "label": "Clarity (register)",
+     "url": "https://app.clarityapp.com/sign-up"
+    }
+   ],
+   "updates": [
+    {
+     "source": "sc-1119",
+     "date": "2026-11-19",
+     "note": "Announced. Due January 8, 2027; Clarity webinar December 8 at 5:30 pm."
     }
    ]
   }
