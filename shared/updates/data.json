@@ -620,6 +620,12 @@
    "stream": "school",
    "date": "2026-11-19",
    "subject": "[SFFS] An Update on Today’s Power Outage"
+  },
+  {
+   "id": "cb-1119",
+   "stream": "circle-back",
+   "date": "2026-11-19",
+   "subject": "SFFS Circle Back: November 19, 2026"
   }
  ],
  "topics": [
@@ -1289,14 +1295,14 @@
    "kind": "event",
    "audience": "all",
    "title": "GrandFriends Day",
-   "summary": "Grandparents and special friends visit on Fri Nov 20: Welcome reception and student performances in the Gym at 10:00, then classroom visits, wrapping up at 11:30. RSVP by Mon Nov 16, up to four GrandFriends per student. Nov 20 is an early dismissal day for all students at 11:30; ED/A3 available, bring a lunch (no ChoiceLunch). Fill in the dismissal form so the school knows how your child gets home. Parents can volunteer for the day through a form. 1st and 2nd graders dance in the program: Dress them in black pants and a white top, with comfortable, secure shoes that are not slippery, and avoid dresses (the dance has kneeling and moving up and down). 1st grade: Tell the teachers if your child will not have a GrandFriend there.",
+   "summary": "Grandparents and special friends visit on Fri Nov 20: Welcome reception and student performances in the Gym at 10:00, then classroom visits, wrapping up at 11:30. Registration is full and closed: No more attendees can be added. If you registered, fill in the dismissal form so the school knows how your child gets home. Nov 20 is an early dismissal day for all students at 11:30; ED/A3 available, bring a lunch (no ChoiceLunch). 1st and 2nd graders dance in the program: Dress them in black pants and a white top, with comfortable, secure shoes that are not slippery, and avoid dresses (the dance has kneeling and moving up and down). 1st grade: Tell the teachers if your child will not have a GrandFriend there. Questions: See the FAQ or write to Viv Racz (vracz@sffriendsschool.org).",
    "when": {
     "date": "2026-11-20",
     "start_time": "10:00",
     "location": "Gym and classrooms",
     "end_time": "11:30"
    },
-   "action": "RSVP",
+   "action": "Fill in the dismissal form",
    "links": [
     {
      "label": "RSVP",
@@ -1354,6 +1360,11 @@
      "source": "cb-1112",
      "date": "2026-11-12",
      "note": "The attire note now covers 1st and 2nd grade."
+    },
+    {
+     "source": "cb-1119",
+     "date": "2026-11-19",
+     "note": "Registration is at capacity and closed; if you registered, fill in the dismissal form."
     }
    ],
    "deadline": {
@@ -1451,7 +1462,7 @@
    "kind": "event",
    "audience": "all",
    "title": "Winter Celebration",
-   "summary": "A school tradition on Fri Dec 18 in the SFFS Gym. All parents and guardians are welcome; because it is so popular, only parents and guardians please, to stay within the gym's capacity. Early dismissal day; ED/A3 available.",
+   "summary": "A school tradition on Fri Dec 18 in the SFFS Gym. All parents and guardians are welcome; because it is so popular, only parents and guardians please, to stay within the gym's capacity. Early dismissal day; ED/A3 available. Students wear a white shirt or top and black or navy pants for the performance.",
    "when": {
     "date": "2026-12-18",
     "location": "SFFS Gym"
@@ -1462,6 +1473,11 @@
      "source": "cb-1112",
      "date": "2026-11-12",
      "note": "Save the date; parents and guardians only."
+    },
+    {
+     "source": "cb-1119",
+     "date": "2026-11-19",
+     "note": "Attire added: White top, black or navy pants."
     }
    ]
   },
@@ -1470,7 +1486,7 @@
    "kind": "event",
    "audience": "all",
    "title": "SFFS Craft Fair",
-   "summary": "A festive bazaar of crafts and food made by the community, open to all (invite family and friends), with a Sporting Gear Swap, a 4th grade cafe and a service project assembling hygiene kits with Simply the Basics. Middle Schoolers, parents from every grade, faculty and staff can sell: Sign up as a vendor by Fri Dec 4. Middle School vendors must attend training Fri Nov 13 at 11:45 in the Learning Commons.",
+   "summary": "A festive bazaar of crafts and food made by the community, open to all (invite family and friends; prospective families are invited too), with a Sporting Gear Swap, a 4th grade cafe and a PGA Service Committee table assembling 250 hygiene kits with Simply the Basics for neighbors in the Mission. You can sponsor items for the kits from a wishlist. Middle Schoolers, parents from every grade, faculty and staff can sell: Sign up as a vendor by Fri Dec 4. Middle School vendors must attend a training at 11:45 in the Learning Commons; it was announced for Fri Nov 13, and the Nov 19 email again says \"tomorrow\", so check the email.",
    "when": {
     "date": "2026-12-12",
     "start_time": "13:00",
@@ -1491,6 +1507,10 @@
     {
      "label": "Craft Fair information",
      "url": "https://sites.google.com/sffriendsschool.org/sffs-craft-fair-committee/home"
+    },
+    {
+     "label": "Hygiene kit wishlist",
+     "url": "https://www.amazon.com/hz/wishlist/ls/2056WF74KMK1I"
     }
    ],
    "updates": [
@@ -1503,6 +1523,11 @@
      "source": "cb-1105",
      "date": "2026-11-05",
      "note": "Time added: 1:00–4:00 pm."
+    },
+    {
+     "source": "cb-1119",
+     "date": "2026-11-19",
+     "note": "Service table: 250 hygiene kits; wishlist added for sponsoring supplies. The vendor training line again says \"tomorrow\"."
     }
    ]
   },
@@ -1592,7 +1617,7 @@
    "kind": "notice",
    "audience": "all",
    "title": "Annual Fund",
-   "summary": "Goal $1.2M. Every trustee and administrative leader has given, plus a third of faculty and staff. A class volunteer will be in touch. Latest: 30% of families, $450,000 raised (Nov 12).",
+   "summary": "Goal $1.2M. Every trustee and administrative leader has given, plus a third of faculty and staff. A class volunteer will be in touch. The school asks for a gift or pledge by Thu Dec 31. Latest: 35% of families, almost $550,000 raised (Nov 19).",
    "action": "Make a gift",
    "links": [
     {
@@ -1630,6 +1655,11 @@
      "source": "cb-1112",
      "date": "2026-11-12",
      "note": "30% of families; $450,000."
+    },
+    {
+     "source": "cb-1119",
+     "date": "2026-11-19",
+     "note": "35% of families; almost $550,000. Gift or pledge by Dec 31."
     }
    ],
    "pin": true
@@ -1706,7 +1736,7 @@
    "kind": "notice",
    "audience": "all",
    "title": "Admissions: Open House and school tours",
-   "summary": "Know a family who might be interested in Friends? Open House was Thu Oct 8; school tours run from Fri Oct 16 through mid-January, registration on Ravenna. Questions to José Zamora (jzamora@sffriendsschool.org) or Chloe Campbell (ccampbell@sffriendsschool.org).",
+   "summary": "Know a family who might be interested in Friends? School tours run through mid-January. Spots are still open for Coffees with Brenda, Community Conversations (parent-hosted admissions events), the Belonging Dinner on Wed Dec 9 and Quaker Values Night on Thu Jan 7, and prospective families are invited to the Craft Fair on Sat Dec 12. Applications are due Fri Dec 18 for Kindergarten and Fri Jan 22 for grades 1–8. Questions to José Zamora (jzamora@sffriendsschool.org) or Chloe Campbell (ccampbell@sffriendsschool.org).",
    "when": {
     "date": "2026-10-16",
     "end": "2027-01-15"
@@ -1727,6 +1757,11 @@
      "source": "cb-1008",
      "date": "2026-10-08",
      "note": "Open House done; tours continue."
+    },
+    {
+     "source": "cb-1119",
+     "date": "2026-11-19",
+     "note": "Application deadlines: Kindergarten Dec 18, grades 1–8 Jan 22. Belonging Dinner Dec 9 and Quaker Values Night Jan 7 still have spots."
     }
    ]
   },
@@ -1846,12 +1881,17 @@
    "kind": "notice",
    "audience": "all",
    "title": "Lost and Found",
-   "summary": "Missing water bottles or clothing? Check the Lost and Found on the first floor near room 118. Unclaimed items are donated over Winter Break.",
+   "summary": "Missing water bottles or clothing? Check the Lost and Found on the first floor near room 118. Racks will be out on the patio or in the lobby at ED/A3 dismissal and at Winter Celebration on Fri Dec 18. Unclaimed items are donated over Winter Break.",
    "updates": [
     {
      "source": "cb-1105",
      "date": "2026-11-05",
      "note": "Reminder; items donated over Winter Break."
+    },
+    {
+     "source": "cb-1119",
+     "date": "2026-11-19",
+     "note": "Racks will be out at ED/A3 dismissal and at Winter Celebration on Dec 18."
     }
    ]
   },
@@ -4093,7 +4133,7 @@
    "kind": "notice",
    "audience": "all",
    "title": "Power outage and early release (Nov 18)",
-   "summary": "School released early on Wed Nov 18 because of a prolonged power outage. Power is back on and students return on Thu Nov 19. Why the school closed: PG&E gave no time for restoring power beyond \"by tomorrow\", and besides the lack of light and heat, the fire alarm, security and emergency lighting were on backup power that only lasts a limited time, which together with school fire-code rules led to the early release. The school is looking at backup systems that would keep those safety systems running longer, and at other ways to stay open when power is expected back within a reasonable time. Uneaten ChoiceLunch meals were donated to Huckleberry House and Larkin Street Youth Services. GrandFriends Day on Fri Nov 20 goes ahead.",
+   "summary": "School released early on Wed Nov 18 because of a prolonged power outage. Power is back on and students return on Thu Nov 19. Why the school closed: PG&E gave no time for restoring power beyond \"by tomorrow\", and besides the lack of light and heat, the fire alarm, security and emergency lighting were on backup power that only lasts a limited time, which together with school fire-code rules led to the early release. The school is looking at backup systems that would keep those safety systems running longer, and at other ways to stay open when power is expected back within a reasonable time. Uneaten ChoiceLunch meals were donated to Huckleberry House and Larkin Street Youth Services. GrandFriends Day on Fri Nov 20 goes ahead. Families should have received an email, a text and a phone call about the outage and pick-up: If you did not get all three, check your contact details in the Family Portal and tell the school which ones were missing through its form.",
    "when": {
     "date": "2026-11-18",
     "location": "SFFS"
@@ -4103,6 +4143,55 @@
      "source": "sc-1119b",
      "date": "2026-11-19",
      "note": "Sent the evening of the outage: Power restored, school open Thu Nov 19, and the reasons for the early release."
+    },
+    {
+     "source": "cb-1119",
+     "date": "2026-11-19",
+     "note": "Did not get the email, text and call? Check your Family Portal contact details and fill in the form."
+    }
+   ],
+   "action": "Report a missed alert",
+   "links": [
+    {
+     "label": "Missed-alert form",
+     "url": "https://forms.gle/L8HVseUfBjhbwayT9"
+    },
+    {
+     "label": "Family Portal",
+     "url": "https://portals.veracross.com/sffs/parent"
+    }
+   ]
+  },
+  {
+   "id": "g7-book-club-2026-12-07",
+   "kind": "event",
+   "audience": [
+    "7"
+   ],
+   "title": "7th grade Parent/Student Book Club: The 57 Bus",
+   "summary": "All 7th graders and their parents or guardians read (or listen to) the same book, then come to school for an evening discussion. This time: The 57 Bus by Dashka Slater, a true story that raises ethical dilemmas and questions about gender, equity and criminal justice. Pizza and snacks are served. Please RSVP.",
+   "when": {
+    "date": "2026-12-07",
+    "start_time": "18:00",
+    "end_time": "19:30",
+    "location": "SFFS"
+   },
+   "action": "RSVP",
+   "links": [
+    {
+     "label": "RSVP",
+     "url": "https://docs.google.com/forms/d/e/1FAIpQLSd2e82ZCDr2ImqWQXzxr_X_OEGtz3fZzjTv-Bhq5OV2b3PoXw/viewform"
+    },
+    {
+     "label": "About the book",
+     "url": "https://www.kirkusreviews.com/book-reviews/dashka-slater/the-57-bus/"
+    }
+   ],
+   "updates": [
+    {
+     "source": "cb-1119",
+     "date": "2026-11-19",
+     "note": "Announced, with RSVP form."
     }
    ]
   }
